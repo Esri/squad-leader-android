@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="fill_parent"
@@ -12,4 +12,27 @@
 		android:layout_height="fill_parent"
 		initExtent = "7730000 3970000 8010000 4300000">
 	</com.esri.android.map.MapView>
-</LinearLayout>
+
+	<ImageButton
+	    android:id="@+id/imageButton_zoomIn"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="bottom|right"
+	    android:layout_marginRight="5dp"
+	    android:layout_marginBottom="60dp"
+	    android:background="@drawable/selector_zoom_in"
+	    android:contentDescription="@string/zoom_in"
+        android:onClick="imageButton_zoomIn_clicked"/>
+
+	<ImageButton
+	    android:id="@+id/imageButton_zoomOut"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="bottom|right"
+	    android:layout_marginRight="5dp"
+	    android:layout_marginBottom="5dp"
+	    android:background="@drawable/selector_zoom_out"
+	    android:contentDescription="@string/zoom_out"
+        android:onClick="imageButton_zoomOut_clicked"/>
+
+</FrameLayout>
