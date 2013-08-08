@@ -1,0 +1,11 @@
+{
+  "type": "position_report",
+  "layerName": "position_reports",
+  "renderer":
+  {
+    "type"           : "dictionary",
+    "description"    : "",
+    "dictionaryType" : "2525C",
+    "field" 	     : "sic"
+  }
+}
