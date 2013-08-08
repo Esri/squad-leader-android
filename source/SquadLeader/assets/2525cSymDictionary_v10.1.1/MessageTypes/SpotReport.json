@@ -1,0 +1,11 @@
+{
+  "type": "spot_report",
+  "layerName": "spot_reports",
+  "renderer":
+  {
+    "type"           : "dictionary",
+    "description"    : "",
+    "dictionaryType" : "2525C",
+    "field" 	     : "sic"
+  }
+}

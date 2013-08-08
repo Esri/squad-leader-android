@@ -4,4 +4,5 @@
     <string name="app_name">Squad Leader</string>
     <string name="zoom_in">Zoom In</string>
     <string name="zoom_out">Zoom Out</string>
+    <string name="sym_dict_dirname">2525cSymDictionary_v10.1.1</string>
 </resources>
