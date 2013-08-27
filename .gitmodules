@@ -1,0 +1,3 @@
+[submodule "military-apps-library-java"]
+	path = military-apps-library-java
+	url = https://github.com/ArcGIS/military-apps-library-java.git
