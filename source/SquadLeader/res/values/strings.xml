@@ -5,4 +5,7 @@
     <string name="zoom_in">Zoom In</string>
     <string name="zoom_out">Zoom Out</string>
     <string name="sym_dict_dirname">2525cSymDictionary_v10.1.1</string>
+    <string name="map_config_prefname">mapconfig</string>
+    <string name="squad_leader_home_dir">/mnt/sdcard/SquadLeader</string>
+    <string name="map_config_filename">mapconfig.xml</string>
 </resources>
