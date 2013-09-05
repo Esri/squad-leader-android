@@ -42,7 +42,7 @@ public class SquadLeaderActivity extends Activity {
         setContentView(R.layout.main);
 
         MapView mapView = (MapView) findViewById(R.id.map);
-        mapController = new MapController(mapView);
+        mapController = new MapController(mapView, getAssets());
         try {
             mil2525cController = new AdvancedSymbologyController(
                     mapController,
