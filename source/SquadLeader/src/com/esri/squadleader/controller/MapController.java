@@ -52,6 +52,7 @@ public class MapController {
     private static final String TAG = MapController.class.getSimpleName();
 
     private final MapView mapView;
+    private final AssetManager assetManager;
     private final List<BasemapLayer> basemapLayers = new ArrayList<BasemapLayer>();
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private AdvancedSymbologyController advancedSymbologyController = null;
@@ -62,6 +63,21 @@ public class MapController {
      */
     public MapController(MapView mapView, AssetManager assetManager) {
         this.mapView = mapView;
+        this.assetManager = assetManager;
+        reloadMapConfig();
+    }
+    
+    /**
+     * Loads a map configuration using one of the following approaches, trying each approach in order
+     * until one of them works.
+     * <ol>
+     * <li>Check for existing user preferences and use those.</li>
+     * <li>Check for /mnt/sdcard/SquadLeader/mapconfig.xml and parse that with MapConfigReader.</li>
+     * <li>Use mapconfig.xml built into the app.</li>
+     * </ol>
+     */
+    public void reloadMapConfig() {
+        mapView.removeAll();
         
         /**
          * Load a map configuration using one of these approaches. Try the first on the list and try each
@@ -129,9 +145,7 @@ public class MapController {
             for (BasemapLayerInfo layerInfo : mapConfig.getBasemapLayers()) {
                 Layer layer = createLayer(layerInfo);
                 if (null != layer) {
-                    addLayer(layer);
-                    BasemapLayer basemapLayer = new BasemapLayer(layer, layerInfo.getThumbnailUrl());
-                    basemapLayers.add(basemapLayer);
+                    addBasemapLayer(new BasemapLayer(layer, layerInfo.getThumbnailUrl()));
                 }
             }
             
@@ -139,7 +153,6 @@ public class MapController {
                 Layer layer = createLayer(layerInfo);
                 if (null != layer) {
                     addLayer(layer);
-                    nonBasemapLayers.add(layer);
                 }
             }
         }
@@ -166,6 +179,14 @@ public class MapController {
     
     public List<BasemapLayer> getBasemapLayers() {
         return basemapLayers;
+    }
+    
+    public List<Layer> getNonBasemapLayers() {
+        return nonBasemapLayers;
+    }
+    
+    public Context getContext() {
+        return mapView.getContext();
     }
     
     private Layer createLayer(LayerInfo layerInfo) {
@@ -210,11 +231,17 @@ public class MapController {
     }
 
     /**
-     * Adds a layer to the map, just like calling MapView.addLayer(Layer).
+     * Adds a non-basemap layer to the map.
      * @param layer the layer to add to the map.
      */
     public void addLayer(Layer layer) {
         mapView.addLayer(layer);
+        nonBasemapLayers.add(layer);
+    }
+    
+    public void addBasemapLayer(BasemapLayer basemapLayer) {
+        mapView.addLayer(basemapLayer.getLayer(), basemapLayers.size());
+        basemapLayers.add(basemapLayer);
     }
 
     /**

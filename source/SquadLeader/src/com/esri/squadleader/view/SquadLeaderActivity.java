@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.esri.android.map.MapView;
@@ -32,6 +33,8 @@ import com.esri.squadleader.controller.MapController;
  * controls.
  */
 public class SquadLeaderActivity extends Activity {
+    
+    private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
@@ -50,9 +53,12 @@ public class SquadLeaderActivity extends Activity {
                     getString(R.string.sym_dict_dirname));
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
         }
+    }
+    
+    public MapController getMapController() {
+        return mapController;
     }
 
     @Override
