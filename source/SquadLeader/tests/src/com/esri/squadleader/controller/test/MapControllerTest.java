@@ -97,10 +97,17 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         
         reloadMapController();
         assertEquals(0, mapController.getNonBasemapLayers().size());
-        assertEquals(1, mapController.getBasemapLayers().size());
-        assertEquals("Scanned", mapController.getBasemapLayers().get(0).getLayer().getName());
-        assertEquals("http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer",
-                mapController.getBasemapLayers().get(0).getLayer().getUrl());
+        assertEquals(10, mapController.getBasemapLayers().size());
+        checkBasemapLayer(mapController, 0, "Imagery", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
+        checkBasemapLayer(mapController, 1, "Streets", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer");
+        checkBasemapLayer(mapController, 2, "Topographic", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer");
+        checkBasemapLayer(mapController, 3, "Shaded Relief", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer");
+        checkBasemapLayer(mapController, 4, "Physical", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer");
+        checkBasemapLayer(mapController, 5, "Terrain", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer");
+        checkBasemapLayer(mapController, 6, "USGS Topo", "http://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer");
+        checkBasemapLayer(mapController, 7, "Oceans", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer");
+        checkBasemapLayer(mapController, 8, "Light Gray Canvas", "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer");
+        checkBasemapLayer(mapController, 9, "National Geographic", "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer");
         
         //Now that tests are done, restore original MapConfig if any
         File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
@@ -111,6 +118,11 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
                 originalMapConfigOnSdCard.renameTo(new File(filename.substring(0, filename.length() - ".bak".length())));
             }
         }
+    }
+    
+    private static void checkBasemapLayer(MapController mapController, int index, String expectedName, String expectedUrl) {
+        assertEquals(expectedName, mapController.getBasemapLayers().get(index).getLayer().getName());
+        assertEquals(expectedUrl, mapController.getBasemapLayers().get(index).getLayer().getUrl());
     }
     
     private void reloadMapController() {

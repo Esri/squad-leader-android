@@ -181,6 +181,23 @@ public class MapController {
         return basemapLayers;
     }
     
+    public int getVisibleBasemapLayerIndex() {
+        for (int i = 0; i < basemapLayers.size(); i++) {
+            if (basemapLayers.get(i).getLayer().isVisible()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    public void setVisibleBasemapLayerIndex(final int index) {
+        int oldIndex = getVisibleBasemapLayerIndex();
+        if (index != oldIndex) {
+            basemapLayers.get(index).getLayer().setVisible(true);
+            basemapLayers.get(oldIndex).getLayer().setVisible(false);
+        }
+    }
+    
     public List<Layer> getNonBasemapLayers() {
         return nonBasemapLayers;
     }
