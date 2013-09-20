@@ -28,35 +28,8 @@
 		<!--layer name="Imagery" visible="false" type="TiledCacheLayer" basemap="true" thumbnail="C:\data\thumbnail.jpg">
             <datasetpath>/mnt/sdcard/basemaps/Imagery.tpk</datasetpath>
         </layer-->
-        <layer name="Imagery" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer</url>
-        </layer>
-        <layer name="Streets" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer</url>
-        </layer>
-        <layer name="Topographic" visible="true" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer</url>
-        </layer>
-        <layer name="Shaded Relief" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer</url>
-        </layer>
-        <layer name="Physical" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer</url>
-        </layer>
-        <layer name="Terrain" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer</url>
-        </layer>
-        <layer name="USGS Topo" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer</url>
-        </layer>
-        <layer name="Oceans" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer</url>
-        </layer>
-        <layer name="Light Gray Canvas" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer</url>
-        </layer>
-        <layer name="National Geographic" visible="false" type="TiledMapServiceLayer" basemap="true">
-            <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
+        <layer name="Test Layer" visible="true" type="TiledMapServiceLayer" basemap="true">
+            <datasetpath>http://my/fake/URL</datasetpath>
         </layer>
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>

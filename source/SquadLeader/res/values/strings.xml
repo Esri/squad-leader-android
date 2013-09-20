@@ -8,4 +8,7 @@
     <string name="map_config_prefname">mapconfig</string>
     <string name="squad_leader_home_dir">/mnt/sdcard/SquadLeader</string>
     <string name="map_config_filename">mapconfig.xml</string>
+    <string name="open_basemap_panel">Open Basemap Panel</string>
+    <string name="choose_basemap">Choose Basemap</string>
+    <string name="cancel">Cancel</string>
 </resources>

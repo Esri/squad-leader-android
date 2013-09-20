@@ -15,35 +15,134 @@
  ******************************************************************************/
 package com.esri.squadleader.controller.test;
 
-import junit.framework.TestCase;
+import java.io.File;
+import java.io.IOException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class MapControllerTest extends TestCase {
+import android.content.Context;
+import android.test.ActivityInstrumentationTestCase2;
+
+import com.esri.android.map.MapView;
+import com.esri.squadleader.controller.MapController;
+import com.esri.squadleader.util.Utilities;
+import com.esri.squadleader.view.SquadLeaderActivity;
+
+public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLeaderActivity> {
     
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    private static final String TAG = MapControllerTest.class.getSimpleName();
+    
+    private SquadLeaderActivity activity;
+    private MapController mapController;
+            
+    public MapControllerTest() {
+        super(SquadLeaderActivity.class);
     }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        activity = getActivity();
+        mapController = activity.getMapController();
     }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-
-    @Test
-    public void test() {
+    
+    /**
+     * MapConfig loading tests
+     * 
+     * Here's the priority that Squad Leader should use:
+     * 1. Check for existing user preferences and use those.
+     * 2. Check for /mnt/sdcard/SquadLeader/mapconfig.xml and parse that with MapConfigReader.
+     * 3. Use mapconfig.xml built into the app
+     * 
+     * To make this easier, test #2 first. That should write preferences. Then delete
+     * /mnt/sdcard/SquadLeader/mapconfig.xml and test #1. Then delete
+     * user preferences and test #3.
+     * @throws IOException 
+     */
         
+    @Test
+    public void test001LoadMapConfigFromSdCardFile() throws IOException {
+        clearExistingPreferences(mapController.getContext());
+        
+        //Create mapconfig.xml on SD card
+        File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
+                activity.getString(com.esri.squadleader.R.string.map_config_filename));
+        if (originalMapConfigOnSdCard.exists()) {
+            //Back it up
+            originalMapConfigOnSdCard.renameTo(new File(originalMapConfigOnSdCard.getAbsolutePath() + ".bak"));
+        }
+        Utilities.copyAssetToDir(getInstrumentation().getContext().getAssets(),
+                activity.getString(com.esri.squadleader.R.string.map_config_filename),
+                activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir));
+        
+        //Load it
+        reloadMapController();
+        runTestsAgainstTestMapConfig();
+    }
+    
+    @Test
+    public void test002LoadMapConfigFromProfile() {
+        //Delete mapconfig.xml on SD card
+        new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
+                activity.getString(com.esri.squadleader.R.string.map_config_filename)).delete();
+        
+        //Load it from preferences file
+        reloadMapController();
+        runTestsAgainstTestMapConfig();
+    }
+    
+    @Test
+    public void test003LoadMapConfigFromAppAsset() {
+        clearExistingPreferences(mapController.getContext());
+        
+        reloadMapController();
+        assertEquals(0, mapController.getNonBasemapLayers().size());
+        assertEquals(10, mapController.getBasemapLayers().size());
+        checkBasemapLayer(mapController, 0, "Imagery", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
+        checkBasemapLayer(mapController, 1, "Streets", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer");
+        checkBasemapLayer(mapController, 2, "Topographic", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer");
+        checkBasemapLayer(mapController, 3, "Shaded Relief", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer");
+        checkBasemapLayer(mapController, 4, "Physical", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer");
+        checkBasemapLayer(mapController, 5, "Terrain", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer");
+        checkBasemapLayer(mapController, 6, "USGS Topo", "http://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer");
+        checkBasemapLayer(mapController, 7, "Oceans", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer");
+        checkBasemapLayer(mapController, 8, "Light Gray Canvas", "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer");
+        checkBasemapLayer(mapController, 9, "National Geographic", "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer");
+        
+        //Now that tests are done, restore original MapConfig if any
+        File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
+                activity.getString(com.esri.squadleader.R.string.map_config_filename) + ".bak");
+        if (originalMapConfigOnSdCard.exists()) {
+            String filename = originalMapConfigOnSdCard.getAbsolutePath();
+            if (filename.endsWith(".bak")) {
+                originalMapConfigOnSdCard.renameTo(new File(filename.substring(0, filename.length() - ".bak".length())));
+            }
+        }
+    }
+    
+    private static void checkBasemapLayer(MapController mapController, int index, String expectedName, String expectedUrl) {
+        assertEquals(expectedName, mapController.getBasemapLayers().get(index).getLayer().getName());
+        assertEquals(expectedUrl, mapController.getBasemapLayers().get(index).getLayer().getUrl());
+    }
+    
+    private void reloadMapController() {
+        mapController = new MapController((MapView) activity.findViewById(com.esri.squadleader.R.id.map), activity.getAssets());
+    }
+    
+    private void clearExistingPreferences(Context context) {
+        context.deleteFile(context.getString(com.esri.squadleader.R.string.map_config_prefname));
+    }
+    
+    private void runTestsAgainstTestMapConfig() {
+        assertEquals(0, mapController.getNonBasemapLayers().size());
+        assertEquals(1, mapController.getBasemapLayers().size());
+        assertEquals("Test Layer", mapController.getBasemapLayers().get(0).getLayer().getName());
+        assertEquals("http://my/fake/URL", mapController.getBasemapLayers().get(0).getLayer().getUrl());
+    }
+    
+    @Override
+    protected void tearDown() throws Exception {
+        activity.finish();
     }
 
 }
