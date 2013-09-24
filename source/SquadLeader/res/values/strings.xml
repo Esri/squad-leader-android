@@ -11,4 +11,10 @@
     <string name="open_basemap_panel">Open Basemap Panel</string>
     <string name="choose_basemap">Choose Basemap</string>
     <string name="cancel">Cancel</string>
+    <string name="add_layer_from_web">Add Layer from Web</string>
+    <string name="map_menu">Map Menu</string>
+    <string name="url">URL</string>
+    <string name="add_layer_from_web_fragment_tag">AddLayerFromWebDialogFragment</string>
+    <string name="add_layer">Add Layer</string>
+    <string name="use_as_basemap">Use as Basemap</string>
 </resources>

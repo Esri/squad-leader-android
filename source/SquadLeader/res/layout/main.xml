@@ -25,6 +25,17 @@
         android:onClick="imageButton_openBasemapPanel_clicked"/>
 
     <ImageButton
+        android:id="@+id/imageButton_openMapMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_marginLeft="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/selector_open_menu"
+        android:contentDescription="@string/map_menu"
+        android:onClick="imageButton_openMapMenu_clicked"/>
+
+    <ImageButton
         android:id="@+id/imageButton_zoomIn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
