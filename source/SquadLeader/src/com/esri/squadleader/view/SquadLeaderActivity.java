@@ -18,30 +18,36 @@ package com.esri.squadleader.view;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.esri.android.map.MapView;
+import com.esri.militaryapps.model.LayerInfo;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
 
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends Activity {
+public class SquadLeaderActivity extends FragmentActivity
+        implements AddLayerListener {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
+    private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +83,27 @@ public class SquadLeaderActivity extends Activity {
         mapController.unpause();
     }
     
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.map_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add_layer_from_web:
+                //Present Add Layer from Web dialog
+                if (null == addLayerFromWebDialogFragment) {
+                    addLayerFromWebDialogFragment = new AddLayerFromWebDialogFragment();
+                }
+                addLayerFromWebDialogFragment.show(getSupportFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    
     public void imageButton_zoomIn_clicked(View view) {
 	mapController.zoomIn();
     }
@@ -107,6 +134,16 @@ public class SquadLeaderActivity extends Activity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+    
+    public void imageButton_openMapMenu_clicked(final View view) {
+        openOptionsMenu();
+    }
+
+    public void onValidLayerInfos(LayerInfo[] layerInfos) {
+        for (int i = layerInfos.length - 1; i >= 0; i--) {
+            mapController.addLayer(layerInfos[i]);
+        }
     }
 
 }
