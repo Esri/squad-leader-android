@@ -35,8 +35,11 @@ import com.esri.android.map.Layer;
 import com.esri.android.map.MapOnTouchListener;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
+import com.esri.android.map.ags.ArcGISFeatureLayer;
+import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
+import com.esri.android.map.ags.ArcGISFeatureLayer.MODE;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.MapConfig;
@@ -225,6 +228,14 @@ public class MapController {
                 Log.i(TAG, "MIL-STD-2525C message layers will be supported in a future version of Squad Leader (TODO implement).");
                 break;
             }
+            case FEATURE_SERVICE: {
+                layer = new ArcGISFeatureLayer(layerInfo.getDatasetPath(), MODE.ONDEMAND);
+                break;
+            }
+            case IMAGE_SERVICE: {
+                layer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
+                break;
+            }
             default: {
                 Log.i(TAG, "Layer " + layerInfo.getName() + " is of a type not yet implemented in ArcGIS Runtime for Android.");
             }
@@ -256,9 +267,35 @@ public class MapController {
         nonBasemapLayers.add(layer);
     }
     
+    /**
+     * Adds a basemap layer to the map.
+     * @param basemapLayer the layer to add to the map.
+     */
     public void addBasemapLayer(BasemapLayer basemapLayer) {
         mapView.addLayer(basemapLayer.getLayer(), basemapLayers.size());
         basemapLayers.add(basemapLayer);
+        if (basemapLayer.getLayer().isVisible()) {
+            setVisibleBasemapLayerIndex(basemapLayers.size() - 1);
+        }
+    }
+    
+    /**
+     * Adds a layer to the map based on a LayerInfo object.
+     * @param layerInfo the LayerInfo object that specifies the layer to add to the map.
+     *        Whether the layer will be a basemap layer or not depends on whether
+     *        the LayerInfo object is also of type BasemapLayerInfo.
+     */
+    public void addLayer(LayerInfo layerInfo) {
+        Layer layer = createLayer(layerInfo);
+        if (null != layer) {
+            if (layerInfo instanceof BasemapLayerInfo) {
+                BasemapLayer basemapLayer = new BasemapLayer(layer, ((BasemapLayerInfo) layerInfo).getThumbnailUrl());
+                addBasemapLayer(basemapLayer);
+            } else {
+                addLayer(layer);
+            }
+        }
+        //TODO emit an error if layer was null (Exception, Toast, something)
     }
 
     /**
