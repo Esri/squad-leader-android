@@ -31,15 +31,18 @@ import android.content.res.AssetManager;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
 import com.esri.android.map.MapOnTouchListener;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISFeatureLayer;
+import com.esri.android.map.ags.ArcGISFeatureLayer.MODE;
 import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.ags.ArcGISFeatureLayer.MODE;
+import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.core.geometry.Point;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.MapConfig;
@@ -50,7 +53,7 @@ import com.esri.squadleader.model.BasemapLayer;
 /**
  * A controller for the MapView object used in the application.
  */
-public class MapController {
+public class MapController extends com.esri.militaryapps.controller.MapController {
 
     private static final String TAG = MapController.class.getSimpleName();
 
@@ -64,8 +67,21 @@ public class MapController {
      * Creates a new MapController.
      * @param mapView the MapView being controlled by the new MapController.
      */
-    public MapController(MapView mapView, AssetManager assetManager) {
+    @SuppressWarnings("serial")
+    public MapController(final MapView mapView, AssetManager assetManager) {
         this.mapView = mapView;
+        mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
+
+            @Override
+            public void onStatusChanged(Object source, STATUS status) {
+                if (source == mapView && STATUS.INITIALIZED == status) {
+                    fireMapReady();
+                }
+            }
+            
+        });
+        mapView.getGrid().setType(GridType.MGRS);
+        mapView.getGrid().setVisibility(false);
         this.assetManager = assetManager;
         reloadMapConfig();
     }
@@ -263,8 +279,21 @@ public class MapController {
      * @param layer the layer to add to the map.
      */
     public void addLayer(Layer layer) {
+        addLayer(layer, false);
+    }
+    
+    /**
+     * Adds a non-basemap layer to the map.
+     * TODO make this method public when overlay layers are implemented
+     * @param layer the layer to add to the map.
+     * @param isOverlay true if the layer is an overlay that can be turned on and
+     *                  off, and false otherwise.
+     */
+    private void addLayer(Layer layer, boolean isOverlay) {
+        //TODO do something with isOverlay (i.e. implement overlay layers)
         mapView.addLayer(layer);
         nonBasemapLayers.add(layer);
+        fireLayersChanged(isOverlay);
     }
     
     /**
@@ -272,11 +301,24 @@ public class MapController {
      * @param basemapLayer the layer to add to the map.
      */
     public void addBasemapLayer(BasemapLayer basemapLayer) {
+        addBasemapLayer(basemapLayer, false);
+    }
+    
+    /**
+     * Adds a basemap layer to the map.
+     * TODO make this method public when overlay layers are implemented
+     * @param basemapLayer the layer to add to the map.
+     * @param isOverlay true if the layer is an overlay that can be turned on and
+     *                  off, and false otherwise.
+     */
+    private void addBasemapLayer(BasemapLayer basemapLayer, boolean isOverlay) {
+        //TODO do something with isOverlay (i.e. implement overlay layers)
         mapView.addLayer(basemapLayer.getLayer(), basemapLayers.size());
         basemapLayers.add(basemapLayer);
         if (basemapLayer.getLayer().isVisible()) {
             setVisibleBasemapLayerIndex(basemapLayers.size() - 1);
         }
+        fireLayersChanged(isOverlay);
     }
     
     /**
@@ -286,13 +328,27 @@ public class MapController {
      *        the LayerInfo object is also of type BasemapLayerInfo.
      */
     public void addLayer(LayerInfo layerInfo) {
+        addLayer(layerInfo, false);
+    }
+    
+    /**
+     * Adds a layer to the map based on a LayerInfo object.
+     * TODO make this method public when overlay layers are implemented
+     * @param layerInfo the LayerInfo object that specifies the layer to add to the map.
+     *        Whether the layer will be a basemap layer or not depends on whether
+     *        the LayerInfo object is also of type BasemapLayerInfo.
+     * @param isOverlay true if the layer is an overlay that can be turned on and
+     *                  off, and false otherwise.
+     */
+    private void addLayer(LayerInfo layerInfo, boolean isOverlay) {
+        //TODO do something with isOverlay (i.e. implement overlay layers)
         Layer layer = createLayer(layerInfo);
         if (null != layer) {
             if (layerInfo instanceof BasemapLayerInfo) {
                 BasemapLayer basemapLayer = new BasemapLayer(layer, ((BasemapLayerInfo) layerInfo).getThumbnailUrl());
-                addBasemapLayer(basemapLayer);
+                addBasemapLayer(basemapLayer, isOverlay);
             } else {
-                addLayer(layer);
+                addLayer(layer, isOverlay);
             }
         }
         //TODO emit an error if layer was null (Exception, Toast, something)
@@ -301,6 +357,7 @@ public class MapController {
     /**
      * Zooms in on the map, just like calling MapView.zoomIn().
      */
+    @Override
     public void zoomIn() {
         mapView.zoomin();
     }
@@ -308,6 +365,7 @@ public class MapController {
     /**
      * Zooms out on the map, just like calling MapView.zoomOut().
      */
+    @Override
     public void zoomOut() {
         mapView.zoomout();
     }
@@ -326,6 +384,57 @@ public class MapController {
      */
     public void unpause() {
         mapView.unpause();
+    }
+
+    @Override
+    public void zoom(double factor) {
+        mapView.setScale(factor);
+    }
+
+    @Override
+    public void setRotation(double degrees) {
+        mapView.setRotationAngle(degrees);
+    }
+
+    @Override
+    public double getRotation() {
+        return mapView.getRotationAngle();
+    }
+
+    @Override
+    protected void _zoomToScale(double scale, double centerPointX, double centerPointY) {
+        mapView.zoomToScale(new Point(centerPointX, centerPointY), scale);
+    }
+
+    @Override
+    public int getWidth() {
+        return mapView.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return mapView.getHeight();
+    }
+
+    @Override
+    public void panTo(double centerX, double centerY) {
+        mapView.centerAt(new Point(centerX, centerY), true);
+    }
+
+    @Override
+    public double[] toMapPoint(int screenX, int screenY) {
+        Point pt = mapView.toMapPoint(screenX, screenY);
+        return new double[] { pt.getX(), pt.getY() };
+    }
+
+    @Override
+    public void setGridVisible(boolean visible) {
+        mapView.getGrid().setVisibility(visible);
+    }
+
+    @Override
+    public boolean isGridVisible() {
+        return mapView.getGrid().getVisibility();
     }
 
 }

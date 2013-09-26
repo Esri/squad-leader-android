@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="fill_parent"
@@ -17,7 +17,6 @@
         android:id="@+id/imageButton_openBasemapPanel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="5dp"
         android:background="@drawable/selector_basemap"
@@ -28,20 +27,35 @@
         android:id="@+id/imageButton_openMapMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
+        android:layout_alignParentBottom="true"
         android:layout_marginLeft="5dp"
         android:layout_marginBottom="5dp"
         android:background="@drawable/selector_open_menu"
         android:contentDescription="@string/map_menu"
         android:onClick="imageButton_openMapMenu_clicked"/>
 
+    <ToggleButton
+        android:id="@+id/toggleButton_grid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/imageButton_openMapMenu"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/selector_grid"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/toggle_grid"
+        android:onClick="toggleButton_grid_clicked"/>
+
     <ImageButton
         android:id="@+id/imageButton_zoomIn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/imageButton_zoomOut"
         android:layout_marginRight="5dp"
-        android:layout_marginBottom="60dp"
+        android:layout_marginBottom="5dp"
         android:background="@drawable/selector_zoom_in"
         android:contentDescription="@string/zoom_in"
         android:onClick="imageButton_zoomIn_clicked"/>
@@ -50,11 +64,12 @@
         android:id="@+id/imageButton_zoomOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
         android:layout_marginRight="5dp"
         android:layout_marginBottom="5dp"
         android:background="@drawable/selector_zoom_out"
         android:contentDescription="@string/zoom_out"
         android:onClick="imageButton_zoomOut_clicked"/>
 
-</FrameLayout>
+</RelativeLayout>

@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.militaryapps.model.LayerInfo;
@@ -144,6 +145,10 @@ public class SquadLeaderActivity extends FragmentActivity
         for (int i = layerInfos.length - 1; i >= 0; i--) {
             mapController.addLayer(layerInfos[i]);
         }
+    }
+    
+    public void toggleButton_grid_clicked(final View view) {
+        mapController.setGridVisible(((ToggleButton) view).isChecked());
     }
 
 }
