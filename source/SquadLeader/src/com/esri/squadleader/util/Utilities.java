@@ -26,7 +26,7 @@ import android.content.res.AssetManager;
 /**
  * A class for useful static methods that don't really belong anywhere else.
  */
-public class Utilities {
+public class Utilities extends com.esri.militaryapps.util.Utilities {
     
     /**
      * Copies the specified asset to a destination directory, whether the asset is a file or a directory.<br/>
