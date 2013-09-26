@@ -17,4 +17,5 @@
     <string name="add_layer_from_web_fragment_tag">AddLayerFromWebDialogFragment</string>
     <string name="add_layer">Add Layer</string>
     <string name="use_as_basemap">Use as Basemap</string>
+    <string name="toggle_grid">Toggle Grid</string>
 </resources>
