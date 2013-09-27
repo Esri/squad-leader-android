@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/add_layer_from_web" android:title="@string/add_layer_from_web"></item>
+    <item android:id="@+id/go_to_mgrs" android:title="@string/go_to_mgrs"></item>
 </menu>

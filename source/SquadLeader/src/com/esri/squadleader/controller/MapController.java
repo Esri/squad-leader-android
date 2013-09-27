@@ -42,13 +42,16 @@ import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.core.geometry.MgrsConversionMode;
 import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.MapConfigReader;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.util.Utilities;
 
 /**
  * A controller for the MapView object used in the application.
@@ -418,7 +421,33 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     @Override
     public void panTo(double centerX, double centerY) {
-        mapView.centerAt(new Point(centerX, centerY), true);
+        panTo(new Point(centerX, centerY));
+    }
+    
+    public void panTo(Point newCenter) {
+        mapView.centerAt(newCenter, true);
+    }
+
+    /**
+     * Pans the map to a new center point, if a valid MGRS string is provided.
+     * @param newCenterMgrs the map's new center point, as an MGRS string.
+     * @return if the string was valid, the point to which the map was panned; null otherwise
+     */
+    public Point panTo(String newCenterMgrs) {
+        newCenterMgrs = Utilities.convertToValidMgrs(newCenterMgrs,
+                toMilitaryGrid(new Point[] {mapView.getMapBoundaryExtent().getCenter()})[0]);
+        if (null != newCenterMgrs) {
+            Point pt = fromMilitaryGrid(new String[] {newCenterMgrs})[0];
+            if (null != pt) {
+                panTo(pt);
+                return pt;
+            } else {
+                Log.w(TAG, "MGRS string " + newCenterMgrs + " could not be converted to a point");
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -435,6 +464,35 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @Override
     public boolean isGridVisible() {
         return mapView.getGrid().getVisibility();
+    }
+
+    /**
+     * Converts an array of map points to MGRS strings.
+     * @param points the points to convert to MGRS strings.
+     * @return an array of MGRS strings corresponding to the input points.
+     */
+    public String[] toMilitaryGrid(Point[] points) {
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            //Assume Web Mercator (3857)
+            sr = SpatialReference.create(3857);
+        }
+
+        return sr.toMilitaryGrid(MgrsConversionMode.mgrsAutomatic, 5, false, true, points);
+    }
+    
+    /**
+     * Converts an array of MGRS points to map points.
+     * @param mgrsStrings the MGRS strings to convert to map points.
+     * @return an array of map points in the coordinate system of the map.
+     */
+    public Point[] fromMilitaryGrid(String[] mgrsStrings) {
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            //Assume Web Mercator (3857)
+            sr = SpatialReference.create(3857);
+        }
+        return sr.fromMilitaryGrid(mgrsStrings, MgrsConversionMode.mgrsAutomatic);
     }
 
 }
