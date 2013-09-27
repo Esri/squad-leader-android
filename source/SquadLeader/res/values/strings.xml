@@ -18,4 +18,7 @@
     <string name="add_layer">Add Layer</string>
     <string name="use_as_basemap">Use as Basemap</string>
     <string name="toggle_grid">Toggle Grid</string>
+    <string name="go_to_mgrs">Go to MGRS Location</string>
+    <string name="go_to_mgrs_fragment_tag">GoToMgrsFragment</string>
+    <string name="mgrs">MGRS</string>
 </resources>

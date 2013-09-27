@@ -35,20 +35,21 @@ import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
-
+import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
 public class SquadLeaderActivity extends FragmentActivity
-        implements AddLayerListener {
+        implements AddLayerListener, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
+    private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,6 +100,13 @@ public class SquadLeaderActivity extends FragmentActivity
                     addLayerFromWebDialogFragment = new AddLayerFromWebDialogFragment();
                 }
                 addLayerFromWebDialogFragment.show(getSupportFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
+                return true;
+            case R.id.go_to_mgrs:
+                //Present Go to MGRS dialog
+                if (null == goToMgrsDialogFragment) {
+                    goToMgrsDialogFragment = new GoToMgrsDialogFragment();
+                }
+                goToMgrsDialogFragment.show(getSupportFragmentManager(), getString(R.string.go_to_mgrs_fragment_tag));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
