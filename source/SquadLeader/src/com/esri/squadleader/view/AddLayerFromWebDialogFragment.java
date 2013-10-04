@@ -24,6 +24,7 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,10 +61,12 @@ public class AddLayerFromWebDialogFragment extends DialogFragment {
     private static final String TAG = AddLayerFromWebDialogFragment.class.getSimpleName();
     
     private AddLayerListener listener = null;
+    private Activity activity = null;
     
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        this.activity = activity;
         if (activity instanceof AddLayerListener) {
             listener = (AddLayerListener) activity;
         }
@@ -98,9 +101,15 @@ public class AddLayerFromWebDialogFragment extends DialogFragment {
                             protected LayerInfo[] doInBackground(Void... params) {
                                 try {
                                     return RestServiceReader.readService(new URL(urlString), useAsBasemap);
-                                } catch (Exception e) {
+                                } catch (final Exception e) {
                                     Log.e(TAG, "Couldn't read and parse " + urlString, e);
-                                    Toast.makeText(getActivity(), "Couldn't add layer from web: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                    activity.runOnUiThread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(activity, "Couldn't add layer from web: " + e.getClass().getName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        }
+                                    });                                    
                                     return null;
                                 }
                             }
