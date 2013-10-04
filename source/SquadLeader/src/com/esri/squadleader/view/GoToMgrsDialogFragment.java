@@ -26,8 +26,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.esri.core.geometry.Point;
-import com.esri.militaryapps.util.Utilities;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.MapController;
 
@@ -48,13 +46,10 @@ public class GoToMgrsDialogFragment extends DialogFragment {
         public MapController getMapController();
     }
     
-    private static final String TAG = GoToMgrsDialogFragment.class.getSimpleName();
-    
     private GoToMgrsHelper listener = null;
     
     @Override
     public void onAttach(Activity activity) {
-        // TODO Auto-generated method stub
         super.onAttach(activity);
         if (activity instanceof GoToMgrsHelper) {
             listener = (GoToMgrsHelper) activity;

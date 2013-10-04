@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     tools:context=".SquadLeaderActivity"
@@ -47,6 +46,17 @@
         android:textOff=""
         android:contentDescription="@string/toggle_grid"
         android:onClick="toggleButton_grid_clicked"/>
+    
+    <com.esri.squadleader.view.NorthArrowView
+        android:id="@+id/northArrowView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/imageButton_zoomIn"
+        android:layout_margin="5dp"
+        android:background="@drawable/ic_north_arrow"
+        android:contentDescription="@string/north_arrow_desc"
+        android:onClick="northArrowView_clicked"/>
 
     <ImageButton
         android:id="@+id/imageButton_zoomIn"
