@@ -30,8 +30,6 @@ import com.esri.squadleader.view.SquadLeaderActivity;
 
 public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLeaderActivity> {
     
-    private static final String TAG = MapControllerTest.class.getSimpleName();
-    
     private SquadLeaderActivity activity;
     private MapController mapController;
             
