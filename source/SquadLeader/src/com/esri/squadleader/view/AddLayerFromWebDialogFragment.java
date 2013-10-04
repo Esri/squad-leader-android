@@ -63,7 +63,6 @@ public class AddLayerFromWebDialogFragment extends DialogFragment {
     
     @Override
     public void onAttach(Activity activity) {
-        // TODO Auto-generated method stub
         super.onAttach(activity);
         if (activity instanceof AddLayerListener) {
             listener = (AddLayerListener) activity;

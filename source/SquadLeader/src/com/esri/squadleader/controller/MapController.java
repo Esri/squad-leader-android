@@ -83,6 +83,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
             
         });
+        
+        mapView.setAllowRotationByPinch(true);
+        
         mapView.getGrid().setType(GridType.MGRS);
         mapView.getGrid().setVisibility(false);
         this.assetManager = assetManager;

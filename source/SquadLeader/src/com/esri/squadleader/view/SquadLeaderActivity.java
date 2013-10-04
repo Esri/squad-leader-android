@@ -158,5 +158,9 @@ public class SquadLeaderActivity extends FragmentActivity
     public void toggleButton_grid_clicked(final View view) {
         mapController.setGridVisible(((ToggleButton) view).isChecked());
     }
+    
+    public void northArrowView_clicked(View view) {
+        mapController.setRotation(0);
+    }
 
 }
