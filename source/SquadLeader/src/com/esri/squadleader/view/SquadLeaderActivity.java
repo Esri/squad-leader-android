@@ -58,6 +58,7 @@ public class SquadLeaderActivity extends FragmentActivity
 
         MapView mapView = (MapView) findViewById(R.id.map);
         mapController = new MapController(mapView, getAssets());
+        ((NorthArrowView) findViewById(R.id.northArrowView)).setMapController(mapController);
         try {
             mil2525cController = new AdvancedSymbologyController(
                     mapController,
