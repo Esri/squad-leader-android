@@ -22,5 +22,7 @@
     <string name="go_to_mgrs_fragment_tag">GoToMgrsFragment</string>
     <string name="mgrs">MGRS</string>
     <string name="north_arrow_desc">North Arrow (click to rotate map to north up)</string>
-
+    <string name="cert_error_dialog_title">Accept Invalid Certificate?</string>
+    <string name="accept">Accept</string>
+    <string name="refuse_recommended">Refuse (Recommended)</string>
 </resources>
