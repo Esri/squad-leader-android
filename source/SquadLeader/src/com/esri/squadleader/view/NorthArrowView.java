@@ -51,12 +51,12 @@ public class NorthArrowView extends ImageView {
         @Override
         public void handleMessage(Message msg) {
             float nextAngle = 360 - msg.getData().getFloat("rotation");
+
             RotateAnimation anim = new RotateAnimation(currentAngle, nextAngle, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
-            currentAngle = nextAngle;
-            anim.setDuration(10);
+            anim.setDuration(ANIMATION_PERIOD_MS);
             view.get().startAnimation(anim);
-            anim.reset();
-            anim.start();
+            
+            currentAngle = nextAngle;
         }
         
     }
