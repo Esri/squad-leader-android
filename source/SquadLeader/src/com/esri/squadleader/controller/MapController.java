@@ -45,6 +45,7 @@ import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.core.geometry.MgrsConversionMode;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.MapConfig;
@@ -65,6 +66,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final List<BasemapLayer> basemapLayers = new ArrayList<BasemapLayer>();
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private AdvancedSymbologyController advancedSymbologyController = null;
+    private boolean autoPan = false;
 
     /**
      * Creates a new MapController.
@@ -496,6 +498,35 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             sr = SpatialReference.create(3857);
         }
         return sr.fromMilitaryGrid(mgrsStrings, MgrsConversionMode.mgrsAutomatic);
+    }
+
+    @Override
+    public void onLocationChanged(com.esri.militaryapps.model.Location location) {
+        //TODO need to do something with this?
+        Log.d(TAG, "Got a location: " + location.getLongitude() + ", " + location.getLatitude());
+    }
+
+    @Override
+    protected LocationController createLocationController() {
+        try {
+            return new LocationController(LocationMode.SIMULATOR, true, null);
+        } catch (Exception e) {
+            Log.e(TAG, "Couldn't instantiate LocationController", e);
+            return null;
+        }
+    }
+
+    @Override
+    public void setAutoPan(boolean autoPan) {
+        this.autoPan = autoPan;
+        if (getLocationController().getMode() == LocationMode.LOCATION_SERVICE) {
+            mapView.getLocationService().setAutoPan(autoPan);
+        }
+    }
+
+    @Override
+    public boolean isAutoPan() {
+        return autoPan;
     }
 
 }
