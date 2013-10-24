@@ -29,6 +29,7 @@ import android.view.View;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
+import com.esri.android.map.event.OnPanListener;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.squadleader.R;
@@ -57,7 +58,31 @@ public class SquadLeaderActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        MapView mapView = (MapView) findViewById(R.id.map);
+        final MapView mapView = (MapView) findViewById(R.id.map);
+        
+        mapView.setOnPanListener(new OnPanListener() {
+            
+            private static final long serialVersionUID = 0x58d30af8d168f63aL;
+
+            @Override
+            public void prePointerUp(float fromx, float fromy, float tox, float toy) {}
+            
+            @Override
+            public void prePointerMove(float fromx, float fromy, float tox, float toy) {
+                ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
+                if (followMeButton.isChecked()) {
+                    followMeButton.performClick();
+                }
+            }
+            
+            @Override
+            public void postPointerUp(float fromx, float fromy, float tox, float toy) {}
+            
+            @Override
+            public void postPointerMove(float fromx, float fromy, float tox, float toy) {}
+            
+        });
+
         mapController = new MapController(mapView, getAssets());
         ((NorthArrowView) findViewById(R.id.northArrowView)).setMapController(mapController);
         try {
