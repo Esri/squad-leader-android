@@ -82,4 +82,17 @@
         android:contentDescription="@string/zoom_out"
         android:onClick="imageButton_zoomOut_clicked"/>
 
+    <ToggleButton
+        android:id="@+id/toggleButton_followMe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/imageButton_zoomOut"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="5dp"
+        android:background="@drawable/selector_follow_me"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/follow_me"
+        android:onClick="toggleButton_followMe_clicked"/>
+    
 </RelativeLayout>

@@ -2,4 +2,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/add_layer_from_web" android:title="@string/add_layer_from_web"></item>
     <item android:id="@+id/go_to_mgrs" android:title="@string/go_to_mgrs"></item>
+    <item android:id="@+id/set_location_mode" android:title="@string/set_location_mode"></item>
 </menu>

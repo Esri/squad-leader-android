@@ -83,6 +83,7 @@ Portions of this code use other Esri libraries, also governed by the Apache Lice
 
 Portions of this code use third-party libraries:
 
+- Use of aFileChooser is governed by the Apache License.
 - Use of the JSON Java library available at http://www.json.org/java/index.html is governed by the JSON License.
 
 See [license-ThirdParty.txt](license-ThirdParty.txt) for the details of these licenses.
