@@ -29,6 +29,7 @@ import android.view.View;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
+import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
@@ -109,6 +110,41 @@ public class SquadLeaderActivity extends FragmentActivity
                 }
                 goToMgrsDialogFragment.show(getSupportFragmentManager(), getString(R.string.go_to_mgrs_fragment_tag));
                 return true;
+            case R.id.set_location_mode:
+                //Present Set Location Mode dialog
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.set_location_mode)
+                        .setNegativeButton(R.string.cancel, null)
+                        .setSingleChoiceItems(
+                                new String[] {
+                                        getString(R.string.option_location_service),
+                                        getString(R.string.option_simulation_builtin),
+                                        getString(R.string.option_simulation_file)},
+                                mapController.getLocationController().getMode() == LocationMode.LOCATION_SERVICE ? 0 : 
+                                    null == mapController.getLocationController().getGpxFile() ? 1 : 2,
+                                new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    if (2 == which) {
+                                        //TODO present file chooser
+                                    } else {
+                                        mapController.getLocationController().setMode(
+                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
+                                                true);
+                                    }
+                                } catch (Exception e) {
+                                    Log.d(TAG, "Couldn't set location mode", e);
+                                } finally {
+                                    dialog.dismiss();
+                                }
+                            }
+                            
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -162,6 +198,10 @@ public class SquadLeaderActivity extends FragmentActivity
     
     public void northArrowView_clicked(View view) {
         mapController.setRotation(0);
+    }
+
+    public void toggleButton_followMe_clicked(final View view) {
+        mapController.setAutoPan(((ToggleButton) view).isChecked());
     }
 
 }

@@ -25,4 +25,9 @@
     <string name="cert_error_dialog_title">Accept Invalid Certificate?</string>
     <string name="accept">Accept</string>
     <string name="refuse_recommended">Refuse (Recommended)</string>
+    <string name="follow_me">Follow Me</string>
+    <string name="set_location_mode">Set Location Mode</string>
+    <string name="option_location_service">Hardware (GPS)</string>
+    <string name="option_simulation_builtin">Simulation (Built-in)</string>
+    <string name="option_simulation_file">Simulation (GPX File)</string>
 </resources>

@@ -16,26 +16,34 @@
 package com.esri.squadleader.controller;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
+import android.location.LocationListener;
+import android.os.Bundle;
+
 import com.esri.android.map.LocationService;
+import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
     
     private LocationService locationService = null;
     
-    public LocationController(boolean startImmediately, LocationService locationService)
+    public LocationController(boolean startImmediately)
             throws ParserConfigurationException, SAXException, IOException {
-        this(LocationMode.LOCATION_SERVICE, startImmediately, locationService);
+        this(LocationMode.LOCATION_SERVICE, startImmediately);
     }
 
-    public LocationController(LocationMode mode, boolean startImmediately, LocationService locationService)
+    public LocationController(LocationMode mode, boolean startImmediately)
             throws ParserConfigurationException, SAXException, IOException {
         super(mode, startImmediately);
+    }
+    
+    public void setLocationService(LocationService locationService) {
         this.locationService = locationService;
     }
 
@@ -44,16 +52,21 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         return new LocationProvider() {
             
             private LocationProviderState state = LocationProviderState.STOPPED;
-
+            
             @Override
             public void start() {
+                setupLocationListener();
                 switch (getState()) {
                     case PAUSED: {
-                        locationService.resume();
+                        if (null != locationService) {
+                            locationService.resume();
+                        }
                         break;
                     }
                     case STOPPED: {
-                        locationService.start();
+                        if (null != locationService) {
+                            locationService.start();
+                        }
                         break;
                     }
                     case STARTED:
@@ -66,19 +79,47 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
 
             @Override
             public void pause() {
-                locationService.pause();
+                if (null != locationService) {
+                    locationService.pause();
+                }
                 state = LocationProviderState.PAUSED;
             }
 
             @Override
             public void stop() {
-                locationService.stop();
+                if (null != locationService) {
+                    locationService.stop();
+                }
                 state = LocationProviderState.STOPPED;
             }
 
             @Override
             public LocationProviderState getState() {
                 return state;
+            }
+            
+            private void setupLocationListener() {
+                if (null != locationService) {
+                    locationService.setLocationListener(new LocationListener() {
+                        
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {}
+                        
+                        @Override
+                        public void onProviderEnabled(String provider) {}
+                        
+                        @Override
+                        public void onProviderDisabled(String provider) {}
+                        
+                        @Override
+                        public void onLocationChanged(android.location.Location location) {
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTimeInMillis(location.getTime());
+                            Location theLocation = new Location(location.getLongitude(), location.getLatitude(), cal, location.getSpeed(), location.getBearing());
+                            sendLocation(theLocation);
+                        }
+                    });
+                }
             }
             
         };

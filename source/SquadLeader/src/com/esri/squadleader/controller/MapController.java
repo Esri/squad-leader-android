@@ -23,14 +23,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
 import com.esri.android.map.MapOnTouchListener;
@@ -42,9 +47,11 @@ import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.MgrsConversionMode;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
@@ -58,6 +65,44 @@ import com.esri.squadleader.util.Utilities;
  * A controller for the MapView object used in the application.
  */
 public class MapController extends com.esri.militaryapps.controller.MapController {
+    
+    private static class LocationChangeHandler extends Handler {
+        
+        public static final String KEY_MAPX = "mapx";
+        public static final String KEY_MAPY = "mapy";
+        
+        private final WeakReference<MapController> mapControllerRef;
+        
+        LocationChangeHandler(MapController mapController) {
+            mapControllerRef = new WeakReference<MapController>(mapController);
+        }
+        
+        @Override
+        public void handleMessage(Message msg) {
+            final MapController mapController = mapControllerRef.get();
+            Bundle bundle = msg.getData();
+            final Point mapPoint = new Point(bundle.getDouble(KEY_MAPX), bundle.getDouble(KEY_MAPY));
+            Log.d(TAG, "handleMessage " + mapPoint.getX() + ", " + mapPoint.getY());
+            
+            if (mapController.isAutoPan()) {
+                mapController.panTo(mapPoint);
+            }                  
+            
+            //If we're using the device's location service, we don't need to add the graphic.
+            if (LocationMode.SIMULATOR == mapController.getLocationController().getMode()) {
+                if (-1 == mapController.locationGraphicId) {
+                    mapController.locationGraphicId = mapController.locationGraphicsLayer.addGraphic(
+                            new Graphic(mapPoint, mapController.mapView.getLocationService().getSymbol()));
+                } else {
+                    mapController.locationGraphicsLayer.updateGraphic(mapController.locationGraphicId, mapPoint);
+                }
+            } else {
+                mapController.locationGraphicsLayer.removeAll();
+                mapController.locationGraphicId = -1;
+            }
+        }
+
+    }
 
     private static final String TAG = MapController.class.getSimpleName();
 
@@ -65,8 +110,13 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final AssetManager assetManager;
     private final List<BasemapLayer> basemapLayers = new ArrayList<BasemapLayer>();
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
+    private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
+    private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
+    private final Object lastLocationLock = new Object(); 
     private AdvancedSymbologyController advancedSymbologyController = null;
     private boolean autoPan = false;
+    private int locationGraphicId = -1;
+    private Point lastLocation = null;
 
     /**
      * Creates a new MapController.
@@ -74,6 +124,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     @SuppressWarnings("serial")
     public MapController(final MapView mapView, AssetManager assetManager) {
+        ((LocationController) getLocationController()).setLocationService(mapView.getLocationService());
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
@@ -182,7 +233,13 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                     addLayer(layer);
                 }
             }
+            
+            if (0 != mapConfig.getScale()) {
+                zoomToScale(mapConfig.getScale(), mapConfig.getCenterX(), mapConfig.getCenterY());
+            }
         }
+        
+        addLayer(locationGraphicsLayer, true);
         
         /******************************************************************************************
          * TODO this is test code
@@ -430,6 +487,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
     
     public void panTo(Point newCenter) {
+        Log.d(TAG, "panTo " + newCenter.getX() + ", " + newCenter.getY());
         mapView.centerAt(newCenter, true);
     }
 
@@ -502,14 +560,29 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     @Override
     public void onLocationChanged(com.esri.militaryapps.model.Location location) {
-        //TODO need to do something with this?
-        Log.d(TAG, "Got a location: " + location.getLongitude() + ", " + location.getLatitude());
+        Log.d(TAG, "Got a location: " + (null == location ? "null" : (location.getLongitude() + ", " + location.getLatitude())));
+        if (null != location) {
+            final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), mapView.getSpatialReference());
+            Bundle bundle = new Bundle();
+            bundle.putDouble(LocationChangeHandler.KEY_MAPX, mapPoint.getX());
+            bundle.putDouble(LocationChangeHandler.KEY_MAPY, mapPoint.getY());
+            Message msg = new Message();
+            msg.setData(bundle);
+            locationChangeHandler.sendMessage(msg);
+            new Thread() {
+                public void run() {
+                    synchronized (lastLocationLock) {
+                        lastLocation = mapPoint;
+                    }
+                };
+            }.start();
+        }
     }
 
     @Override
     protected LocationController createLocationController() {
         try {
-            return new LocationController(LocationMode.SIMULATOR, true, null);
+            return new LocationController(LocationMode.SIMULATOR, true);
         } catch (Exception e) {
             Log.e(TAG, "Couldn't instantiate LocationController", e);
             return null;
@@ -518,8 +591,15 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     @Override
     public void setAutoPan(boolean autoPan) {
+        if (autoPan) {
+            synchronized (lastLocationLock) {
+                if (null != lastLocation) {
+                    panTo(lastLocation);
+                }
+            }
+        }
         this.autoPan = autoPan;
-        if (getLocationController().getMode() == LocationMode.LOCATION_SERVICE) {
+        if (null != mapView.getLocationService()) {
             mapView.getLocationService().setAutoPan(autoPan);
         }
     }
