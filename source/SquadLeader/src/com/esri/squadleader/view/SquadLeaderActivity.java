@@ -15,11 +15,14 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -38,6 +41,7 @@ import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
+import com.ipaulpro.afilechooser.utils.FileUtils;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
@@ -47,6 +51,11 @@ public class SquadLeaderActivity extends FragmentActivity
         implements AddLayerListener, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
+    
+    /**
+     * A unique ID for the GPX file chooser.
+     */
+    private static final int REQUEST_CHOOSER = 30046;
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
@@ -153,8 +162,12 @@ public class SquadLeaderActivity extends FragmentActivity
                             public void onClick(DialogInterface dialog, int which) {
                                 try {
                                     if (2 == which) {
-                                        //TODO present file chooser
+                                        //Present file chooser
+                                        Intent getContentIntent = FileUtils.createGetContentIntent();
+                                        Intent intent = Intent.createChooser(getContentIntent, "Select a file");
+                                        startActivityForResult(intent, REQUEST_CHOOSER);
                                     } else {
+                                        mapController.getLocationController().setGpxFile(null);
                                         mapController.getLocationController().setMode(
                                                 0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
                                                 true);
@@ -172,6 +185,32 @@ public class SquadLeaderActivity extends FragmentActivity
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    /**
+     * Called when an activity called by this activity returns a result. This method was initially
+     * added to handle the result of choosing a GPX file for the LocationSimulator.
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHOOSER: {
+                if (resultCode == RESULT_OK) {  
+                    final Uri uri = data.getData();
+                    File file = FileUtils.getFile(uri);
+                    mapController.getLocationController().setGpxFile(file);
+                    try {
+                        mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
+                    } catch (Exception e) {
+                        Log.d(TAG, "Could not start simulator", e);
+                    }
+                }
+                break;
+            }
+            default: {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
     
