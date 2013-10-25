@@ -12,7 +12,8 @@
     - TiledMapServiceLayer: URL of a cached map service
     - LocalDynamicMapLayer: filename of a map package (MPK) (relative or absolute)
     - DynamicMapServiceLayer: URL of a dynamic map service
-    - Mil2525CMessageLayer: filename of an XML file containing MIL-STD-2525C messages in XML
+    - FeatureServiceLayer: URL of a feature service, or the URL of an individual layer in a feature service
+    - ImageServiceLayer: URL of an image service
 
     Each layer element has a basemap property that can be set to true or false. If absent, the
     default is false. Basemap layers display only one at a time, so set only one basemap layer
