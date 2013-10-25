@@ -440,6 +440,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * gets paused.
      */
     public void pause() {
+        getLocationController().pause();
         mapView.pause();
     }
 
@@ -449,6 +450,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     public void unpause() {
         mapView.unpause();
+        try {
+            getLocationController().unpause();
+        } catch (Exception e) {
+            Log.d(TAG, "Couldn't unpause LocationController", e);
+        }
     }
 
     @Override
