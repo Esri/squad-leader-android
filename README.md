@@ -29,7 +29,7 @@ To add an ArcGIS Server service to the map, press the menu button (in the lower 
 
 ### System requirements
 
-Squad Leader runs on Android devices version 2.2 and higher. This includes all Froyo devices and higher.
+Squad Leader runs on Android devices version 2.2 and higher. This includes all Froyo devices and newer.
 
 ### Installation and configuration
 
