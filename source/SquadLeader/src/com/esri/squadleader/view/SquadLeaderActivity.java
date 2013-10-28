@@ -61,6 +61,7 @@ public class SquadLeaderActivity extends FragmentActivity
     private AdvancedSymbologyController mil2525cController = null;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
+    private boolean wasFollowMeBeforeMgrs = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,10 +79,7 @@ public class SquadLeaderActivity extends FragmentActivity
             
             @Override
             public void prePointerMove(float fromx, float fromy, float tox, float toy) {
-                ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
-                if (followMeButton.isChecked()) {
-                    followMeButton.performClick();
-                }
+                setFollowMe(false);
             }
             
             @Override
@@ -105,8 +103,39 @@ public class SquadLeaderActivity extends FragmentActivity
         }
     }
     
+    private boolean isFollowMe() {
+        ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
+        if (null != followMeButton) {
+            return followMeButton.isChecked();
+        } else {
+            return false;
+        }
+    }
+    
+    private void setFollowMe(boolean isFollowMe) {
+        ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
+        if (null != followMeButton) {
+            if (isFollowMe != followMeButton.isChecked()) {
+                followMeButton.performClick();
+            }
+        }
+    }
+    
     public MapController getMapController() {
         return mapController;
+    }
+
+    @Override
+    public void beforePanToMgrs(String mgrs) {
+        wasFollowMeBeforeMgrs = isFollowMe();
+        setFollowMe(false);
+    }
+
+    @Override
+    public void onPanToMgrsError(String mgrs) {
+        if (wasFollowMeBeforeMgrs) {
+            setFollowMe(true);
+        }
     }
 
     @Override
