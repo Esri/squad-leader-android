@@ -44,6 +44,20 @@ public class GoToMgrsDialogFragment extends DialogFragment {
          * @return the application's MapController.
          */
         public MapController getMapController();
+        
+        /**
+         * Called when GoToMgrsDialog is about to perform the pan to the MGRS location.
+         * This is useful for disabling Follow Me, for example.
+         * @param mgrs the MGRS string.
+         */
+        void beforePanToMgrs(String mgrs);
+        
+        /**
+         * Called if the attempt to pan to MGRS is unsuccessful. Most often, this happens
+         * when the provided MGRS string is invalid.
+         * @param mgrs the MGRS string, which is likely invalid.
+         */
+        void onPanToMgrsError(String mgrs);
     }
     
     private GoToMgrsHelper listener = null;
@@ -72,8 +86,10 @@ public class GoToMgrsDialogFragment extends DialogFragment {
                     if (null != view && view instanceof EditText) {
                         String mgrs = ((EditText) view).getText().toString();
                         if (null != mgrs) {
+                            listener.beforePanToMgrs(mgrs);
                             if (null == listener.getMapController().panTo(mgrs)) {
                                 Toast.makeText(getActivity(), "Invalid MGRS string: " + mgrs, Toast.LENGTH_LONG).show();
+                                listener.onPanToMgrsError(mgrs);
                             }
                         }
                     }

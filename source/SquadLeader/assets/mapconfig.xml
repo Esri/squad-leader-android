@@ -8,7 +8,8 @@
     Each layer tag can have one of the following types. Next to each type is a description
     of what should be the value of the child datasetpath element.
 
-    - TiledCacheLayer: path to the map cache (the directory that contains conf.xml) or filename of a tile package (TPK) (relative or absolute)
+    - TiledCacheLayer: file:/// URL to the map cache (the directory that contains conf.xml) or a tile package (TPK).
+                       On Android, this must be a file URL (e.g. file:///mnt/sdcard/path/to/tilepack.tpk).
     - TiledMapServiceLayer: URL of a cached map service
     - LocalDynamicMapLayer: filename of a map package (MPK) (relative or absolute)
     - DynamicMapServiceLayer: URL of a dynamic map service
@@ -26,8 +27,8 @@
     map as a basemap layer, but it will not render unless the map is not moving.
     -->
     <layers>
-		<!--layer name="Imagery" visible="false" type="TiledCacheLayer" basemap="true" thumbnail="C:\data\thumbnail.jpg">
-            <datasetpath>/mnt/sdcard/basemaps/Imagery.tpk</datasetpath>
+        <!--layer name="Topographic" visible="true" type="TiledCacheLayer" basemap="true">
+            <datasetpath>file:///mnt/sdcard/path/to/tilepack.tpk</datasetpath>
         </layer-->
         <layer name="Imagery" visible="false" type="TiledMapServiceLayer" basemap="true">
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer</url>
@@ -71,7 +72,7 @@
             <x>7842690</x>
             <y>4086500</y>
         </anchor>
-        <scale>250000</scale>
+        <scale>288895.277144</scale>
         <rotation>0</rotation>
     </initialextent>
     <!--viewshed>
