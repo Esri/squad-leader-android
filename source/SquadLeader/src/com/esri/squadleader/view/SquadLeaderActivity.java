@@ -24,17 +24,24 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
+import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.model.LayerInfo;
+import com.esri.militaryapps.model.Location;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.MapController;
@@ -56,6 +63,22 @@ public class SquadLeaderActivity extends FragmentActivity
      * A unique ID for the GPX file chooser.
      */
     private static final int REQUEST_CHOOSER = 30046;
+    
+    private final Handler locationChangeHandler = new Handler() {
+        
+        private final SpatialReference SR = SpatialReference.create(4326);
+        @Override
+        public void handleMessage(Message msg) {
+            try {
+                Location location = (Location) msg.obj;
+                TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
+                String mgrs = mapController.toMilitaryGrid(new Point[] { new Point(location.getLongitude(), location.getLatitude()) }, SR)[0];
+                locationView.setText(getString(R.string.display_location) + mgrs);
+            } catch (Throwable t) {
+                Log.i(TAG, "Couldn't set location text", t);
+            }
+        };
+    };
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
@@ -101,6 +124,18 @@ public class SquadLeaderActivity extends FragmentActivity
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
         }
+        
+        mapController.getLocationController().addListener(new LocationListener() {
+            
+            @Override
+            public void onLocationChanged(Location location) {
+                if (null != location) {
+                    Message msg = new Message();
+                    msg.obj = location;
+                    locationChangeHandler.sendMessage(msg);
+                }
+            }
+        });
     }
     
     private boolean isFollowMe() {

@@ -39,8 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/imageButton_openMapMenu"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_margin="5dp"
         android:background="@drawable/selector_grid"
         android:textOn=""
         android:textOff=""
@@ -94,5 +93,52 @@
         android:textOff=""
         android:contentDescription="@string/follow_me"
         android:onClick="toggleButton_followMe_clicked"/>
+    
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_toRightOf="@+id/toggleButton_grid"
+        android:layout_toLeftOf="@+id/toggleButton_followMe"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/location_display_background">
+        
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_weight=".5">
+            <TextView
+                android:id="@+id/textView_displayLocation"
+                android:text="@string/display_location"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".5"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"/>
+            <TextView
+                android:id="@+id/textView_displaySpeed"
+                android:text="@string/display_speed"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".5"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+        </TableRow>
+        <TableRow
+            android:layout_weight=".5">
+            <TextView
+                android:id="@+id/textView_displayHeading"
+                android:text="@string/display_heading"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".5"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"/>
+            <TextView
+                android:id="@+id/textView_displayTime"
+                android:text="@string/display_time"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".5"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+        </TableRow>
+                
+    </TableLayout>
     
 </RelativeLayout>

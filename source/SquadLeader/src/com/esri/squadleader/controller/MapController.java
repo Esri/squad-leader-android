@@ -82,7 +82,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             final MapController mapController = mapControllerRef.get();
             Bundle bundle = msg.getData();
             final Point mapPoint = new Point(bundle.getDouble(KEY_MAPX), bundle.getDouble(KEY_MAPY));
-            Log.d(TAG, "handleMessage " + mapPoint.getX() + ", " + mapPoint.getY());
             
             if (mapController.isAutoPan()) {
                 mapController.panTo(mapPoint);
@@ -546,8 +545,17 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
         }
+        return toMilitaryGrid(points, sr);
+    }
 
-        return sr.toMilitaryGrid(MgrsConversionMode.mgrsAutomatic, 5, false, true, points);
+    /**
+     * Converts an array of points in a known spatial reference to MGRS strings.
+     * @param points the points to convert to MGRS strings.
+     * @param fromSr the spatial reference of all of the points.
+     * @return 
+     */
+    public String[] toMilitaryGrid(Point[] points, SpatialReference fromSr) {
+        return fromSr.toMilitaryGrid(MgrsConversionMode.mgrsAutomatic, 5, false, true, points);
     }
     
     /**
