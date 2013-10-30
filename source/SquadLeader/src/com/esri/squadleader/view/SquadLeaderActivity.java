@@ -25,6 +25,7 @@ import java.util.TimerTask;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +35,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -123,6 +126,7 @@ public class SquadLeaderActivity extends FragmentActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 
         final MapView mapView = (MapView) findViewById(R.id.map);
         
@@ -201,6 +205,36 @@ public class SquadLeaderActivity extends FragmentActivity
             
         };
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        adjustLayoutForOrientation(newConfig.orientation);
+    }
+    
+    private void adjustLayoutForOrientation(int orientation) {
+        View displayView = findViewById(R.id.tableLayout_display);
+        if (displayView.getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) displayView.getLayoutParams();
+            switch (orientation) {
+                case Configuration.ORIENTATION_LANDSCAPE: {
+                    params.addRule(RelativeLayout.RIGHT_OF, R.id.toggleButton_grid);
+                    params.addRule(RelativeLayout.LEFT_OF, R.id.toggleButton_followMe);
+                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.toggleButton_followMe);
+                    params.addRule(RelativeLayout.ALIGN_TOP, R.id.toggleButton_followMe);
+                    break;
+                }
+                case Configuration.ORIENTATION_PORTRAIT:
+                default: {
+                    params.height = 0;
+                    params.addRule(RelativeLayout.RIGHT_OF, -1);
+                    params.addRule(RelativeLayout.LEFT_OF, R.id.imageButton_zoomIn);
+                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomIn);
+                    params.addRule(RelativeLayout.ALIGN_TOP, R.id.northArrowView);
+                }
+            }
+        }
     }
     
     private boolean isFollowMe() {
