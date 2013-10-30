@@ -31,8 +31,8 @@
     <string name="option_simulation_builtin">Simulation (Built-in)</string>
     <string name="option_simulation_file">Simulation (GPX File)</string>
     <string name="chooser_label">File Chooser</string>
-    <string name="display_location">Location: </string>
-    <string name="display_speed">Speed: </string>
-    <string name="display_heading">Heading: </string>
-    <string name="display_time">Time: </string>
+    <string name="display_location">Location:&#160;</string>
+    <string name="display_speed">Speed:&#160;</string>
+    <string name="display_heading">Heading:&#160;</string>
+    <string name="display_time">Time:&#160;</string>
 </resources>

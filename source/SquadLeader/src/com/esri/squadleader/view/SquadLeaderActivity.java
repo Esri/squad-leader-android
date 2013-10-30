@@ -17,7 +17,10 @@ package com.esri.squadleader.view;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -46,6 +49,7 @@ import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
@@ -59,6 +63,8 @@ public class SquadLeaderActivity extends FragmentActivity
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     
+    private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
+    
     /**
      * A unique ID for the GPX file chooser.
      */
@@ -67,15 +73,40 @@ public class SquadLeaderActivity extends FragmentActivity
     private final Handler locationChangeHandler = new Handler() {
         
         private final SpatialReference SR = SpatialReference.create(4326);
+        
+        private Location previousLocation = null;
+        
         @Override
         public void handleMessage(Message msg) {
-            try {
+            if (null != msg) {
                 Location location = (Location) msg.obj;
-                TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
-                String mgrs = mapController.toMilitaryGrid(new Point[] { new Point(location.getLongitude(), location.getLatitude()) }, SR)[0];
-                locationView.setText(getString(R.string.display_location) + mgrs);
-            } catch (Throwable t) {
-                Log.i(TAG, "Couldn't set location text", t);
+                try {
+                    TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
+                    String mgrs = mapController.toMilitaryGrid(new Point[] { new Point(location.getLongitude(), location.getLatitude()) }, SR)[0];
+                    locationView.setText(getString(R.string.display_location) + mgrs);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set location text", t);
+                }
+                try {
+                    double speed = location.getSpeed();
+                    if (0 == Double.compare(speed, 0.0) && null != previousLocation) {
+                        //Calculate speed
+                        double distanceInMiles = Utilities.calculateDistanceInMeters(previousLocation, location) / Utilities.METERS_PER_MILE;
+                        double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) /  MILLISECONDS_PER_HOUR;
+                        speed = distanceInMiles / timeInHours;
+                    }
+                    ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
+                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speed) / 10.0) + " mph");
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set speed text", t);
+                }
+                try {
+                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(
+                            getString(R.string.display_heading) + Long.toString(Math.round(location.getHeading())));
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set heading text", t);
+                }
+                previousLocation = location;
             }
         };
     };
@@ -85,6 +116,8 @@ public class SquadLeaderActivity extends FragmentActivity
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
+    private final Timer clockTimer = new Timer(true);
+    private TimerTask clockTimerTask = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,14 +161,46 @@ public class SquadLeaderActivity extends FragmentActivity
         mapController.getLocationController().addListener(new LocationListener() {
             
             @Override
-            public void onLocationChanged(Location location) {
+            public void onLocationChanged(final Location location) {
                 if (null != location) {
-                    Message msg = new Message();
-                    msg.obj = location;
-                    locationChangeHandler.sendMessage(msg);
+                    //Do this in a thread in case we need to calculate the speed
+                    new Thread() {
+                        public void run() {
+                            Message msg = new Message();
+                            msg.obj = location;
+                            locationChangeHandler.sendMessage(msg);
+                        }
+                    }.start();
                 }
             }
         });
+
+        clockTimerTask = new TimerTask() {
+            
+            private final Handler handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    try {
+                        if (null != msg.obj) {
+                            ((TextView) findViewById(R.id.textView_displayTime)).setText(getString(R.string.display_time) + msg.obj);
+                        }
+                    } catch (Throwable t) {
+                        Log.i(TAG, "Couldn't update time", t);
+                    }
+                }
+            };
+            
+            @Override
+            public void run() {                
+                if (null != mapController) {
+                    Message msg = new Message();
+                    msg.obj = Utilities.DATE_FORMAT_MILITARY_ZULU.format(new Date());
+                    handler.sendMessage(msg);
+                }
+            }
+            
+        };
+        clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
     }
     
     private boolean isFollowMe() {

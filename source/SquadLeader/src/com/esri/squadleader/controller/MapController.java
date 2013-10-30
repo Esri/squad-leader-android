@@ -574,7 +574,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     @Override
     public void onLocationChanged(com.esri.militaryapps.model.Location location) {
-        Log.d(TAG, "Got a location: " + (null == location ? "null" : (location.getLongitude() + ", " + location.getLatitude())));
         if (null != location) {
             final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), mapView.getSpatialReference());
             Bundle bundle = new Bundle();
