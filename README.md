@@ -29,7 +29,7 @@ To add an ArcGIS Server service to the map, press the menu button (in the lower 
 
 ### System requirements
 
-Squad Leader runs on Android devices version 2.3.3 and higher. This includes some but not all Gingerbread devices, as well as all devices with Honeycomb or newer. For Gingerbread, check your device's Android OS version number to verify it has 2.3.3 or higher.
+Squad Leader runs on Android devices version 2.2 and higher. This includes all Froyo devices and newer.
 
 ### Installation and configuration
 

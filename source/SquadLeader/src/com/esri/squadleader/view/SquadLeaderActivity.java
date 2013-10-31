@@ -17,28 +17,41 @@ package com.esri.squadleader.view;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
+import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.model.LayerInfo;
+import com.esri.militaryapps.model.Location;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
@@ -52,21 +65,67 @@ public class SquadLeaderActivity extends FragmentActivity
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     
+    private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
+    
     /**
      * A unique ID for the GPX file chooser.
      */
     private static final int REQUEST_CHOOSER = 30046;
+    
+    private final Handler locationChangeHandler = new Handler() {
+        
+        private final SpatialReference SR = SpatialReference.create(4326);
+        
+        private Location previousLocation = null;
+        
+        @Override
+        public void handleMessage(Message msg) {
+            if (null != msg) {
+                Location location = (Location) msg.obj;
+                try {
+                    TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
+                    String mgrs = mapController.toMilitaryGrid(new Point[] { new Point(location.getLongitude(), location.getLatitude()) }, SR)[0];
+                    locationView.setText(getString(R.string.display_location) + mgrs);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set location text", t);
+                }
+                try {
+                    double speed = location.getSpeed();
+                    if (0 == Double.compare(speed, 0.0) && null != previousLocation) {
+                        //Calculate speed
+                        double distanceInMiles = Utilities.calculateDistanceInMeters(previousLocation, location) / Utilities.METERS_PER_MILE;
+                        double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) /  MILLISECONDS_PER_HOUR;
+                        speed = distanceInMiles / timeInHours;
+                    }
+                    ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
+                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speed) / 10.0) + " mph");
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set speed text", t);
+                }
+                try {
+                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(
+                            getString(R.string.display_heading) + Long.toString(Math.round(location.getHeading())));
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't set heading text", t);
+                }
+                previousLocation = location;
+            }
+        };
+    };
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
+    private final Timer clockTimer = new Timer(true);
+    private TimerTask clockTimerTask = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 
         final MapView mapView = (MapView) findViewById(R.id.map);
         
@@ -100,6 +159,79 @@ public class SquadLeaderActivity extends FragmentActivity
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
+        }
+        
+        mapController.getLocationController().addListener(new LocationListener() {
+            
+            @Override
+            public void onLocationChanged(final Location location) {
+                if (null != location) {
+                    //Do this in a thread in case we need to calculate the speed
+                    new Thread() {
+                        public void run() {
+                            Message msg = new Message();
+                            msg.obj = location;
+                            locationChangeHandler.sendMessage(msg);
+                        }
+                    }.start();
+                }
+            }
+        });
+
+        clockTimerTask = new TimerTask() {
+            
+            private final Handler handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    try {
+                        if (null != msg.obj) {
+                            ((TextView) findViewById(R.id.textView_displayTime)).setText(getString(R.string.display_time) + msg.obj);
+                        }
+                    } catch (Throwable t) {
+                        Log.i(TAG, "Couldn't update time", t);
+                    }
+                }
+            };
+            
+            @Override
+            public void run() {                
+                if (null != mapController) {
+                    Message msg = new Message();
+                    msg.obj = Utilities.DATE_FORMAT_MILITARY_ZULU.format(new Date());
+                    handler.sendMessage(msg);
+                }
+            }
+            
+        };
+        clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        adjustLayoutForOrientation(newConfig.orientation);
+    }
+    
+    private void adjustLayoutForOrientation(int orientation) {
+        View displayView = findViewById(R.id.tableLayout_display);
+        if (displayView.getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) displayView.getLayoutParams();
+            switch (orientation) {
+                case Configuration.ORIENTATION_LANDSCAPE: {
+                    params.addRule(RelativeLayout.RIGHT_OF, R.id.toggleButton_grid);
+                    params.addRule(RelativeLayout.LEFT_OF, R.id.toggleButton_followMe);
+                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomOut);
+                    params.addRule(RelativeLayout.ABOVE, -1);
+                    break;
+                }
+                case Configuration.ORIENTATION_PORTRAIT:
+                default: {
+                    params.addRule(RelativeLayout.RIGHT_OF, -1);
+                    params.addRule(RelativeLayout.LEFT_OF, R.id.imageButton_zoomIn);
+                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomIn);
+                    params.addRule(RelativeLayout.ABOVE, R.id.imageButton_openMapMenu);
+                }
+            }
         }
     }
     

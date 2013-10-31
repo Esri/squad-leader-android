@@ -23,10 +23,32 @@ import java.io.OutputStream;
 
 import android.content.res.AssetManager;
 
+import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
+import com.esri.militaryapps.model.Location;
+
 /**
  * A class for useful static methods that don't really belong anywhere else.
  */
 public class Utilities extends com.esri.militaryapps.util.Utilities {
+    
+    /**
+     * The number of meters in a mile.
+     */
+    public static final double METERS_PER_MILE = 1609.34;
+    
+    /**
+     * The number of milliseconds to wait between animation-like activities.
+     * It's not imperative that you use exactly this number; this constant is
+     * provided for convenience.
+     */
+    public static final int ANIMATION_PERIOD_MS = 1000 / 24;
+    
+    /**
+     * The Web Mercator spatial reference, based on wkid 3857.
+     */
+    public static final SpatialReference WEB_MERCATOR_3857 = SpatialReference.create(3857);
     
     /**
      * Copies the specified asset to a destination directory, whether the asset is a file or a directory.<br/>
@@ -85,6 +107,31 @@ public class Utilities extends com.esri.militaryapps.util.Utilities {
         out.flush();
         out.close();
         out = null;
+    }
+    
+    /**
+     * Calculates the distance in meters between two locations, using the Web Mercator spatial
+     * reference (wkid 3857).
+     * @param location1 a location.
+     * @param location2 a location.
+     * @return the distance in meters between the two locations.
+     */
+    public static double calculateDistanceInMeters(Location location1, Location location2) {
+        return calculateDistanceInMeters(location1, location2, WEB_MERCATOR_3857);
+    }
+    
+    /**
+     * Calculates the distance in meters between two locations, using the Web Mercator spatial
+     * reference (wkid 3857).
+     * @param location1 a longitude/latitude location.
+     * @param location2 a longitude/latitude location.
+     * @param the spatial reference to use for the distance calculation.
+     * @return the distance in meters between the two locations.
+     */
+    public static double calculateDistanceInMeters(Location location1, Location location2, SpatialReference sr) {
+        Point pt1 = GeometryEngine.project(location1.getLongitude(), location1.getLatitude(), sr);
+        Point pt2 = GeometryEngine.project(location2.getLongitude(), location2.getLatitude(), sr);
+        return GeometryEngine.distance(pt1, pt2, sr);
     }
 
 }

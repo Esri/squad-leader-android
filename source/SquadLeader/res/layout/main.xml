@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
@@ -16,8 +15,9 @@
         android:id="@+id/imageButton_openBasemapPanel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
+        android:layout_margin="5dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
         android:background="@drawable/selector_basemap"
         android:contentDescription="@string/open_basemap_panel"
         android:onClick="imageButton_openBasemapPanel_clicked"/>
@@ -26,9 +26,9 @@
         android:id="@+id/imageButton_openMapMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginBottom="5dp"
         android:background="@drawable/selector_open_menu"
         android:contentDescription="@string/map_menu"
         android:onClick="imageButton_openMapMenu_clicked"/>
@@ -38,9 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/imageButton_openMapMenu"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_alignBottom="@+id/imageButton_openMapMenu"
         android:background="@drawable/selector_grid"
         android:textOn=""
         android:textOff=""
@@ -53,7 +51,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/imageButton_zoomIn"
-        android:layout_margin="5dp"
         android:background="@drawable/ic_north_arrow"
         android:contentDescription="@string/north_arrow_desc"
         android:onClick="northArrowView_clicked"/>
@@ -62,10 +59,8 @@
         android:id="@+id/imageButton_zoomIn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignRight="@+id/imageButton_zoomOut"
         android:layout_above="@+id/imageButton_zoomOut"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="5dp"
         android:background="@drawable/selector_zoom_in"
         android:contentDescription="@string/zoom_in"
         android:onClick="imageButton_zoomIn_clicked"/>
@@ -74,10 +69,9 @@
         android:id="@+id/imageButton_zoomOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="5dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="5dp"
         android:background="@drawable/selector_zoom_out"
         android:contentDescription="@string/zoom_out"
         android:onClick="imageButton_zoomOut_clicked"/>
@@ -87,12 +81,60 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@+id/imageButton_zoomOut"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="5dp"
+        android:layout_alignBottom="@+id/imageButton_openMapMenu"
         android:background="@drawable/selector_follow_me"
         android:textOn=""
         android:textOff=""
         android:contentDescription="@string/follow_me"
         android:onClick="toggleButton_followMe_clicked"/>
+    
+    <TableLayout
+        android:id="@+id/tableLayout_display"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_toLeftOf="@+id/imageButton_zoomIn"
+        android:layout_above="@+id/imageButton_openMapMenu"
+        android:layout_alignBottom="@+id/imageButton_zoomIn"
+        android:background="@drawable/location_display_background">
+        
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_weight=".5">
+            <TextView
+                android:id="@+id/textView_displayLocation"
+                android:text="@string/display_location"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".75"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"/>
+            <TextView
+                android:id="@+id/textView_displaySpeed"
+                android:text="@string/display_speed"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".25"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+        </TableRow>
+        <TableRow
+            android:layout_weight=".5">
+            <TextView
+                android:id="@+id/textView_displayTime"
+                android:text="@string/display_time"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".75"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"/>
+            <TextView
+                android:id="@+id/textView_displayHeading"
+                android:text="@string/display_heading"
+                android:textColor="#4D4D4D"
+                android:layout_weight=".25"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"/>
+        </TableRow>
+                
+    </TableLayout>
     
 </RelativeLayout>

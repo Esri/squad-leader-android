@@ -29,6 +29,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import com.esri.squadleader.controller.MapController;
+import com.esri.squadleader.util.Utilities;
 
 /**
  * A View that displays a north arrow according to the current rotation of the map.
@@ -36,8 +37,6 @@ import com.esri.squadleader.controller.MapController;
  * that the north arrow will rotate with the map.
  */
 public class NorthArrowView extends ImageView {
-    
-    private static final int ANIMATION_PERIOD_MS = 1000 / 24;
     
     private static class NorthArrowHandler extends Handler {
         
@@ -53,7 +52,7 @@ public class NorthArrowView extends ImageView {
             float nextAngle = 360 - msg.getData().getFloat("rotation");
 
             RotateAnimation anim = new RotateAnimation(currentAngle, nextAngle, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
-            anim.setDuration(ANIMATION_PERIOD_MS);
+            anim.setDuration(Utilities.ANIMATION_PERIOD_MS);
             view.get().startAnimation(anim);
             
             currentAngle = nextAngle;
@@ -106,7 +105,7 @@ public class NorthArrowView extends ImageView {
             }
             
         };
-        timer.schedule(timerTask, 0, ANIMATION_PERIOD_MS);        
+        timer.schedule(timerTask, 0, Utilities.ANIMATION_PERIOD_MS);
     }
 
 }
