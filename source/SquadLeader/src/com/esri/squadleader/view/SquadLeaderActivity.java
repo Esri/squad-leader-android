@@ -35,7 +35,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -221,17 +220,16 @@ public class SquadLeaderActivity extends FragmentActivity
                 case Configuration.ORIENTATION_LANDSCAPE: {
                     params.addRule(RelativeLayout.RIGHT_OF, R.id.toggleButton_grid);
                     params.addRule(RelativeLayout.LEFT_OF, R.id.toggleButton_followMe);
-                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.toggleButton_followMe);
-                    params.addRule(RelativeLayout.ALIGN_TOP, R.id.toggleButton_followMe);
+                    params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomOut);
+                    params.addRule(RelativeLayout.ABOVE, -1);
                     break;
                 }
                 case Configuration.ORIENTATION_PORTRAIT:
                 default: {
-                    params.height = 0;
                     params.addRule(RelativeLayout.RIGHT_OF, -1);
                     params.addRule(RelativeLayout.LEFT_OF, R.id.imageButton_zoomIn);
                     params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomIn);
-                    params.addRule(RelativeLayout.ALIGN_TOP, R.id.northArrowView);
+                    params.addRule(RelativeLayout.ABOVE, R.id.imageButton_openMapMenu);
                 }
             }
         }
