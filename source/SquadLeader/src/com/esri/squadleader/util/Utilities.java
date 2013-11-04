@@ -23,6 +23,7 @@ import java.io.OutputStream;
 
 import android.content.res.AssetManager;
 
+import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
@@ -49,6 +50,8 @@ public class Utilities extends com.esri.militaryapps.util.Utilities {
      * The Web Mercator spatial reference, based on wkid 3857.
      */
     public static final SpatialReference WEB_MERCATOR_3857 = SpatialReference.create(3857);
+    
+    public static final AngularUnit DEGREES = (AngularUnit) AngularUnit.create(AngularUnit.Code.DEGREE);
     
     /**
      * Copies the specified asset to a destination directory, whether the asset is a file or a directory.<br/>

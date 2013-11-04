@@ -1,0 +1,90 @@
+/*******************************************************************************
+ * Copyright 2013 Esri
+ * 
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ * 
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ ******************************************************************************/
+package com.esri.squadleader.view;
+
+import java.util.Iterator;
+
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Bundle;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.util.Log;
+
+import com.esri.core.geometry.AngularUnit;
+import com.esri.squadleader.R;
+
+/**
+ * An Activity that lets the user modify application settings. This class works
+ * with res/xml/preferences.xml.
+ */
+public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+    
+    private static final String TAG = SettingsActivity.class.getSimpleName();
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.preferences);
+        updateSummaries();
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+    }
+    
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        updateSummary(key);
+    }
+    
+    private void updateSummaries() {
+        SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+        Iterator<String> keys = sp.getAll().keySet().iterator();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            updateSummary(key, sp);
+        }
+    }
+
+    private void updateSummary(String key) {
+        SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+        updateSummary(key, sp);
+    }
+    
+    private void updateSummary(String key, SharedPreferences sp) {
+        if (key.equals(getString(R.string.pref_angularUnits))) {
+            Preference pref = findPreference(key);
+            ListPreference listPref = (ListPreference) pref;
+            try {
+                AngularUnit unit = (AngularUnit) AngularUnit.create(Integer.parseInt(listPref.getValue()));
+                pref.setSummary(unit.getDisplayName());
+            } catch (Throwable t) {
+                Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
+            }
+        }
+    }
+    
+}

@@ -33,5 +33,6 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
+        <activity android:name="com.esri.squadleader.view.SettingsActivity"></activity>
     </application>
 </manifest>
