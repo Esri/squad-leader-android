@@ -25,11 +25,14 @@ import java.util.TimerTask;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -41,6 +44,7 @@ import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
+import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
@@ -49,6 +53,7 @@ import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
+import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -103,14 +108,34 @@ public class SquadLeaderActivity extends FragmentActivity
                     Log.i(TAG, "Couldn't set speed text", t);
                 }
                 try {
-                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(
-                            getString(R.string.display_heading) + Long.toString(Math.round(location.getHeading())));
+                    if (null == angularUnitPreference) {
+                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
+                        int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
+                        angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
+                    }
+                    String headingString = LocationController.headingToString(location.getHeading(), angularUnitPreference, 0);
+                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(getString(R.string.display_heading) + headingString);
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set heading text", t);
                 }
                 previousLocation = location;
             }
         };
+    };
+    
+    private final OnSharedPreferenceChangeListener preferenceChangeListener = new OnSharedPreferenceChangeListener() {
+        
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals(getString(R.string.pref_angularUnits))) {
+                try {
+                    int angularUnitWkid = Integer.parseInt(sharedPreferences.getString(key, "0"));
+                    angularUnitPreference = (AngularUnit) AngularUnit.create(angularUnitWkid);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
+                }
+            }
+        }
     };
     
     private MapController mapController = null;
@@ -120,10 +145,15 @@ public class SquadLeaderActivity extends FragmentActivity
     private boolean wasFollowMeBeforeMgrs = false;
     private final Timer clockTimer = new Timer(true);
     private TimerTask clockTimerTask = null;
+    private AngularUnit angularUnitPreference = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+        
         setContentView(R.layout.main);
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 
@@ -271,6 +301,13 @@ public class SquadLeaderActivity extends FragmentActivity
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
+    }
+    
+    @Override
     protected void onPause() {
         super.onPause();
         mapController.pause();
@@ -278,7 +315,7 @@ public class SquadLeaderActivity extends FragmentActivity
     
     @Override
     protected void onResume() {
-        super.onResume(); 
+        super.onResume();
         mapController.unpause();
     }
     
@@ -343,6 +380,10 @@ public class SquadLeaderActivity extends FragmentActivity
                         });
                 AlertDialog dialog = builder.create();
                 dialog.show();
+                return true;
+            case R.id.settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
