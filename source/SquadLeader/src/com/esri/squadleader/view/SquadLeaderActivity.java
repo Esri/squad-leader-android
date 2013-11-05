@@ -69,13 +69,17 @@ public class SquadLeaderActivity extends FragmentActivity
         implements AddLayerListener, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
-    
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
     
     /**
      * A unique ID for the GPX file chooser.
      */
     private static final int REQUEST_CHOOSER = 30046;
+    
+    /**
+     * A unique ID for getting a result from the settings activity.
+     */
+    private static final int SETTINGS_ACTIVITY = 5862;
     
     private final Handler locationChangeHandler = new Handler() {
         
@@ -96,7 +100,9 @@ public class SquadLeaderActivity extends FragmentActivity
                 }
                 try {
                     double speedMph = location.getSpeedMph();
-                    if (0 == Double.compare(speedMph, 0.0) && null != previousLocation) {
+                    if (0 == Double.compare(speedMph, 0.0)
+                            && null != previousLocation
+                            && !mapController.getLocationController().getMode().equals(LocationMode.LOCATION_SERVICE)) {
                         //Calculate speed
                         double distanceInMiles = Utilities.calculateDistanceInMeters(previousLocation, location) / Utilities.METERS_PER_MILE;
                         double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) /  MILLISECONDS_PER_HOUR;
@@ -383,7 +389,7 @@ public class SquadLeaderActivity extends FragmentActivity
                 return true;
             case R.id.settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, SETTINGS_ACTIVITY);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -406,6 +412,16 @@ public class SquadLeaderActivity extends FragmentActivity
                         mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
                     } catch (Exception e) {
                         Log.d(TAG, "Could not start simulator", e);
+                    }
+                }
+                break;
+            }
+            case SETTINGS_ACTIVITY: {
+                if (null != data && data.getBooleanExtra(getString(R.string.pref_resetApp), false)) {
+                    try {
+                        mapController.reset();
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Could not reset map", t);
                     }
                 }
                 break;

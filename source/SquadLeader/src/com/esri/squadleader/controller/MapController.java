@@ -27,6 +27,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
+
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -154,6 +158,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * </ol>
      */
     public void reloadMapConfig() {
+        reloadMapConfig(true);
+    }
+    
+    private void reloadMapConfig(boolean useExistingPreferences) {
         mapView.removeAll();
         
         /**
@@ -166,10 +174,12 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         MapConfig mapConfig = null;
         Context context = mapView.getContext();
         FileInputStream serializedMapConfigStream = null;
-        try {
-            serializedMapConfigStream = context.openFileInput(context.getString(R.string.map_config_prefname));
-        } catch (FileNotFoundException e) {
-            //Swallow
+        if (useExistingPreferences) {
+            try {
+                serializedMapConfigStream = context.openFileInput(context.getString(R.string.map_config_prefname));
+            } catch (FileNotFoundException e) {
+                //Swallow
+            }
         }
         if (null != serializedMapConfigStream) {
             Log.d(TAG, "Loading mapConfig previously saved on device");
@@ -258,6 +268,20 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             
         });
         /*****************************************************************************************/
+    }
+    
+    @Override
+    public void reset() throws ParserConfigurationException, SAXException,
+            IOException {
+        super.reset();
+        removeAllLayers();
+        reloadMapConfig(false);
+    }
+    
+    public void removeAllLayers() {
+        basemapLayers.clear();
+        nonBasemapLayers.clear();
+        mapView.removeAll();
     }
     
     public List<BasemapLayer> getBasemapLayers() {

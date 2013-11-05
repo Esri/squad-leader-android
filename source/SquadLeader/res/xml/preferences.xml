@@ -7,4 +7,8 @@
         android:entries="@array/pref_angularUnits_entries"
         android:entryValues="@array/pref_angularUnits_values"
         android:defaultValue="@string/wkid_degrees" />
+    <Preference 
+        android:key="@string/pref_resetApp"
+        android:title="@string/pref_resetApp"
+        android:summary="@string/pref_resetApp_summary" />
 </PreferenceScreen>
