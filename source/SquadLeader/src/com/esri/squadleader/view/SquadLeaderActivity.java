@@ -95,15 +95,15 @@ public class SquadLeaderActivity extends FragmentActivity
                     Log.i(TAG, "Couldn't set location text", t);
                 }
                 try {
-                    double speed = location.getSpeed();
-                    if (0 == Double.compare(speed, 0.0) && null != previousLocation) {
+                    double speedMph = location.getSpeedMph();
+                    if (0 == Double.compare(speedMph, 0.0) && null != previousLocation) {
                         //Calculate speed
                         double distanceInMiles = Utilities.calculateDistanceInMeters(previousLocation, location) / Utilities.METERS_PER_MILE;
                         double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) /  MILLISECONDS_PER_HOUR;
-                        speed = distanceInMiles / timeInHours;
+                        speedMph = distanceInMiles / timeInHours;
                     }
                     ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
-                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speed) / 10.0) + " mph");
+                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speedMph) / 10.0) + " mph");
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set speed text", t);
                 }

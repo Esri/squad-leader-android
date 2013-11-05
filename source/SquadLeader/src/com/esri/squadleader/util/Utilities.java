@@ -35,11 +35,6 @@ import com.esri.militaryapps.model.Location;
 public class Utilities extends com.esri.militaryapps.util.Utilities {
     
     /**
-     * The number of meters in a mile.
-     */
-    public static final double METERS_PER_MILE = 1609.34;
-    
-    /**
      * The number of milliseconds to wait between animation-like activities.
      * It's not imperative that you use exactly this number; this constant is
      * provided for convenience.
