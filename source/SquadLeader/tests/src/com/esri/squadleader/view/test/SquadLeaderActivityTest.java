@@ -19,6 +19,7 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.test.UiThreadTest;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.squadleader.view.SquadLeaderActivity;
@@ -28,6 +29,7 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
     private SquadLeaderActivity activity;
     private MapView mapView;
     private ImageButton zoomInButton;
+    private ToggleButton followMeButton;
             
     public SquadLeaderActivityTest() {
         super(SquadLeaderActivity.class);
@@ -39,6 +41,7 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
         activity = getActivity();
         mapView = (MapView) activity.findViewById(com.esri.squadleader.R.id.map);
         zoomInButton = (ImageButton) activity.findViewById(com.esri.squadleader.R.id.imageButton_zoomIn);
+        followMeButton = (ToggleButton) activity.findViewById(com.esri.squadleader.R.id.toggleButton_followMe);
     }
     
     @UiThreadTest
@@ -51,6 +54,17 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
         double newScale = mapView.getScale();
         Log.d(getClass().getName(), "newScale is " + newScale);
         assertEquals(oldScale / 2.0, newScale, 0.001);
+    }
+    
+    @UiThreadTest
+    public void testFollowMe() throws InterruptedException {
+        boolean initiallySelected = followMeButton.isSelected();
+        
+        followMeButton.performClick();
+        assertEquals(!initiallySelected, activity.getMapController().isAutoPan());
+        
+        followMeButton.performClick();
+        assertEquals(initiallySelected, activity.getMapController().isAutoPan());
     }
     
     @Override
