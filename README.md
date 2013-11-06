@@ -10,7 +10,7 @@ The Squad Leader template demonstrates best practices for building handheld mili
 <a id="usage"></a>
 ## Usage
 
-Launch the app on an Android device. An interactive map appears.
+Launch the app on an Android device. An interactive map appears with several buttons and a data display that shows the current location in MGRS, time, speed, and heading.
 
 ### Menu button
 
@@ -28,10 +28,31 @@ To change the basemap currently displayed, tap the basemap selector button in th
 
 Drag a finger on the map to pan. To zoom in and out, either pinch open and close or use the buttons in the lower right corner.
 
+The app displays a **Follow Me** button:
+
+![Menu button](source/SquadLeader/res/drawable/ic_follow_me_normal.png)
+
+When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#location_mode) if desired.
+
+### Change settings
+
+To change application settings, tap the menu button and choose Settings. You can change various settings:
+
+- **Angular units**: choose the units, such as degrees or mils, that the app uses for displaying headings and bearings.
+- [**Reset map**](#reset_map)
+
+<a id="location_mode"></a>
+To change the location mode, tap the menu button and choose Set Location Mode. A dialog appears with various location mode choices:
+
+- **Hardware (GPS)**: the app uses the device's location capabilities, including GPS if available, to obtain the user's location, speed, and heading.
+- **Simulation (Built-in)**: the app uses GPS points in Jalalabad, Afghanistan, to simulate the user's location, speed, and heading.
+- **Simulation (GPX File)**: the app uses points from a GPX file to simulate the user's location, speed, and heading. After choosing this option, select a GPX file on your device.
+
 ### Add a layer from the web
 
 To add an ArcGIS Server service to the map, tap the menu button and choose Add Layer from Web. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
 
+<a id="reset_map"></a>
 ### Reset the map
 
 You can clear any layers you have added and go back to the original map configuration. To reset the map, tap the menu button and choose **Reset map**. Tap **OK** if you want to reset the map. This will reload the map configuration from one of two locations:
@@ -71,14 +92,16 @@ Optional: before running the app for the first time, if you wish to specify whic
 Layer type should be one of the following:
 
 - DynamicMapServiceLayer (dynamic map service)
-- TiledCacheLayer (local TPK or compact cache)
+- TiledCacheLayer (file:/// URL to a local TPK or compact cache)
 - TiledMapServiceLayer (cached map service)
+- FeatureServiceLayer (feature service; either an entire feature service like ".../FeatureServer" or a single layer like ".../FeatureServer/42")
+- ImageServiceLayer (image service)
 
 For best results, be sure that one and only one layer with basemap="true" also has visible="true".
 
 If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
 
-After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset_map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
 
 ## Licensing
 
