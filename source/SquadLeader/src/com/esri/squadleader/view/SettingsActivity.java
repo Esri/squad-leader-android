@@ -17,12 +17,15 @@ package com.esri.squadleader.view;
 
 import java.util.Iterator;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 import android.util.Log;
 
 import com.esri.core.geometry.AngularUnit;
@@ -58,6 +61,30 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         updateSummary(key);
+    }
+    
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+            Preference preference) {
+        if (getString(R.string.pref_resetApp).equals(preference.getKey())) {
+            new AlertDialog.Builder(this)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setMessage(R.string.reset_map)
+            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    getIntent().putExtra(getString(R.string.pref_resetApp), true);
+                    setResult(RESULT_OK, getIntent());
+                }
+
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+            return true;
+        } else {
+            return super.onPreferenceTreeClick(preferenceScreen, preference);
+        }
     }
     
     private void updateSummaries() {

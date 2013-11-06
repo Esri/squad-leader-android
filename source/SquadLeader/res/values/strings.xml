@@ -10,6 +10,7 @@
     <string name="map_config_filename">mapconfig.xml</string>
     <string name="open_basemap_panel">Open Basemap Panel</string>
     <string name="choose_basemap">Choose Basemap</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="add_layer_from_web">Add Layer from Web</string>
     <string name="map_menu">Map Menu</string>
@@ -45,7 +46,10 @@
         <item>@string/wkid_degrees</item>
         <item>@string/wkid_mils</item>
     </string-array>
+    <string name="pref_resetApp">Reset map</string>
+    <string name="pref_resetApp_summary">Reset the map to /mnt/sdcard/SquadLeader/mapconfig.xml if present or built-in settings</string>
     <string name="wkid_degrees">9102</string>
     <string name="wkid_mils">9114</string>
     <string name="settings">Settings</string>
+    <string name="reset_map">Reset map?</string>
 </resources>
