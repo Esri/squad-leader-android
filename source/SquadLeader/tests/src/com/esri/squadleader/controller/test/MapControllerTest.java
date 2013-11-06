@@ -18,12 +18,17 @@ package com.esri.squadleader.controller.test;
 import java.io.File;
 import java.io.IOException;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
 import android.content.Context;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.esri.android.map.MapView;
+import com.esri.militaryapps.model.LayerInfo;
+import com.esri.militaryapps.model.LayerType;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.SquadLeaderActivity;
@@ -94,6 +99,35 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         clearExistingPreferences(mapController.getContext());
         
         reloadMapController();
+        
+        checkBasemaps(mapController);
+        
+        //Now that tests are done, restore original MapConfig if any
+        File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
+                activity.getString(com.esri.squadleader.R.string.map_config_filename) + ".bak");
+        if (originalMapConfigOnSdCard.exists()) {
+            String filename = originalMapConfigOnSdCard.getAbsolutePath();
+            if (filename.endsWith(".bak")) {
+                originalMapConfigOnSdCard.renameTo(new File(filename.substring(0, filename.length() - ".bak".length())));
+            }
+        }
+    }
+    
+    public void test004ResetMap() throws ParserConfigurationException, SAXException, IOException {
+        LayerInfo layerInfo = new LayerInfo();
+        layerInfo.setDatasetPath("http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
+        layerInfo.setLayerType(LayerType.TILED_MAP_SERVICE);
+        layerInfo.setName("Test Name");
+        layerInfo.setVisible(false);
+        mapController.addLayer(layerInfo);
+        assertEquals(1, mapController.getNonBasemapLayers().size());
+        assertEquals(10, mapController.getBasemapLayers().size());
+        
+        mapController.reset();
+        checkBasemaps(mapController);        
+    }
+    
+    private static void checkBasemaps(MapController mapController) {
         assertEquals(0, mapController.getNonBasemapLayers().size());
         assertEquals(10, mapController.getBasemapLayers().size());
         checkBasemapLayer(mapController, 0, "Imagery", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
@@ -106,16 +140,7 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         checkBasemapLayer(mapController, 7, "Oceans", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer");
         checkBasemapLayer(mapController, 8, "Light Gray Canvas", "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer");
         checkBasemapLayer(mapController, 9, "National Geographic", "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer");
-        
-        //Now that tests are done, restore original MapConfig if any
-        File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
-                activity.getString(com.esri.squadleader.R.string.map_config_filename) + ".bak");
-        if (originalMapConfigOnSdCard.exists()) {
-            String filename = originalMapConfigOnSdCard.getAbsolutePath();
-            if (filename.endsWith(".bak")) {
-                originalMapConfigOnSdCard.renameTo(new File(filename.substring(0, filename.length() - ".bak".length())));
-            }
-        }
+
     }
     
     private static void checkBasemapLayer(MapController mapController, int index, String expectedName, String expectedUrl) {
