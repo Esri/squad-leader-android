@@ -12,6 +12,14 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 Launch the app on an Android device. An interactive map appears.
 
+### Menu button
+
+The app makes use of the menu button found on many but not all Android devices. For the benefit of those devices with no menu button, the app's lower left corner has a menu button:
+
+![Menu button](source/SquadLeader/res/drawable/ic_open_menu_normal.png)
+
+When these instructions say to tap the menu button, you can use either the device's menu button or the app's menu button.
+
 ### Change the basemap
 
 To change the basemap currently displayed, tap the basemap selector button in the upper left corner. A dialog appears with a list of basemaps that have been added to the app. Choose a basemap to display it. Only one basemap is visible at a time.
@@ -22,7 +30,14 @@ Drag a finger on the map to pan. To zoom in and out, either pinch open and close
 
 ### Add a layer from the web
 
-To add an ArcGIS Server service to the map, press the menu button (in the lower left corner of the app, or the device's menu button) and choose Add Layer from Web. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
+To add an ArcGIS Server service to the map, tap the menu button and choose Add Layer from Web. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
+
+### Reset the map
+
+You can clear any layers you have added and go back to the original map configuration. To reset the map, tap the menu button and choose **Reset map**. Tap **OK** if you want to reset the map. This will reload the map configuration from one of two locations:
+
+1. If /mnt/sdcard/SquadLeader/mapconfig.xml exists on the device, it will be used for resetting the map.
+2. Otherwise, Squad Leader's built-in default map configuration will be used.
 
 <a id="setup"></a>
 ## Setup
