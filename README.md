@@ -7,7 +7,6 @@ squad-leader-android
 
 The Squad Leader template demonstrates best practices for building handheld military applications with ArcGIS. The Squad Leader template contains source code for a handheld application and directions for building the application from source. To download a precompiled distribution of the application, visit [ArcGIS for Defense and Intelligence](http://www.arcgis.com/home/group.html?owner=Arcgisonline_defense&title=ArcGIS%20for%20Defense%20and%20Intelligence).
 
-<a id="usage"></a>
 ## Usage
 
 Launch the app on an Android device. An interactive map appears with several buttons and a data display that shows the current location in MGRS, time, speed, and heading.
@@ -32,16 +31,15 @@ The app displays a **Follow Me** button:
 
 ![Menu button](source/SquadLeader/res/drawable/ic_follow_me_normal.png)
 
-When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#location_mode) if desired.
+When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#change-settings) if desired.
 
 ### Change settings
 
 To change application settings, tap the menu button and choose Settings. You can change various settings:
 
 - **Angular units**: choose the units, such as degrees or mils, that the app uses for displaying headings and bearings.
-- [**Reset map**](#reset_map)
+- [**Reset map**](#reset-the-map)
 
-<a id="location_mode"></a>
 To change the location mode, tap the menu button and choose Set Location Mode. A dialog appears with various location mode choices:
 
 - **Hardware (GPS)**: the app uses the device's location capabilities, including GPS if available, to obtain the user's location, speed, and heading.
@@ -52,7 +50,6 @@ To change the location mode, tap the menu button and choose Set Location Mode. A
 
 To add an ArcGIS Server service to the map, tap the menu button and choose Add Layer from Web. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
 
-<a id="reset_map"></a>
 ### Reset the map
 
 You can clear any layers you have added and go back to the original map configuration. To reset the map, tap the menu button and choose **Reset map**. Tap **OK** if you want to reset the map. This will reload the map configuration from one of two locations:
@@ -60,7 +57,6 @@ You can clear any layers you have added and go back to the original map configur
 1. If /mnt/sdcard/SquadLeader/mapconfig.xml exists on the device, it will be used for resetting the map.
 2. Otherwise, Squad Leader's built-in default map configuration will be used.
 
-<a id="setup"></a>
 ## Setup
 
 ### System requirements
@@ -101,7 +97,7 @@ For best results, be sure that one and only one layer with basemap="true" also h
 
 If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
 
-After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset_map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
 
 ## Licensing
 
