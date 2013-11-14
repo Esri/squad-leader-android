@@ -19,6 +19,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- TODO when we add support for Geo URIs, uncomment this intent-filter -->
+            <!--intent-filter android:priority="0">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="geo" />
+            </intent-filter-->
         </activity>
         <activity
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"

@@ -160,6 +160,12 @@ public class SquadLeaderActivity extends FragmentActivity
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
         
+//        //TODO implement Geo URIs
+//        Uri intentData = getIntent().getData();
+//        if (null != intentData) {
+//            //intentData should be a Geo URI with a location to which we should navigate
+//        }
+        
         setContentView(R.layout.main);
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 
