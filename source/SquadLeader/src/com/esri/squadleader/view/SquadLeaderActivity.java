@@ -268,6 +268,7 @@ public class SquadLeaderActivity extends FragmentActivity
                     params.addRule(RelativeLayout.ABOVE, R.id.imageButton_openMapMenu);
                 }
             }
+            displayView.setLayoutParams(params);
         }
     }
     
