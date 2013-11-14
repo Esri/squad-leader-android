@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -51,8 +52,9 @@ import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.core.geometry.CoordinateConversion;
+import com.esri.core.geometry.CoordinateConversion.MGRSConversionMode;
 import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.MgrsConversionMode;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
@@ -527,9 +529,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     public Point panTo(String newCenterMgrs) {
         newCenterMgrs = Utilities.convertToValidMgrs(newCenterMgrs,
-                toMilitaryGrid(new Point[] {mapView.getMapBoundaryExtent().getCenter()})[0]);
+                pointToMgrs(mapView.getMapBoundaryExtent().getCenter()));
         if (null != newCenterMgrs) {
-            Point pt = fromMilitaryGrid(new String[] {newCenterMgrs})[0];
+            Point pt = mgrsToPoint(newCenterMgrs);
             if (null != pt) {
                 panTo(pt);
                 return pt;
@@ -560,8 +562,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     /**
      * Converts an array of map points to MGRS strings.
-     * @param points the points to convert to MGRS strings.
+     * @param points the points, in map coordinates, to convert to MGRS strings.
      * @return an array of MGRS strings corresponding to the input points.
+     * @deprecated use pointsToMgrs instead.
      */
     public String[] toMilitaryGrid(Point[] points) {
         SpatialReference sr = mapView.getSpatialReference();
@@ -571,29 +574,104 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         }
         return toMilitaryGrid(points, sr);
     }
-
+    
     /**
      * Converts an array of points in a known spatial reference to MGRS strings.
      * @param points the points to convert to MGRS strings.
      * @param fromSr the spatial reference of all of the points.
-     * @return 
+     * @return an array of MGRS strings corresponding to the input points.
+     * @deprecated use pointsToMgrs instead.
      */
     public String[] toMilitaryGrid(Point[] points, SpatialReference fromSr) {
-        return fromSr.toMilitaryGrid(MgrsConversionMode.mgrsAutomatic, 5, false, true, points);
+        List<String> mgrsStrings = pointsToMgrs(Arrays.asList(points), fromSr);
+        return mgrsStrings.toArray(new String[mgrsStrings.size()]);
     }
     
     /**
-     * Converts an array of MGRS points to map points.
-     * @param mgrsStrings the MGRS strings to convert to map points.
-     * @return an array of map points in the coordinate system of the map.
+     * Converts a list of map points to MGRS strings.
+     * @param points the points, in map coordinates, to convert to MGRS strings.
+     * @return a list of MGRS strings corresponding to the input points.
      */
-    public Point[] fromMilitaryGrid(String[] mgrsStrings) {
+    public List<String> pointsToMgrs(List<Point> points) {
         SpatialReference sr = mapView.getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
         }
-        return sr.fromMilitaryGrid(mgrsStrings, MgrsConversionMode.mgrsAutomatic);
+        return pointsToMgrs(points, sr);
+    }
+    
+    /**
+     * Converts a list of map points to MGRS strings.
+     * @param points the points to convert to MGRS strings.
+     * @param fromSr the spatial reference of all of the points.
+     * @return a list of MGRS strings corresponding to the input points.
+     */
+    public List<String> pointsToMgrs(List<Point> points, SpatialReference fromSr) {
+        return CoordinateConversion.pointsToMgrs(points, fromSr, MGRSConversionMode.AUTO, 5, false, true);
+    }
+    
+    /**
+     * Converts a map point to an MGRS string.
+     * @param point the point, in map coordinates, to convert to an MGRS string.
+     * @return an MGRS string corresponding to the input point.
+     */
+    public String pointToMgrs(Point point) {
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            //Assume Web Mercator (3857)
+            sr = SpatialReference.create(3857);
+        }
+        return pointToMgrs(point, sr);
+    }
+    
+    /**
+     * Converts a map point to an MGRS string.
+     * @param point the point to convert to an MGRS string.
+     * @param fromSr the spatial reference of the point.
+     * @return an MGRS string corresponding to the input point.
+     */
+    public String pointToMgrs(Point point, SpatialReference fromSr) {
+        return CoordinateConversion.pointToMgrs(point, fromSr, MGRSConversionMode.AUTO, 5, false, true);
+    }
+
+    /**
+     * Converts an array of MGRS strings to map points.
+     * @param mgrsStrings the MGRS strings to convert to map points.
+     * @return an array of map points in the coordinate system of the map.
+     * @deprecated use mgrsToPoints instead.
+     */
+    public Point[] fromMilitaryGrid(String[] mgrsStrings) {
+        List<Point> pointsList = mgrsToPoints(Arrays.asList(mgrsStrings));
+        return pointsList.toArray(new Point[pointsList.size()]);
+    }
+    
+    /**
+     * Converts a list of MGRS strings to map points.
+     * @param mgrsStrings the MGRS strings to convert to map points.
+     * @return a list of map points in the coordinate system of the map.
+     */
+    public List<Point> mgrsToPoints(List<String> mgrsStrings) {
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            //Assume Web Mercator (3857)
+            sr = SpatialReference.create(3857);
+        }
+        return CoordinateConversion.mgrsToPoints(mgrsStrings, sr, MGRSConversionMode.AUTO);
+    }
+    
+    /**
+     * Converts an MGRS string to a map point.
+     * @param mgrsString the MGRS string to convert to a map point.
+     * @return a map point in the coordinate system of the map.
+     */
+    public Point mgrsToPoint(String mgrsString) {
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            //Assume Web Mercator (3857)
+            sr = SpatialReference.create(3857);
+        }
+        return CoordinateConversion.mgrsToPoint(mgrsString, sr, MGRSConversionMode.AUTO);
     }
 
     @Override

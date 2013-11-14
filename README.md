@@ -1,11 +1,29 @@
 squad-leader-android
 ====================
 
+[Building](#building)  
 [Usage](#usage)  
 [Setup](#setup)  
 [Licensing](#licensing)
 
 The Squad Leader template demonstrates best practices for building handheld military applications with ArcGIS. The Squad Leader template contains source code for a handheld application and directions for building the application from source. To download a precompiled distribution of the application, visit [ArcGIS for Defense and Intelligence](http://www.arcgis.com/home/group.html?owner=Arcgisonline_defense&title=ArcGIS%20for%20Defense%20and%20Intelligence).
+
+## Building from source
+
+### System requirements
+
+- Android 2.3.3 or higher
+- Android SDK
+- [ArcGIS Runtime SDK 10.2 for Android](https://developers.arcgis.com/en/android/install.html)
+- Eclipse 3.6.2 or higher
+
+### Build steps
+
+1. Clone this repository, or fork it and clone your fork.
+2. In Eclipse, open the project found in your clone's source/SquadLeader directory.
+3. If the project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.)
+4. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**.
+5. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
 
 ## Usage
 
@@ -61,7 +79,7 @@ You can clear any layers you have added and go back to the original map configur
 
 ### System requirements
 
-Squad Leader runs on Android devices version 2.2 and higher. This includes all Froyo devices and newer.
+Squad Leader runs on Android devices version 2.3.3 and higher. This includes all Honeycomb devices and higher, as well as some but not all Gingerbread devices.
 
 ### Installation and configuration
 

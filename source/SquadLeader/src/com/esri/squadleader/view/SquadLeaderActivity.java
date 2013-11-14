@@ -93,7 +93,7 @@ public class SquadLeaderActivity extends FragmentActivity
                 Location location = (Location) msg.obj;
                 try {
                     TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
-                    String mgrs = mapController.toMilitaryGrid(new Point[] { new Point(location.getLongitude(), location.getLatitude()) }, SR)[0];
+                    String mgrs = mapController.pointToMgrs(new Point(location.getLongitude(), location.getLatitude()), SR);
                     locationView.setText(getString(R.string.display_location) + mgrs);
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set location text", t);
@@ -268,6 +268,7 @@ public class SquadLeaderActivity extends FragmentActivity
                     params.addRule(RelativeLayout.ABOVE, R.id.imageButton_openMapMenu);
                 }
             }
+            displayView.setLayoutParams(params);
         }
     }
     
