@@ -22,6 +22,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -102,8 +103,8 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
     }
     
     private void updateSummary(String key, SharedPreferences sp) {
+        Preference pref = findPreference(key);
         if (key.equals(getString(R.string.pref_angularUnits))) {
-            Preference pref = findPreference(key);
             ListPreference listPref = (ListPreference) pref;
             try {
                 AngularUnit unit = (AngularUnit) AngularUnit.create(Integer.parseInt(listPref.getValue()));
@@ -111,6 +112,9 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
             } catch (Throwable t) {
                 Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
             }
+        } else if (key.equals(getString(R.string.pref_messagePort))) {
+            EditTextPreference editTextPref = (EditTextPreference) pref;
+            pref.setSummary(editTextPref.getText());
         }
     }
     
