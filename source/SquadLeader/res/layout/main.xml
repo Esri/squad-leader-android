@@ -21,6 +21,54 @@
         android:background="@drawable/selector_basemap"
         android:contentDescription="@string/open_basemap_panel"
         android:onClick="imageButton_openBasemapPanel_clicked"/>
+    
+    <RadioGroup
+        android:id="@+id/radioGroup_chemLightButtons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/imageButton_openBasemapPanel"
+        android:layout_below="@+id/imageButton_openBasemapPanel"
+        android:orientation="vertical">
+        <ToggleButton
+            android:id="@+id/toggleButton_chemLightRed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/selector_chemlights_red"
+            android:textOn=""
+            android:textOff=""
+            android:contentDescription="@string/chemlight_red"
+            android:onClick="toggleButton_chemLightRed_clicked"/>
+        <ToggleButton
+            android:id="@+id/toggleButton_chemLightYellow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/selector_chemlights_yellow"
+            android:textOn=""
+            android:textOff=""
+            android:contentDescription="@string/chemlight_yellow"
+            android:onClick="toggleButton_chemLightYellow_clicked"/>
+        <ToggleButton
+            android:id="@+id/toggleButton_chemLightGreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/selector_chemlights_green"
+            android:textOn=""
+            android:textOff=""
+            android:contentDescription="@string/chemlight_green"
+            android:onClick="toggleButton_chemLightGreen_clicked"/>
+        <ToggleButton
+            android:id="@+id/toggleButton_chemLightBlue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_chemlights_blue"
+            android:textOn=""
+            android:textOff=""
+            android:contentDescription="@string/chemlight_blue"
+            android:onClick="toggleButton_chemLightBlue_clicked"/>
+    </RadioGroup>
 
     <ImageButton
         android:id="@+id/imageButton_openMapMenu"

@@ -17,6 +17,11 @@ package com.esri.squadleader.view;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -26,8 +31,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,15 +45,19 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
+import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.model.LayerInfo;
@@ -55,6 +66,7 @@ import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
+import com.esri.squadleader.controller.OutboundMessageController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
@@ -114,11 +126,6 @@ public class SquadLeaderActivity extends FragmentActivity
                     Log.i(TAG, "Couldn't set speed text", t);
                 }
                 try {
-                    if (null == angularUnitPreference) {
-                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
-                        int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
-                        angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
-                    }
                     String headingString = LocationController.headingToString(location.getHeading(), angularUnitPreference, 0);
                     ((TextView) findViewById(R.id.textView_displayHeading)).setText(getString(R.string.display_heading) + headingString);
                 } catch (Throwable t) {
@@ -140,9 +147,43 @@ public class SquadLeaderActivity extends FragmentActivity
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
                 }
+            } else if (key.equals(getString(R.string.pref_messagePort))) {
+                boolean needToReset = true;
+                try {
+                    final int newPort = Integer.parseInt(sharedPreferences.getString(key, Integer.toString(messagePortPreference)));
+                    if (1023 < newPort && 65536 > newPort && newPort != messagePortPreference) {
+                        messagePortPreference = newPort;
+                        outboundMessageController.setPort(messagePortPreference);
+                        needToReset = false;
+                        TEST_restartUdpListener();
+                    }
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + getString(R.string.pref_messagePort) + " value; sticking with default of " + messagePortPreference, t);
+                } finally {
+                    if (needToReset) {
+                        Editor editor = sharedPreferences.edit();
+                        editor.putString(key, Integer.toString(messagePortPreference));
+                        editor.commit();
+                    }
+                }
             }
         }
     };
+    
+    private static final InetAddress BROADCAST_ADDR;
+    static {
+        InetAddress theAddr = null;
+        try {
+            theAddr = InetAddress.getByName("255.255.255.255");
+        } catch (UnknownHostException e) {
+            Log.d(TAG, "Couldn't create InetAddress", e);
+        }
+        BROADCAST_ADDR = theAddr;
+    }
+    private final DatagramSocket udpSendingSocket;
+    private final OutboundMessageController outboundMessageController;
+    private final ChemLightController chemLightController;
+    private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
@@ -152,10 +193,45 @@ public class SquadLeaderActivity extends FragmentActivity
     private final Timer clockTimer = new Timer(true);
     private TimerTask clockTimerTask = null;
     private AngularUnit angularUnitPreference = null;
+    private int messagePortPreference = 45678;
+    
+    public SquadLeaderActivity() throws SocketException {
+        super();
+        udpSendingSocket = new DatagramSocket();
+        chemLightCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                for (int j = 0; j < group.getChildCount(); j++) {
+                    final ToggleButton view = (ToggleButton) group.getChildAt(j);
+                    view.setChecked(view.getId() == checkedId);
+                }
+            }
+        };
+        
+        outboundMessageController = new OutboundMessageController(messagePortPreference);
+        chemLightController = new ChemLightController(outboundMessageController);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
+        try {
+            int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
+            angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            messagePortPreference = Integer.parseInt(sp.getString(getString(R.string.pref_messagePort), Integer.toString(messagePortPreference)));
+            outboundMessageController.setPort(messagePortPreference);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        
+        TEST_restartUdpListener();
 
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
@@ -246,6 +322,8 @@ public class SquadLeaderActivity extends FragmentActivity
             
         };
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
+        
+        ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
     }
     
     @Override
@@ -403,6 +481,38 @@ public class SquadLeaderActivity extends FragmentActivity
         }
     }
     
+    private Thread TEST_udpListenerThread = null;
+    private void TEST_restartUdpListener() {
+        if (null != TEST_udpListenerThread) {
+            TEST_udpListenerThread.interrupt();
+        }
+        TEST_udpListenerThread = new Thread() {
+            public void run() {
+                Log.d(TAG, "Running thread 1");
+                byte[] message = new byte[1500];
+                DatagramPacket packet = new DatagramPacket(message, message.length);
+                try {
+                    DatagramSocket socket = new DatagramSocket(messagePortPreference);
+                    while (true) {
+                        Log.d(TAG, "Going to receive through port " + socket.getLocalPort() + "...");
+                        socket.receive(packet);
+                        final String msgString = new String(packet.getData(), packet.getOffset(), packet.getLength());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + messagePortPreference + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
+                            }
+                        });                        
+                        Log.d(TAG, "Received: '" + msgString + "'");
+                    }
+                } catch (Throwable t) {
+                    Log.e(TAG, "Receiving didn't work", t);
+                }
+            };
+        };
+        TEST_udpListenerThread.start();
+    }
+    
     /**
      * Called when an activity called by this activity returns a result. This method was initially
      * added to handle the result of choosing a GPX file for the LocationSimulator.
@@ -491,6 +601,40 @@ public class SquadLeaderActivity extends FragmentActivity
 
     public void toggleButton_followMe_clicked(final View view) {
         mapController.setAutoPan(((ToggleButton) view).isChecked());
+    }
+    
+    public void toggleButton_chemLightRed_clicked(final View view) {
+        listenForChemLightTap(view, Color.RED);
+    }
+
+    public void toggleButton_chemLightYellow_clicked(final View view) {
+        listenForChemLightTap(view, Color.YELLOW);
+    }
+
+    public void toggleButton_chemLightGreen_clicked(final View view) {
+        listenForChemLightTap(view, Color.GREEN);
+    }
+
+    public void toggleButton_chemLightBlue_clicked(final View view) {
+        listenForChemLightTap(view, Color.BLUE);
+    }
+    
+    private void listenForChemLightTap(View button, final int color) {
+        if (null != button && null != button.getParent() && button.getParent() instanceof RadioGroup) {
+            ((RadioGroup) button.getParent()).check(button.getId());
+        }
+        if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
+            mapController.setOnSingleTapListener(new OnSingleTapListener() {
+                
+                @Override
+                public void onSingleTap(float x, float y) {
+                    double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
+                    chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                }
+            });
+        } else {
+            mapController.setOnSingleTapListener(null);
+        }
     }
 
 }

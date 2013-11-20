@@ -38,12 +38,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.MotionEvent;
 
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
-import com.esri.android.map.MapOnTouchListener;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISFeatureLayer;
@@ -51,6 +49,7 @@ import com.esri.android.map.ags.ArcGISFeatureLayer.MODE;
 import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
+import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.CoordinateConversion.MGRSConversionMode;
@@ -251,25 +250,16 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         }
         
         addLayer(locationGraphicsLayer, true);
-        
-        /******************************************************************************************
-         * TODO this is test code
-         */
-        mapView.setOnTouchListener(new MapOnTouchListener(mapView.getContext(), mapView) {
-            
-            @Override
-            public boolean onSingleTap(MotionEvent event) {
-                Log.i(TAG, "Touch!");
-                if (null != advancedSymbologyController) {
-                    advancedSymbologyController.addMessage(MapController.this.mapView.toMapPoint(event.getX(), event.getY()));
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-            
-        });
-        /*****************************************************************************************/
+    }
+    
+    /**
+     * Set a listener that fires when the map is single-tapped. Set to null to remove the current listener.
+     * @param listener the listener.
+     */
+    public void setOnSingleTapListener(OnSingleTapListener listener) {
+        if (null != mapView) {
+            mapView.setOnSingleTapListener(listener);
+        }
     }
     
     @Override
@@ -722,6 +712,14 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @Override
     public boolean isAutoPan() {
         return autoPan;
+    }
+    
+    /**
+     * Returns the spatial reference of the MapView that this controller controls.
+     * @return the spatial reference of the MapView that this controller controls.
+     */
+    public SpatialReference getSpatialReference() {
+        return mapView.getSpatialReference();
     }
 
 }
