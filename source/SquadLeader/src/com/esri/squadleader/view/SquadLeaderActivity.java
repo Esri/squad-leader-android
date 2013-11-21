@@ -488,7 +488,6 @@ public class SquadLeaderActivity extends FragmentActivity
         }
         TEST_udpListenerThread = new Thread() {
             public void run() {
-                Log.d(TAG, "Running thread 1");
                 byte[] message = new byte[1500];
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 try {
@@ -627,9 +626,13 @@ public class SquadLeaderActivity extends FragmentActivity
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
                 @Override
-                public void onSingleTap(float x, float y) {
-                    double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
-                    chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                public void onSingleTap(final float x, final float y) {
+                    new Thread() {
+                        public void run() {
+                            final double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
+                            chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                        };
+                    }.start();
                 }
             });
         } else {
