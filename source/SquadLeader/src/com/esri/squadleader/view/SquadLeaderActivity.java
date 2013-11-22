@@ -487,11 +487,13 @@ public class SquadLeaderActivity extends FragmentActivity
             TEST_udpListenerThread.interrupt();
         }
         TEST_udpListenerThread = new Thread() {
+            
+            private DatagramSocket socket;
             public void run() {
                 byte[] message = new byte[1500];
-                DatagramPacket packet = new DatagramPacket(message, message.length);
+                final DatagramPacket packet = new DatagramPacket(message, message.length);
                 try {
-                    DatagramSocket socket = new DatagramSocket(messagePortPreference);
+                    socket = new DatagramSocket(messagePortPreference);
                     while (true) {
                         Log.d(TAG, "Going to receive through port " + socket.getLocalPort() + "...");
                         socket.receive(packet);
@@ -499,7 +501,7 @@ public class SquadLeaderActivity extends FragmentActivity
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + messagePortPreference + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + packet.getPort() + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
                             }
                         });                        
                         Log.d(TAG, "Received: '" + msgString + "'");
@@ -507,7 +509,13 @@ public class SquadLeaderActivity extends FragmentActivity
                 } catch (Throwable t) {
                     Log.e(TAG, "Receiving didn't work", t);
                 }
-            };
+            }
+            
+            @Override
+            public void interrupt() {
+                super.interrupt();
+                socket.close();
+            }
         };
         TEST_udpListenerThread.start();
     }
