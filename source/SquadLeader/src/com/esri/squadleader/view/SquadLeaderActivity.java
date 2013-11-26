@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -60,6 +61,7 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
+import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.squadleader.R;
@@ -166,6 +168,39 @@ public class SquadLeaderActivity extends FragmentActivity
                         editor.commit();
                     }
                 }
+            } else if (key.equals(getString(R.string.pref_positionReportPeriod))) {
+                try {
+                    positionReportsPeriodPreference = Integer.parseInt(sharedPreferences.getString(key, Integer.toString(positionReportsPeriodPreference)));
+                    positionReportController.setPeriod(positionReportsPeriodPreference);
+                    int newPeriod = positionReportController.getPeriod();
+                    if (newPeriod != positionReportsPeriodPreference) {
+                        sharedPreferences.edit().putString(getString(R.string.pref_positionReportPeriod), Integer.toString(newPeriod)).commit();
+                        positionReportsPeriodPreference = newPeriod;
+                    }
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + key + " value", t);
+                }
+            } else if (key.equals(getString(R.string.pref_positionReports))) {
+                try {
+                    positionReportsPreference = sharedPreferences.getBoolean(key, false);
+                    positionReportController.setEnabled(positionReportsPreference);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + key + " value", t);
+                }
+            } else if (key.equals(getString(R.string.pref_uniqueId))) {
+                try {
+                    uniqueIdPreference = sharedPreferences.getString(key, uniqueIdPreference);
+                    positionReportController.setUniqueId(uniqueIdPreference);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + key + " value", t);
+                }
+            } else if (key.equals(getString(R.string.pref_username))) {
+                try {
+                    usernamePreference = sharedPreferences.getString(key, usernamePreference);
+                    positionReportController.setUsername(usernamePreference);
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + key + " value", t);
+                }
             }
         }
     };
@@ -187,6 +222,7 @@ public class SquadLeaderActivity extends FragmentActivity
     
     private MapController mapController = null;
     private AdvancedSymbologyController mil2525cController = null;
+    private PositionReportController positionReportController;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
@@ -194,6 +230,12 @@ public class SquadLeaderActivity extends FragmentActivity
     private TimerTask clockTimerTask = null;
     private AngularUnit angularUnitPreference = null;
     private int messagePortPreference = 45678;
+    private boolean positionReportsPreference = false;
+    private int positionReportsPeriodPreference = 1000;
+    private String usernamePreference = "Squad Leader";
+    private String vehicleTypePreference = "Dismounted";
+    private String uniqueIdPreference = UUID.randomUUID().toString();
+    private String sicPreference = "SFGPEWRR-------";
     
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -227,6 +269,44 @@ public class SquadLeaderActivity extends FragmentActivity
         try {
             messagePortPreference = Integer.parseInt(sp.getString(getString(R.string.pref_messagePort), Integer.toString(messagePortPreference)));
             outboundMessageController.setPort(messagePortPreference);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            positionReportsPreference = sp.getBoolean(getString(R.string.pref_positionReports), false);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            positionReportsPeriodPreference = Integer.parseInt(sp.getString(
+                    getString(R.string.pref_positionReportPeriod),
+                    Integer.toString(positionReportsPeriodPreference)));
+            if (0 >= positionReportsPeriodPreference) {
+                positionReportsPeriodPreference = PositionReportController.DEFAULT_PERIOD;
+                sp.edit().putString(getString(R.string.pref_positionReportPeriod), Integer.toString(positionReportsPeriodPreference)).commit();
+            }
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            usernamePreference = sp.getString(getString(R.string.pref_username), usernamePreference);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            vehicleTypePreference = sp.getString(getString(R.string.pref_vehicleType), vehicleTypePreference);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            uniqueIdPreference = sp.getString(getString(R.string.pref_uniqueId), uniqueIdPreference);
+            //Make sure this one gets set in case we just generated it
+            sp.edit().putString(getString(R.string.pref_uniqueId), uniqueIdPreference).commit();
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        try {
+            sicPreference = sp.getString(getString(R.string.pref_sic), sicPreference);
         } catch (Throwable t) {
             Log.d(TAG, "Couldn't get preference", t);
         }
@@ -279,6 +359,16 @@ public class SquadLeaderActivity extends FragmentActivity
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
         }
         
+        positionReportController = new PositionReportController(
+                mapController.getLocationController(),
+                outboundMessageController,
+                usernamePreference,
+                vehicleTypePreference,
+                uniqueIdPreference,
+                sicPreference);
+        positionReportController.setPeriod(positionReportsPeriodPreference);
+        positionReportController.setEnabled(positionReportsPreference);
+
         mapController.getLocationController().addListener(new LocationListener() {
             
             @Override
@@ -487,11 +577,13 @@ public class SquadLeaderActivity extends FragmentActivity
             TEST_udpListenerThread.interrupt();
         }
         TEST_udpListenerThread = new Thread() {
+            
+            private DatagramSocket socket;
             public void run() {
                 byte[] message = new byte[1500];
-                DatagramPacket packet = new DatagramPacket(message, message.length);
+                final DatagramPacket packet = new DatagramPacket(message, message.length);
                 try {
-                    DatagramSocket socket = new DatagramSocket(messagePortPreference);
+                    socket = new DatagramSocket(messagePortPreference);
                     while (true) {
                         Log.d(TAG, "Going to receive through port " + socket.getLocalPort() + "...");
                         socket.receive(packet);
@@ -499,7 +591,7 @@ public class SquadLeaderActivity extends FragmentActivity
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + messagePortPreference + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + packet.getPort() + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
                             }
                         });                        
                         Log.d(TAG, "Received: '" + msgString + "'");
@@ -507,7 +599,13 @@ public class SquadLeaderActivity extends FragmentActivity
                 } catch (Throwable t) {
                     Log.e(TAG, "Receiving didn't work", t);
                 }
-            };
+            }
+            
+            @Override
+            public void interrupt() {
+                super.interrupt();
+                socket.close();
+            }
         };
         TEST_udpListenerThread.start();
     }

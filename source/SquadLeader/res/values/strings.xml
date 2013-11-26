@@ -46,6 +46,15 @@
         <item>@string/wkid_degrees</item>
         <item>@string/wkid_mils</item>
     </string-array>
+    <string name="pref_positionReports">Position reports</string>
+    <string name="pref_positionReports_summary">Automatically send position reports to listening clients</string>
+    <string name="pref_username">Username</string>
+    <string name="pref_vehicleType">Vehicle type</string>
+    <string name="pref_uniqueId">Unique ID</string>
+    <string name="pref_sic">Symbol ID Code</string>
+    <string name="pref_sicDefault">SFGPEWRR-------</string>
+    <string name="pref_positionReportPeriod">Position report period (ms)</string>
+    <string name="pref_positionReportPeriod_summary">&#160;ms between position reports</string>
     <string name="pref_messagePort">Messaging port (1024–65535)</string>
     <string name="pref_resetApp">Reset map</string>
     <string name="pref_resetApp_summary">Reset the map to /mnt/sdcard/SquadLeader/mapconfig.xml if present or built-in settings</string>
