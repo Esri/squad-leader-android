@@ -55,5 +55,10 @@ public class OutboundMessageController extends com.esri.militaryapps.controller.
     public String getActionPropertyName() {
         return MessageHelper.MESSAGE_ACTION_PROPERTY_NAME;
     }
+    
+    @Override
+    public String getSymbolIdCodePropertyName() {
+        return "sic";
+    }
 
 }

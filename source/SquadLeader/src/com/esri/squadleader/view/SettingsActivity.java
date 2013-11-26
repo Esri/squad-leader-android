@@ -112,9 +112,16 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
             } catch (Throwable t) {
                 Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
             }
-        } else if (key.equals(getString(R.string.pref_messagePort))) {
+        } else if (key.equals(getString(R.string.pref_messagePort))
+                || key.equals(getString(R.string.pref_username))
+                || key.equals(getString(R.string.pref_vehicleType))
+                || key.equals(getString(R.string.pref_sic))
+                || key.equals(getString(R.string.pref_uniqueId))) {
             EditTextPreference editTextPref = (EditTextPreference) pref;
             pref.setSummary(editTextPref.getText());
+        } else if (key.equals(getString(R.string.pref_positionReportPeriod))) {
+            EditTextPreference editTextPref = (EditTextPreference) pref;
+            pref.setSummary(editTextPref.getText() + getString(R.string.pref_positionReportPeriod_summary));
         }
     }
     
