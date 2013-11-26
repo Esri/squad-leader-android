@@ -29,7 +29,6 @@
     <EditTextPreference
         android:key="@string/pref_positionReportPeriod"
         android:title="@string/pref_positionReportPeriod"
-        android:dependency="@string/pref_positionReports"
         android:inputType="number"
         android:defaultValue="1000" />
     <EditTextPreference

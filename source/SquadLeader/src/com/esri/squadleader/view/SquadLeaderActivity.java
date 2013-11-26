@@ -232,10 +232,10 @@ public class SquadLeaderActivity extends FragmentActivity
     private int messagePortPreference = 45678;
     private boolean positionReportsPreference = false;
     private int positionReportsPeriodPreference = 1000;
-    private String usernamePreference = null;
-    private String vehicleTypePreference = null;
+    private String usernamePreference = "Squad Leader";
+    private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
-    private String sicPreference = null;
+    private String sicPreference = "SFGPEWRR-------";
     
     public SquadLeaderActivity() throws SocketException {
         super();
