@@ -22,6 +22,18 @@
         android:contentDescription="@string/open_basemap_panel"
         android:onClick="imageButton_openBasemapPanel_clicked"/>
     
+    <ToggleButton
+        android:id="@+id/toggleButton_spotReport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/imageButton_openBasemapPanel"
+        android:layout_alignTop="@+id/imageButton_openBasemapPanel"
+        android:background="@drawable/selector_spot_report"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/create_spot_report"
+        android:onClick="toggleButton_spotReport_clicked"/>
+    
     <RadioGroup
         android:id="@+id/radioGroup_chemLightButtons"
         android:layout_width="wrap_content"

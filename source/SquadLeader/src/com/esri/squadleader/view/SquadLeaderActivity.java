@@ -719,6 +719,7 @@ public class SquadLeaderActivity extends FragmentActivity
     private void listenForChemLightTap(View button, final int color) {
         if (null != button && null != button.getParent() && button.getParent() instanceof RadioGroup) {
             ((RadioGroup) button.getParent()).check(button.getId());
+            ((ToggleButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
         }
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
@@ -731,6 +732,29 @@ public class SquadLeaderActivity extends FragmentActivity
                             chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
                         };
                     }.start();
+                }
+            });
+        } else {
+            mapController.setOnSingleTapListener(null);
+        }
+    }
+    
+    public void toggleButton_spotReport_clicked(final View button) {
+        ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
+        if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
+            mapController.setOnSingleTapListener(new OnSingleTapListener() {
+                
+                @Override
+                public void onSingleTap(final float x, final float y) {
+                    runOnUiThread(
+                        new Thread() {
+                            public void run() {
+                                Toast.makeText(SquadLeaderActivity.this, "TODO send spot report " + x + ", " + y, Toast.LENGTH_SHORT).show();
+                                double[] mapPointCoords = mapController.toMapPoint((int) x, (int) y);
+                                mil2525cController.addMessage(new Point(mapPointCoords[0], mapPointCoords[1]));
+                            };
+                        }
+                    );
                 }
             });
         } else {
