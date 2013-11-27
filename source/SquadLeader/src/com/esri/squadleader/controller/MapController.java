@@ -625,6 +625,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         return CoordinateConversion.pointToMgrs(point, fromSr, MGRSConversionMode.AUTO, 5, false, true);
     }
 
+    @Override
+    public String pointToMgrs(double x, double y, int wkid) {
+        return pointToMgrs(new Point(x, y), SpatialReference.create(wkid));
+    }
+
     /**
      * Converts an array of MGRS strings to map points.
      * @param mgrsStrings the MGRS strings to convert to map points.
