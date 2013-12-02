@@ -746,12 +746,14 @@ public class SquadLeaderActivity extends FragmentActivity
                 
                 @Override
                 public void onSingleTap(final float x, final float y) {
+                    Point pt = mapController.toMapPointObject((int) x, (int) y);
+                    Intent intent = new Intent(SquadLeaderActivity.this, SpotReportActivity.class);
+                    startActivity(intent);
+                    mil2525cController.addMessage(pt);
                     runOnUiThread(
                         new Thread() {
                             public void run() {
                                 Toast.makeText(SquadLeaderActivity.this, "TODO send spot report " + x + ", " + y, Toast.LENGTH_SHORT).show();
-                                double[] mapPointCoords = mapController.toMapPoint((int) x, (int) y);
-                                mil2525cController.addMessage(new Point(mapPointCoords[0], mapPointCoords[1]));
                             };
                         }
                     );

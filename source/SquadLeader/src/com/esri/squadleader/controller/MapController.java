@@ -533,10 +533,20 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             return null;
         }
     }
+    
+    /**
+     * Returns the map point for the screen coordinates provided.
+     * @param screenX
+     * @param screenY
+     * @return
+     */
+    public Point toMapPointObject(int screenX, int screenY) {
+        return mapView.toMapPoint(screenX, screenY);
+    }
 
     @Override
     public double[] toMapPoint(int screenX, int screenY) {
-        Point pt = mapView.toMapPoint(screenX, screenY);
+        Point pt = toMapPointObject(screenX, screenY);
         return new double[] { pt.getX(), pt.getY() };
     }
 

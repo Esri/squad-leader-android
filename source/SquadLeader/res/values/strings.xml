@@ -37,7 +37,6 @@
     <string name="display_speed">Speed:&#160;</string>
     <string name="display_heading">Heading:&#160;</string>
     <string name="display_time">Time:&#160;</string>
-    <string name="app_preferences_filename">app_preferences</string>
     <string name="pref_angularUnits">Angular units</string>
     <string-array name="pref_angularUnits_entries">
         <item>Degrees</item>
@@ -68,4 +67,11 @@
     <string name="chemlight_green">Green Chem Light</string>
     <string name="chemlight_blue">Blue Chem Light</string>
     <string name="hint_mgrs">MGRS</string>
+    <string name="size">Size</string>
+    <string name="activity">Activity</string>
+    <string name="location">Location</string>
+    <string name="unit">Unit</string>
+    <string name="datetime">Date/Time</string>
+    <string name="equipment">Equipment</string>
+    <string name="title_activity_spot_report">Spot Report</string>
 </resources>
