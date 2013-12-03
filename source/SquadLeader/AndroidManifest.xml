@@ -50,9 +50,14 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <activity android:name="com.esri.squadleader.view.SettingsActivity"></activity>
+        <activity android:name="com.esri.squadleader.view.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.esri.squadleader.view.SquadLeaderActivity" />
+        </activity>
         <activity
             android:name="com.esri.squadleader.view.SpotReportActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
             android:label="@string/title_activity_spot_report" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

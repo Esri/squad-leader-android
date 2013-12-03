@@ -21,6 +21,7 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 1. Clone this repository, or fork it and clone your fork.
 2. In Eclipse, open the project found in your clone's source/SquadLeader directory.
+3. Add the v7 appcompat Android Support Library to the SquadLeader project ([instructions](http://developer.android.com/tools/support-library/setup.html)). The SquadLeader project's reference to android-support-v7-appcompat is probably broken (red X) at this point, in which case you should remove it and add a reference to the one that [the instructions](http://developer.android.com/tools/support-library/setup.html) tell you to create.
 3. If the project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.)
 4. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**.
 5. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
