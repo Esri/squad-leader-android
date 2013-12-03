@@ -2,10 +2,12 @@ package com.esri.squadleader.view;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.militaryapps.model.SpotReport.Equipment;
@@ -45,8 +47,17 @@ public class SpotReportActivity extends ActionBarActivity {
     }
     
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.spot_report_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_send:
+                //TODO send spot report
+                Toast.makeText(this, "action_send for spot report!", Toast.LENGTH_SHORT).show();
             //Stop the home/up button from restarting the parent activity
             case android.R.id.home:
                 finish();
