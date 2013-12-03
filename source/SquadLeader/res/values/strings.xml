@@ -71,7 +71,7 @@
     <string name="activity">Activity</string>
     <string name="location">Location</string>
     <string name="unit">Unit</string>
-    <string name="datetime">Date/Time</string>
+    <string name="datetime">Date/Time (Zulu)</string>
     <string name="equipment">Equipment</string>
     <string name="title_activity_spot_report">Spot Report</string>
 </resources>

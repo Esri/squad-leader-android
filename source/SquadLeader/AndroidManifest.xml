@@ -58,7 +58,8 @@
         <activity
             android:name="com.esri.squadleader.view.SpotReportActivity"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
-            android:label="@string/title_activity_spot_report" >
+            android:label="@string/title_activity_spot_report"
+            android:windowSoftInputMode="stateUnchanged" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.esri.squadleader.view.SquadLeaderActivity" />

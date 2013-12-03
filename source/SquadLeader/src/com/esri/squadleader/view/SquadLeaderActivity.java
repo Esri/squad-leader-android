@@ -748,6 +748,7 @@ public class SquadLeaderActivity extends FragmentActivity
                 public void onSingleTap(final float x, final float y) {
                     Point pt = mapController.toMapPointObject((int) x, (int) y);
                     Intent intent = new Intent(SquadLeaderActivity.this, SpotReportActivity.class);
+                    intent.putExtra(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME, mapController.pointToMgrs(pt));
                     startActivity(intent);
                     mil2525cController.addMessage(pt);
                     runOnUiThread(
