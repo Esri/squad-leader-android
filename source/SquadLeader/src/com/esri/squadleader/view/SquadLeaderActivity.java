@@ -713,6 +713,10 @@ public class SquadLeaderActivity extends FragmentActivity
         dialog.show();
     }
     
+    public void toggleButton_status911_clicked(final View view) {
+        positionReportController.setStatus911(((ToggleButton) view).isChecked());
+    }
+    
     public void imageButton_openMapMenu_clicked(final View view) {
         openOptionsMenu();
     }

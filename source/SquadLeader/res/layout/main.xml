@@ -23,6 +23,19 @@
         android:onClick="imageButton_openBasemapPanel_clicked"/>
     
     <ToggleButton
+        android:id="@+id/toggleButton_status911"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/selector_status911"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/status_911"
+        android:onClick="toggleButton_status911_clicked"/>
+    
+    <ToggleButton
         android:id="@+id/toggleButton_spotReport"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
