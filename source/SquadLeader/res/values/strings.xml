@@ -18,6 +18,7 @@
     <string name="add_layer_from_web_fragment_tag">AddLayerFromWebDialogFragment</string>
     <string name="add_layer">Add Layer</string>
     <string name="use_as_basemap">Use as Basemap</string>
+    <string name="create_spot_report">Create Spot Report</string>
     <string name="toggle_grid">Toggle Grid</string>
     <string name="go_to_mgrs">Go to MGRS Location</string>
     <string name="go_to_mgrs_fragment_tag">GoToMgrsFragment</string>
@@ -36,7 +37,6 @@
     <string name="display_speed">Speed:&#160;</string>
     <string name="display_heading">Heading:&#160;</string>
     <string name="display_time">Time:&#160;</string>
-    <string name="app_preferences_filename">app_preferences</string>
     <string name="pref_angularUnits">Angular units</string>
     <string-array name="pref_angularUnits_entries">
         <item>Degrees</item>
@@ -66,4 +66,13 @@
     <string name="chemlight_yellow">Yellow Chem Light</string>
     <string name="chemlight_green">Green Chem Light</string>
     <string name="chemlight_blue">Blue Chem Light</string>
+    <string name="hint_mgrs">MGRS</string>
+    <string name="size">Size</string>
+    <string name="activity">Activity</string>
+    <string name="location">Location</string>
+    <string name="unit">Unit</string>
+    <string name="datetime">Date/Time (Zulu)</string>
+    <string name="equipment">Equipment</string>
+    <string name="title_activity_spot_report">Spot Report</string>
+    <string name="send">Send</string>
 </resources>
