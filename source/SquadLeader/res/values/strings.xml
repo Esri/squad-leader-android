@@ -10,6 +10,7 @@
     <string name="map_config_filename">mapconfig.xml</string>
     <string name="open_basemap_panel">Open Basemap Panel</string>
     <string name="choose_basemap">Choose Basemap</string>
+    <string name="status_911">Set 911 Status</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="add_layer_from_web">Add Layer from Web</string>
