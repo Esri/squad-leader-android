@@ -1,6 +1,8 @@
 package com.esri.squadleader.view;
 
+import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -44,6 +46,19 @@ public class SpotReportActivity extends ActionBarActivity {
         ArrayAdapter<Unit> unitAdapter = new ArrayAdapter<Unit>(this, android.R.layout.simple_spinner_item, Unit.values());
         unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         ((Spinner) findViewById(R.id.spinner_spotrep_unit)).setAdapter(unitAdapter);
+        
+        GregorianCalendar now = new GregorianCalendar();
+        now.setTimeZone(TimeZone.getTimeZone("UTC"));
+        TimePicker timePicker = (TimePicker) findViewById(R.id.timepicker_spotrep_time);
+        if (null != timePicker) {
+            timePicker.setIs24HourView(true);
+            timePicker.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
+            timePicker.setCurrentMinute(now.get(Calendar.MINUTE));
+        }
+        DatePicker datePicker = (DatePicker) findViewById(R.id.datepicker_spotrep_date);
+        if (null != datePicker) {
+            datePicker.updateDate(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        }
 
         ArrayAdapter<Equipment> equipmentAdapter = new ArrayAdapter<Equipment>(this, android.R.layout.simple_spinner_item, Equipment.values());
         equipmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -66,12 +81,14 @@ public class SpotReportActivity extends ActionBarActivity {
             Unit unit = (Unit) ((Spinner) findViewById(R.id.spinner_spotrep_unit)).getSelectedItem();
             DatePicker datePicker = ((DatePicker) findViewById(R.id.datepicker_spotrep_date));
             TimePicker timePicker = ((TimePicker) findViewById(R.id.timepicker_spotrep_time));
-            GregorianCalendar time = new GregorianCalendar(
+            GregorianCalendar time = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            time.set(
                     datePicker.getYear(),
                     datePicker.getMonth(),
                     datePicker.getDayOfMonth(),
                     timePicker.getCurrentHour(),
-                    timePicker.getCurrentMinute());
+                    timePicker.getCurrentMinute(),
+                    0);
             Equipment equipment = (Equipment) ((Spinner) findViewById(R.id.spinner_spotrep_equipment)).getSelectedItem();
 
             SpotReport spotReport = new SpotReport(size, activity, 0, 0, 0, unit, time, equipment);

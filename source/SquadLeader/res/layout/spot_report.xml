@@ -54,7 +54,8 @@
         <DatePicker android:id="@+id/datepicker_spotrep_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/label_spotrep_date" />
+            android:layout_below="@+id/label_spotrep_date"
+            android:calendarViewShown="false" />
         <TimePicker android:id="@+id/timepicker_spotrep_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
