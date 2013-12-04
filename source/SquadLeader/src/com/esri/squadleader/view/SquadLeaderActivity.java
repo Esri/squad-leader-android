@@ -62,8 +62,10 @@ import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.controller.PositionReportController;
+import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
+import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbologyController;
 import com.esri.squadleader.controller.LocationController;
@@ -94,6 +96,11 @@ public class SquadLeaderActivity extends FragmentActivity
      * A unique ID for getting a result from the settings activity.
      */
     private static final int SETTINGS_ACTIVITY = 5862;
+    
+    /**
+     * A unique ID for getting a result from the spot report activity.
+     */
+    private static final int SPOT_REPORT_ACTIVITY = 15504;
     
     private final Handler locationChangeHandler = new Handler() {
         
@@ -221,6 +228,7 @@ public class SquadLeaderActivity extends FragmentActivity
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     
     private MapController mapController = null;
+    private SpotReportController spotReportController = null;
     private AdvancedSymbologyController mil2525cController = null;
     private PositionReportController positionReportController;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
@@ -358,6 +366,8 @@ public class SquadLeaderActivity extends FragmentActivity
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
         }
+        
+        spotReportController = new SpotReportController(mapController, outboundMessageController);
         
         positionReportController = new PositionReportController(
                 mapController.getLocationController(),
@@ -615,34 +625,59 @@ public class SquadLeaderActivity extends FragmentActivity
      * added to handle the result of choosing a GPX file for the LocationSimulator.
      */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         switch (requestCode) {
-            case REQUEST_CHOOSER: {
-                if (resultCode == RESULT_OK) {  
-                    final Uri uri = data.getData();
-                    File file = FileUtils.getFile(uri);
-                    mapController.getLocationController().setGpxFile(file);
-                    try {
-                        mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
-                    } catch (Exception e) {
-                        Log.d(TAG, "Could not start simulator", e);
-                    }
+        case REQUEST_CHOOSER:
+            if (resultCode == RESULT_OK) {  
+                final Uri uri = data.getData();
+                File file = FileUtils.getFile(uri);
+                mapController.getLocationController().setGpxFile(file);
+                try {
+                    mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
+                } catch (Exception e) {
+                    Log.d(TAG, "Could not start simulator", e);
                 }
-                break;
             }
-            case SETTINGS_ACTIVITY: {
-                if (null != data && data.getBooleanExtra(getString(R.string.pref_resetApp), false)) {
-                    try {
-                        mapController.reset();
-                    } catch (Throwable t) {
-                        Log.e(TAG, "Could not reset map", t);
-                    }
+            break;
+        case SETTINGS_ACTIVITY:
+            if (null != data && data.getBooleanExtra(getString(R.string.pref_resetApp), false)) {
+                try {
+                    mapController.reset();
+                } catch (Throwable t) {
+                    Log.e(TAG, "Could not reset map", t);
                 }
-                break;
             }
-            default: {
-                super.onActivityResult(requestCode, resultCode, data);
+            break;
+        case SPOT_REPORT_ACTIVITY:
+            if (null != data && null != data.getExtras()) {
+                final SpotReport spotReport = (SpotReport) data.getExtras().get(getPackageName() + "." + SpotReportActivity.SPOT_REPORT_EXTRA_NAME);
+                if (null != spotReport) {
+                    new Thread() {
+                        
+                        @Override
+                        public void run() {
+                            String mgrs = (String) data.getExtras().get(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME);
+                            if (null != mgrs) {
+                                Point pt = mapController.mgrsToPoint(mgrs);
+                                if (null != pt) {
+                                    spotReport.setLocationX(pt.getX());
+                                    spotReport.setLocationY(pt.getY());
+                                    spotReport.setLocationWkid(mapController.getSpatialReference().getID());
+                                }
+                            }                
+                            try {
+                                spotReportController.sendSpotReport(spotReport, usernamePreference);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Could not send spot report", e);
+                                //TODO notify user?
+                            }
+                        }
+                    }.start();
+                }
             }
+            break;
+        default:
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
     
@@ -749,15 +784,7 @@ public class SquadLeaderActivity extends FragmentActivity
                     Point pt = mapController.toMapPointObject((int) x, (int) y);
                     Intent intent = new Intent(SquadLeaderActivity.this, SpotReportActivity.class);
                     intent.putExtra(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME, mapController.pointToMgrs(pt));
-                    startActivity(intent);
-                    mil2525cController.addMessage(pt);
-                    runOnUiThread(
-                        new Thread() {
-                            public void run() {
-                                Toast.makeText(SquadLeaderActivity.this, "TODO send spot report " + x + ", " + y, Toast.LENGTH_SHORT).show();
-                            };
-                        }
-                    );
+                    startActivityForResult(intent, SPOT_REPORT_ACTIVITY);
                 }
             });
         } else {

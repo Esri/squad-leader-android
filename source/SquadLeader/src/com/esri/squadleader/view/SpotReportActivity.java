@@ -1,13 +1,16 @@
 package com.esri.squadleader.view;
 
+import java.util.GregorianCalendar;
+
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.TimePicker;
 
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.militaryapps.model.SpotReport.Equipment;
@@ -18,6 +21,7 @@ import com.esri.squadleader.R;
 public class SpotReportActivity extends ActionBarActivity {
     
     public static final String MGRS_EXTRA_NAME = "MgrsExtra";
+    public static final String SPOT_REPORT_EXTRA_NAME = "SpotReportExtra";
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +59,31 @@ public class SpotReportActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_send:
-                //TODO send spot report
-                Toast.makeText(this, "action_send for spot report!", Toast.LENGTH_SHORT).show();
-            //Stop the home/up button from restarting the parent activity
-            case android.R.id.home:
-                finish();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        case R.id.action_send:
+            Size size = (Size) ((Spinner) findViewById(R.id.spinner_spotrep_size)).getSelectedItem();
+            SpotReport.Activity activity = (SpotReport.Activity) ((Spinner) findViewById(R.id.spinner_spotrep_activity)).getSelectedItem();
+            String locationMgrs = ((EditText) findViewById(R.id.editText_spotrep_location)).getText().toString();
+            Unit unit = (Unit) ((Spinner) findViewById(R.id.spinner_spotrep_unit)).getSelectedItem();
+            DatePicker datePicker = ((DatePicker) findViewById(R.id.datepicker_spotrep_date));
+            TimePicker timePicker = ((TimePicker) findViewById(R.id.timepicker_spotrep_time));
+            GregorianCalendar time = new GregorianCalendar(
+                    datePicker.getYear(),
+                    datePicker.getMonth(),
+                    datePicker.getDayOfMonth(),
+                    timePicker.getCurrentHour(),
+                    timePicker.getCurrentMinute());
+            Equipment equipment = (Equipment) ((Spinner) findViewById(R.id.spinner_spotrep_equipment)).getSelectedItem();
+
+            SpotReport spotReport = new SpotReport(size, activity, 0, 0, 0, unit, time, equipment);
+            getIntent().putExtra(getPackageName() + "." + SPOT_REPORT_EXTRA_NAME, spotReport);
+            getIntent().putExtra(getPackageName() + "." + MGRS_EXTRA_NAME, locationMgrs);
+            setResult(RESULT_OK, getIntent());
+        //Stop the home/up button from restarting the parent activity
+        case android.R.id.home:
+            finish();
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
         }
         
     }
