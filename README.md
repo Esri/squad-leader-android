@@ -26,6 +26,15 @@ The Squad Leader template demonstrates best practices for building handheld mili
 4. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**.
 5. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
 
+### A note on military-apps-library-java
+
+Squad Leader leverages [military-apps-library-java](https://github.com/ArcGIS/military-apps-library-java) as a submodule of the squad-leader-android repository. If ever you should want to update to the latest military-apps-library-java commit instead of the commit used by the squad-leader-android commit you're using, you can open a GitHub shell in squad-leader-android and run the following:
+
+<code>
+$ cd .\military-apps-library-java  
+$ git pull origin master
+</code>
+
 ## Usage
 
 Launch the app on an Android device. An interactive map appears with several buttons and a data display that shows the current location in MGRS, time, speed, and heading.
