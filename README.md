@@ -118,6 +118,18 @@ If you do not provide a mapconfig.xml file, a default list of ArcGIS Online base
 
 After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
 
+## Resources
+
+* Learn more about Esri's [ArcGIS for the Military solution](http://solutions.arcgis.com/military/).
+
+## Issues
+
+Find a bug or want to request a new feature?  Please let us know by submitting an issue.
+
+## Contributing
+
+Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
+
 ## Licensing
 
 Copyright 2013 Esri
