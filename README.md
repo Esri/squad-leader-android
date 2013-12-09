@@ -61,11 +61,62 @@ The app displays a **Follow Me** button:
 
 When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#change-settings) if desired.
 
+### Reporting
+
+Squad Leader sends and receives Geomessages to and from other instances of Squad Leader as well as other ArcGIS for the Military apps and services, including Vehicle Commander and GeoEvent Processor. The app has many [settings](#change-settings) that govern outgoing messages.
+
+#### Position reports
+
+The app periodically sends out an automatic position report consisting of the user's location, ID, vehicle type, and other information. To disable outgoing reports, go to **Menu** > **Settings** and disable **Position reports**.
+
+#### Emergency status
+
+Toggle the 911 button to activate or deactivate emergency status:
+
+![911 button](source/SquadLeader/res/drawable/ic_911_normal.png)
+
+As soon as emergency status is activated or deactivated, the position reports internal timer is reset, and a position report is immediately sent with the appropriate emergency status.
+
+When Squad Leader receives a position report with emergency status activated, it displays the position report on the map and highlights it.
+
+#### Spot reports
+
+The user can create a spot report for observed hostile activities. Spot reports follow the SALUTE format (Size, Activity, Location, Unit, Time, Equipment).
+
+To create a spot report, tap the spot report button:
+
+![Spot report button](source/SquadLeader/res/drawable/ic_spot_report_normal.png)
+
+Then tap the location on the map for the spot report. A spot report form displays with the location field pre-filled with the location you tapped. Change the form's values as needed and tap the Send button in the upper left corner. The spot report is sent to listening clients, including your own device, which displays the spot report on the map.
+
+#### Chem lights
+
+The user can create a chem light report as a quick way to drop a dot on the map and send it to listening clients. Four colors are available; a unit should predetermine what each color means.
+
+To create a chem light, tap one of the colored chem light buttons:
+
+![Red report button](source/SquadLeader/res/drawable/ic_chemlights_red_normal.png)
+
+![Yellow report button](source/SquadLeader/res/drawable/ic_chemlights_yellow_normal.png)
+
+![Green report button](source/SquadLeader/res/drawable/ic_chemlights_green_normal.png)
+
+![Blue report button](source/SquadLeader/res/drawable/ic_chemlights_blue_normal.png)
+
+Then tap the location on the map for the chem light. The chem light is sent to listening clients, including your own device, which displays the chem light on the map.
+
 ### Change settings
 
 To change application settings, tap the menu button and choose Settings. You can change various settings:
 
 - **Angular units**: choose the units, such as degrees or mils, that the app uses for displaying headings and bearings.
+- **Username**: the username displayed for outgoing reports. For semantic reasons, the username should be unique.
+- **Vehicle type**: the vehicle type used in outgoing reports.
+- **Unique ID**: the user's unique ID. This ID should be unique. If other users use the same unique ID, clients will treat their messages as if they had come from the same user.
+- **Symbol ID Code**: the MIL-STD-2525C symbol ID code (SIC or SIDC) associated with the user in outgoing position reports.
+- **Position reports**: checked to automatically send periodic position reports to listening clients.
+- **Position report period**: the number of milliseconds between outgoing position reports.
+- **Messaging port**: the UDP port on which messages are sent and received. The port number must be between 1024 and 65535. All apps using the same port and connected to the same router will communicate with each other.
 - [**Reset map**](#reset-the-map)
 
 To change the location mode, tap the menu button and choose Set Location Mode. A dialog appears with various location mode choices:
