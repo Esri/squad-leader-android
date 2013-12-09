@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import android.content.res.AssetManager;
 import android.os.Environment;
@@ -41,6 +42,7 @@ public class AdvancedSymbolController {
 
     private final MessageGroupLayer groupLayer;
     private final String[] messageTypesSupportedSorted;
+    private final HashSet<String> highlightedIds = new HashSet<String>();
 
     /**
      * Creates a new AdvancedSymbolController.
@@ -98,9 +100,9 @@ public class AdvancedSymbolController {
                     geomessage.getId(),
                     (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
                     true);
+            message.setProperties(geomessage.getProperties());
+            message.setID(geomessage.getId());
         }
-        message.setProperties(geomessage.getProperties());
-        message.setID(geomessage.getId());
         
         //Translate from an AFM message type name to an ArcGIS Runtime for Android message type name
         String messageType = (String) message.getProperty(Geomessage.TYPE_FIELD_NAME);
@@ -135,6 +137,28 @@ public class AdvancedSymbolController {
         }
         
         groupLayer.getMessageProcessor().processMessage(message);
+        
+        boolean needToHighlight = false;
+        boolean needToUnhighlight = false;
+        boolean previouslyHighlighted = highlightedIds.contains(geomessage.getId());
+        boolean nowHighlighted = "1".equals(geomessage.getProperty("status911"));
+        if (previouslyHighlighted) {
+            needToUnhighlight = !nowHighlighted;
+        } else {
+            needToHighlight = nowHighlighted;
+        }
+        if (needToHighlight || needToUnhighlight) {
+            message = MessageHelper.create2525CHighlightMessage(
+                    geomessage.getId(),
+                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                    needToHighlight);
+            groupLayer.getMessageProcessor().processMessage(message);
+            if (needToHighlight) {
+                highlightedIds.add(geomessage.getId());
+            } else {
+                highlightedIds.remove(geomessage.getId());
+            }
+        }
     }
     
 }

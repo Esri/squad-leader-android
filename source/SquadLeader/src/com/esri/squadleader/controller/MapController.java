@@ -508,7 +508,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
     
     public void panTo(Point newCenter) {
-        Log.d(TAG, "panTo " + newCenter.getX() + ", " + newCenter.getY());
         mapView.centerAt(newCenter, true);
     }
 
