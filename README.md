@@ -51,6 +51,12 @@ When these instructions say to tap the menu button, you can use either the devic
 
 To change the basemap currently displayed, tap the basemap selector button in the upper left corner. A dialog appears with a list of basemaps that have been added to the app. Choose a basemap to display it. Only one basemap is visible at a time.
 
+### Display MGRS grid
+
+To display or hide a military grid reference system (MGRS) grid on the map, toggle the grid button:
+
+![Grid button](source/SquadLeader/res/drawable/ic_grid_normal.png)
+
 ### Navigate the map
 
 Drag a finger on the map to pan. To zoom in and out, either pinch open and close or use the buttons in the lower right corner.
@@ -60,6 +66,12 @@ The app displays a **Follow Me** button:
 ![Menu button](source/SquadLeader/res/drawable/ic_follow_me_normal.png)
 
 When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#change-settings) if desired.
+
+To rotate the map, touch the map with two fingers and rotate. To reset the rotation so that north is up again, tap the north arrow:
+
+![North arrow](source/SquadLeader/res/drawable/ic_north_arrow.png)
+
+To navigate to an MGRS location, go to **Menu** > **Go to MGRS Location**. Type or paste a valid MGRS string and tap **Go to MGRS Location**. 
 
 ### Reporting
 
@@ -185,6 +197,10 @@ After the first launch, the app uses the bsaemap layers that it loaded previousl
 ## Issues
 
 Find a bug or want to request a new feature?  Please let us know by submitting an issue.
+
+### Known issues
+
+- When using Go to MGRS Location, some invalid MGRS strings cause the app to crash. For example, 60CVS123456 is a valid MGRS string, but 60CVR123456 is not because zone 60C has a VS square but not a VR square. Squad Leader attempts to parse and ignore invalid MGRS strings, but some strings (such as 60CVR123456) appear valid but are not and make the app crash. The crash is a known issue in ArcGIS Runtime that will be addressed in a current release of ArcGIS Runtime and a subsequent release of Squad Leader.
 
 ## Contributing
 
