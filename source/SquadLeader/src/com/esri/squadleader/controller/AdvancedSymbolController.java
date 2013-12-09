@@ -18,35 +18,30 @@ package com.esri.squadleader.controller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.util.Log;
 
-import com.esri.core.geometry.Point;
 import com.esri.core.symbol.advanced.Message;
 import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.core.symbol.advanced.SymbolDictionary;
+import com.esri.militaryapps.model.Geomessage;
 import com.esri.squadleader.util.Utilities;
 
 /**
  * A controller for ArcGIS Runtime advanced symbology. Use this class when you want to use
  * MessageGroupLayer, MessageProcessor, SymbolDictionary, and MIL-STD-2525C symbols.
  */
-public class AdvancedSymbologyController {
+public class AdvancedSymbolController {
     
-    private static final String TAG = AdvancedSymbologyController.class.getSimpleName();
+    private static final String TAG = AdvancedSymbolController.class.getSimpleName();
 
     private final MessageGroupLayer groupLayer;
 
     /**
-     * Creates a new AdvancedSymbologyController.
+     * Creates a new AdvancedSymbolController.
      * @param mapController the application's MapController.
      * @param assetManager the application's AssetManager, from which the advanced symbology database
      *                     will be copied.
@@ -54,7 +49,7 @@ public class AdvancedSymbologyController {
      *                                database.
      * @throws FileNotFoundException if the advanced symbology database is absent or corrupt.
      */
-    public AdvancedSymbologyController(
+    public AdvancedSymbolController(
             MapController mapController,
             AssetManager assetManager,
             String symbolDictionaryDirname) throws FileNotFoundException {
@@ -73,15 +68,33 @@ public class AdvancedSymbologyController {
     }
     
     /**
-     * TODO almost certainly, this method's signature will change.
-     * @param pt the point where the message should appear on the map.
+     * Adds a Geomessage, displaying it on the map with which this controller was created.
+     * @param geomessage the Geomessage to display.
      */
-    public void addMessage(Point pt) {
-        List<Point> pts = new ArrayList<Point>();
-        pts.add(pt);
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put("sic", "SFGPEVAC-------");
-        Message message = MessageHelper.create2525CUpdateMessage(UUID.randomUUID().toString(), "position_report", pts, attributes);
+    public void addGeomessage(Geomessage geomessage) {
+        String action = (String) geomessage.getProperty(Geomessage.ACTION_FIELD_NAME);
+        Message message;
+        if (MessageHelper.MESSAGE_ACTION_VALUE_HIGHLIGHT.equalsIgnoreCase(action)) {
+            message = MessageHelper.create2525CHighlightMessage(
+                    geomessage.getId(),
+                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                    true);
+        } else if (MessageHelper.MESSAGE_ACTION_VALUE_UNHIGHLIGHT.equalsIgnoreCase(action)) {
+            message = MessageHelper.create2525CHighlightMessage(
+                    geomessage.getId(),
+                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                    false);
+        } else if (MessageHelper.MESSAGE_ACTION_VALUE_REMOVE.equalsIgnoreCase(action)) {
+            message = MessageHelper.create2525CRemoveMessage(
+                    geomessage.getId(),
+                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME));
+        } else {
+            message = MessageHelper.create2525CUpdateMessage(
+                    geomessage.getId(),
+                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                    true);
+        }
+        message.setProperties(geomessage.getProperties());
         groupLayer.getMessageProcessor().processMessage(message);
     }
     

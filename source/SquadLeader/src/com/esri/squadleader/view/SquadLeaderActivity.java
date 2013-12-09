@@ -17,11 +17,7 @@ package com.esri.squadleader.view;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -49,7 +45,6 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.MapView;
@@ -61,16 +56,17 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
+import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
-import com.esri.squadleader.controller.AdvancedSymbologyController;
+import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
-import com.esri.squadleader.controller.OutboundMessageController;
+import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
@@ -162,9 +158,8 @@ public class SquadLeaderActivity extends FragmentActivity
                     final int newPort = Integer.parseInt(sharedPreferences.getString(key, Integer.toString(messagePortPreference)));
                     if (1023 < newPort && 65536 > newPort && newPort != messagePortPreference) {
                         messagePortPreference = newPort;
-                        outboundMessageController.setPort(messagePortPreference);
+                        changePort(newPort);
                         needToReset = false;
-                        TEST_restartUdpListener();
                     }
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't get " + getString(R.string.pref_messagePort) + " value; sticking with default of " + messagePortPreference, t);
@@ -212,24 +207,13 @@ public class SquadLeaderActivity extends FragmentActivity
         }
     };
     
-    private static final InetAddress BROADCAST_ADDR;
-    static {
-        InetAddress theAddr = null;
-        try {
-            theAddr = InetAddress.getByName("255.255.255.255");
-        } catch (UnknownHostException e) {
-            Log.d(TAG, "Couldn't create InetAddress", e);
-        }
-        BROADCAST_ADDR = theAddr;
-    }
-    private final DatagramSocket udpSendingSocket;
-    private final OutboundMessageController outboundMessageController;
+    private final MessageController messageController;
     private final ChemLightController chemLightController;
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     
     private MapController mapController = null;
     private SpotReportController spotReportController = null;
-    private AdvancedSymbologyController mil2525cController = null;
+    private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
@@ -247,7 +231,6 @@ public class SquadLeaderActivity extends FragmentActivity
     
     public SquadLeaderActivity() throws SocketException {
         super();
-        udpSendingSocket = new DatagramSocket();
         chemLightCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
             
             @Override
@@ -259,8 +242,8 @@ public class SquadLeaderActivity extends FragmentActivity
             }
         };
         
-        outboundMessageController = new OutboundMessageController(messagePortPreference);
-        chemLightController = new ChemLightController(outboundMessageController);
+        messageController = new MessageController(messagePortPreference);
+        chemLightController = new ChemLightController(messageController);
     }
 
     @Override
@@ -276,7 +259,8 @@ public class SquadLeaderActivity extends FragmentActivity
         }
         try {
             messagePortPreference = Integer.parseInt(sp.getString(getString(R.string.pref_messagePort), Integer.toString(messagePortPreference)));
-            outboundMessageController.setPort(messagePortPreference);
+            changePort(messagePortPreference);
+            messageController.startReceiving();
         } catch (Throwable t) {
             Log.d(TAG, "Couldn't get preference", t);
         }
@@ -318,8 +302,6 @@ public class SquadLeaderActivity extends FragmentActivity
         } catch (Throwable t) {
             Log.d(TAG, "Couldn't get preference", t);
         }
-        
-        TEST_restartUdpListener();
 
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
@@ -358,20 +340,20 @@ public class SquadLeaderActivity extends FragmentActivity
         mapController = new MapController(mapView, getAssets());
         ((NorthArrowView) findViewById(R.id.northArrowView)).setMapController(mapController);
         try {
-            mil2525cController = new AdvancedSymbologyController(
+            mil2525cController = new AdvancedSymbolController(
                     mapController,
                     getAssets(),
                     getString(R.string.sym_dict_dirname));
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
-            Log.e(TAG, "Couldn't find file while loading AdvancedSymbologyController", e);
+            Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
         }
         
-        spotReportController = new SpotReportController(mapController, outboundMessageController);
+        spotReportController = new SpotReportController(mapController, messageController);
         
         positionReportController = new PositionReportController(
                 mapController.getLocationController(),
-                outboundMessageController,
+                messageController,
                 usernamePreference,
                 vehicleTypePreference,
                 uniqueIdPreference,
@@ -395,6 +377,8 @@ public class SquadLeaderActivity extends FragmentActivity
                 }
             }
         });
+        
+        messageController.addListener(new MessageListener(mil2525cController));
 
         clockTimerTask = new TimerTask() {
             
@@ -581,45 +565,6 @@ public class SquadLeaderActivity extends FragmentActivity
         }
     }
     
-    private Thread TEST_udpListenerThread = null;
-    private void TEST_restartUdpListener() {
-        if (null != TEST_udpListenerThread) {
-            TEST_udpListenerThread.interrupt();
-        }
-        TEST_udpListenerThread = new Thread() {
-            
-            private DatagramSocket socket;
-            public void run() {
-                byte[] message = new byte[1500];
-                final DatagramPacket packet = new DatagramPacket(message, message.length);
-                try {
-                    socket = new DatagramSocket(messagePortPreference);
-                    while (true) {
-                        Log.d(TAG, "Going to receive through port " + socket.getLocalPort() + "...");
-                        socket.receive(packet);
-                        final String msgString = new String(packet.getData(), packet.getOffset(), packet.getLength());
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(SquadLeaderActivity.this, "Message from port " + packet.getPort() + ": '" + msgString + "'", Toast.LENGTH_SHORT).show();
-                            }
-                        });                        
-                        Log.d(TAG, "Received: '" + msgString + "'");
-                    }
-                } catch (Throwable t) {
-                    Log.e(TAG, "Receiving didn't work", t);
-                }
-            }
-            
-            @Override
-            public void interrupt() {
-                super.interrupt();
-                socket.close();
-            }
-        };
-        TEST_udpListenerThread.start();
-    }
-    
     /**
      * Called when an activity called by this activity returns a result. This method was initially
      * added to handle the result of choosing a GPX file for the LocationSimulator.
@@ -795,5 +740,9 @@ public class SquadLeaderActivity extends FragmentActivity
             mapController.setOnSingleTapListener(null);
         }
     }
-
+    
+    private void changePort(int newPort) {
+        messageController.setPort(newPort);
+    }
+    
 }

@@ -117,7 +117,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
     private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
     private final Object lastLocationLock = new Object(); 
-    private AdvancedSymbologyController advancedSymbologyController = null;
+    private AdvancedSymbolController advancedSymbolController = null;
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
@@ -344,14 +344,14 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
     
     /**
-     * Sets the AdvancedSymbologyController that this MapController will use for advanced symbology
+     * Sets the AdvancedSymbolController that this MapController will use for advanced symbology
      * (e.g. 2525C). Setting this controller is optional, but advanced symbology will not work if you
      * do not set this controller.
-     * @param controller the AdvancedSymbologyController that this MapController will use for advanced
+     * @param controller the AdvancedSymbolController that this MapController will use for advanced
      *                   symbology.
      */
-    public void setAdvancedSymbologyController(AdvancedSymbologyController controller) {
-        this.advancedSymbologyController = controller;
+    public void setAdvancedSymbologyController(AdvancedSymbolController controller) {
+        this.advancedSymbolController = controller;
     }
 
     /**
