@@ -18,6 +18,7 @@ package com.esri.squadleader.controller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 import android.content.res.AssetManager;
 import android.os.Environment;
@@ -39,6 +40,7 @@ public class AdvancedSymbolController {
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
 
     private final MessageGroupLayer groupLayer;
+    private final String[] messageTypesSupportedSorted;
 
     /**
      * Creates a new AdvancedSymbolController.
@@ -65,6 +67,9 @@ public class AdvancedSymbolController {
         
         groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
         mapController.addLayer(groupLayer);
+        
+        messageTypesSupportedSorted = groupLayer.getMessageProcessor().getMessageTypesSupported();
+        Arrays.sort(messageTypesSupportedSorted);
     }
     
     /**
@@ -95,6 +100,40 @@ public class AdvancedSymbolController {
                     true);
         }
         message.setProperties(geomessage.getProperties());
+        message.setID(geomessage.getId());
+        
+        //Translate from an AFM message type name to an ArcGIS Runtime for Android message type name
+        String messageType = (String) message.getProperty(Geomessage.TYPE_FIELD_NAME);
+        if (0 > Arrays.binarySearch(messageTypesSupportedSorted, messageType)) {
+            if ("spotrep".equals(messageType)) {
+                message.setProperty(Geomessage.TYPE_FIELD_NAME, "spot_report");
+            } else if ("trackrep".equals(messageType)) {
+                message.setProperty(Geomessage.TYPE_FIELD_NAME, "track_report");
+            } else if ("chemlight".equals(messageType)) {
+                message.setProperty(Geomessage.TYPE_FIELD_NAME, "chemlight1");
+            }
+        }
+        
+        //Translate from an AFM color string to an ArcGIS Runtime for Android color string
+        if ("chemlight1".equals(message.getProperty(Geomessage.TYPE_FIELD_NAME))) {
+            String colorString = (String) message.getProperty("color");
+            if (null == colorString) {
+                colorString = (String) message.getProperty("chemlight");
+            }
+            if ("1".equals(colorString)) {
+                colorString = "red";
+            } else if ("2".equals(colorString)) {
+                colorString = "green";
+            } else if ("3".equals(colorString)) {
+                colorString = "blue";
+            } else if ("4".equals(colorString)) {
+                colorString = "yellow";
+            }
+            if (null != colorString) {
+                message.setProperty("chemlight", colorString);
+            }
+        }
+        
         groupLayer.getMessageProcessor().processMessage(message);
     }
     
