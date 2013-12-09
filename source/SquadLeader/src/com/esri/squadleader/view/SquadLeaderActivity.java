@@ -343,7 +343,8 @@ public class SquadLeaderActivity extends FragmentActivity
             mil2525cController = new AdvancedSymbolController(
                     mapController,
                     getAssets(),
-                    getString(R.string.sym_dict_dirname));
+                    getString(R.string.sym_dict_dirname),
+                    getResources().getDrawable(R.drawable.ic_spot_report));
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
