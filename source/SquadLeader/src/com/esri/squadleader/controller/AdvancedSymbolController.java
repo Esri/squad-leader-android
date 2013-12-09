@@ -18,11 +18,24 @@ package com.esri.squadleader.controller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.StringTokenizer;
 
 import android.content.res.AssetManager;
+import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.util.Log;
 
+import com.esri.android.map.GraphicsLayer;
+import com.esri.core.geometry.Geometry;
+import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Graphic;
+import com.esri.core.symbol.PictureMarkerSymbol;
+import com.esri.core.symbol.Symbol;
 import com.esri.core.symbol.advanced.Message;
 import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
@@ -38,7 +51,13 @@ public class AdvancedSymbolController {
     
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
 
+    private final MapController mapController;
     private final MessageGroupLayer groupLayer;
+    private final GraphicsLayer spotReportLayer;
+    private final String[] messageTypesSupportedSorted;
+    private final HashSet<String> highlightedIds = new HashSet<String>();
+    private final HashMap<String, Integer> spotReportIdToGraphicId = new HashMap<String, Integer>();
+    private final Symbol spotReportSymbol;
 
     /**
      * Creates a new AdvancedSymbolController.
@@ -47,12 +66,15 @@ public class AdvancedSymbolController {
      *                     will be copied.
      * @param symbolDictionaryDirname the name of the asset directory that contains the advanced symbology
      *                                database.
+     * @param spotReportIcon the Drawable for putting spot reports on the map.
      * @throws FileNotFoundException if the advanced symbology database is absent or corrupt.
      */
     public AdvancedSymbolController(
             MapController mapController,
             AssetManager assetManager,
-            String symbolDictionaryDirname) throws FileNotFoundException {
+            String symbolDictionaryDirname,
+            Drawable spotReportIcon) throws FileNotFoundException {
+        this.mapController = mapController;
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File symDictDir = new File(downloadsDir, symbolDictionaryDirname);
         if (!symDictDir.exists()) {
@@ -63,8 +85,16 @@ public class AdvancedSymbolController {
             }
         }
         
+        spotReportLayer = new GraphicsLayer();
+        mapController.addLayer(spotReportLayer);
+        
         groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
         mapController.addLayer(groupLayer);
+        
+        messageTypesSupportedSorted = groupLayer.getMessageProcessor().getMessageTypesSupported();
+        Arrays.sort(messageTypesSupportedSorted);
+        
+        spotReportSymbol = new PictureMarkerSymbol(spotReportIcon);
     }
     
     /**
@@ -72,30 +102,114 @@ public class AdvancedSymbolController {
      * @param geomessage the Geomessage to display.
      */
     public void addGeomessage(Geomessage geomessage) {
-        String action = (String) geomessage.getProperty(Geomessage.ACTION_FIELD_NAME);
-        Message message;
-        if (MessageHelper.MESSAGE_ACTION_VALUE_HIGHLIGHT.equalsIgnoreCase(action)) {
-            message = MessageHelper.create2525CHighlightMessage(
-                    geomessage.getId(),
-                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
-                    true);
-        } else if (MessageHelper.MESSAGE_ACTION_VALUE_UNHIGHLIGHT.equalsIgnoreCase(action)) {
-            message = MessageHelper.create2525CHighlightMessage(
-                    geomessage.getId(),
-                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
-                    false);
-        } else if (MessageHelper.MESSAGE_ACTION_VALUE_REMOVE.equalsIgnoreCase(action)) {
-            message = MessageHelper.create2525CRemoveMessage(
-                    geomessage.getId(),
-                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME));
+        if ("spotrep".equals(geomessage.getProperty(Geomessage.TYPE_FIELD_NAME))
+                || "spot_report".equals(geomessage.getProperty(Geomessage.TYPE_FIELD_NAME))) {
+            //Use a single symbol for all spot reports
+            String controlPointsString = (String) geomessage.getProperty(Geomessage.CONTROL_POINTS_FIELD_NAME);
+            if (null != controlPointsString) {
+                StringTokenizer tok = new StringTokenizer(controlPointsString, ",");
+                if (2 == tok.countTokens()) {
+                    try {
+                        Geometry pt = new Point(Double.parseDouble(tok.nextToken()), Double.parseDouble(tok.nextToken()));
+                        final int wkid = Integer.parseInt((String) geomessage.getProperty(Geomessage.WKID_FIELD_NAME));
+                        if (wkid != mapController.getSpatialReference().getID()) {
+                            pt = GeometryEngine.project(pt, SpatialReference.create(wkid), mapController.getSpatialReference());
+                        }
+                        Integer graphicId = spotReportIdToGraphicId.get(geomessage.getId());
+                        if (null != graphicId) {
+                            spotReportLayer.updateGraphic(graphicId, pt);
+                            spotReportLayer.updateGraphic(graphicId, geomessage.getProperties());
+                        } else {
+                            Graphic graphic = new Graphic(pt, spotReportSymbol, geomessage.getProperties());
+                            graphicId = spotReportLayer.addGraphic(graphic);
+                            spotReportIdToGraphicId.put(geomessage.getId(), graphicId);
+                        }
+                    } catch (NumberFormatException nfe) {
+                        Log.e(TAG, "Could not parse spot report", nfe);
+                    }
+                }
+            }
         } else {
-            message = MessageHelper.create2525CUpdateMessage(
-                    geomessage.getId(),
-                    (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
-                    true);
+            //Let the MessageProcessor handle other types of reports
+            String action = (String) geomessage.getProperty(Geomessage.ACTION_FIELD_NAME);
+            Message message;
+            if (MessageHelper.MESSAGE_ACTION_VALUE_HIGHLIGHT.equalsIgnoreCase(action)) {
+                message = MessageHelper.create2525CHighlightMessage(
+                        geomessage.getId(),
+                        (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                        true);
+            } else if (MessageHelper.MESSAGE_ACTION_VALUE_UNHIGHLIGHT.equalsIgnoreCase(action)) {
+                message = MessageHelper.create2525CHighlightMessage(
+                        geomessage.getId(),
+                        (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                        false);
+            } else if (MessageHelper.MESSAGE_ACTION_VALUE_REMOVE.equalsIgnoreCase(action)) {
+                message = MessageHelper.create2525CRemoveMessage(
+                        geomessage.getId(),
+                        (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME));
+            } else {
+                message = MessageHelper.create2525CUpdateMessage(
+                        geomessage.getId(),
+                        (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                        true);
+                message.setProperties(geomessage.getProperties());
+                message.setID(geomessage.getId());
+            }
+            
+            //Translate from an AFM message type name to an ArcGIS Runtime for Android message type name
+            String messageType = (String) message.getProperty(Geomessage.TYPE_FIELD_NAME);
+            if (0 > Arrays.binarySearch(messageTypesSupportedSorted, messageType)) {
+                if ("trackrep".equals(messageType)) {
+                    message.setProperty(Geomessage.TYPE_FIELD_NAME, "track_report");
+                } else if ("chemlight".equals(messageType)) {
+                    message.setProperty(Geomessage.TYPE_FIELD_NAME, "chemlight1");
+                }
+            }
+            
+            //Translate from an AFM color string to an ArcGIS Runtime for Android color string
+            if ("chemlight1".equals(message.getProperty(Geomessage.TYPE_FIELD_NAME))) {
+                String colorString = (String) message.getProperty("color");
+                if (null == colorString) {
+                    colorString = (String) message.getProperty("chemlight");
+                }
+                if ("1".equals(colorString)) {
+                    colorString = "red";
+                } else if ("2".equals(colorString)) {
+                    colorString = "green";
+                } else if ("3".equals(colorString)) {
+                    colorString = "blue";
+                } else if ("4".equals(colorString)) {
+                    colorString = "yellow";
+                }
+                if (null != colorString) {
+                    message.setProperty("chemlight", colorString);
+                }
+            }
+            
+            groupLayer.getMessageProcessor().processMessage(message);
+            
+            boolean needToHighlight = false;
+            boolean needToUnhighlight = false;
+            boolean previouslyHighlighted = highlightedIds.contains(geomessage.getId());
+            boolean nowHighlighted = "1".equals(geomessage.getProperty("status911"));
+            if (previouslyHighlighted) {
+                needToUnhighlight = !nowHighlighted;
+            } else {
+                needToHighlight = nowHighlighted;
+            }
+            if (needToHighlight || needToUnhighlight) {
+                message = MessageHelper.create2525CHighlightMessage(
+                        geomessage.getId(),
+                        (String) geomessage.getProperty(Geomessage.TYPE_FIELD_NAME),
+                        needToHighlight);
+                groupLayer.getMessageProcessor().processMessage(message);
+                if (needToHighlight) {
+                    highlightedIds.add(geomessage.getId());
+                } else {
+                    highlightedIds.remove(geomessage.getId());
+                }
+            }
         }
-        message.setProperties(geomessage.getProperties());
-        groupLayer.getMessageProcessor().processMessage(message);
     }
     
 }
