@@ -3,4 +3,4 @@
 	url = https://github.com/ArcGIS/military-apps-library-java.git
 [submodule "aFileChooser"]
 	path = aFileChooser
-	url = https://github.com/garys-esri/aFileChooser.git
+	url = https://github.com/iPaulPro/aFileChooser.git
