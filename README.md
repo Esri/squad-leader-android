@@ -43,6 +43,12 @@ $ cd .\military-apps-library-java
 $ git pull origin master
 </code>
 
+### Running unit tests
+
+1. Follow the [build steps](#build-steps) above.
+2. In the same Eclipse workspace, open the project found in your clone's source/SquadLeader/tests (**File > Import > Android > Existing Android Code Into Workspace**; do not copy the project to the workspace unless you know what you're doing). The project name is SquadLeaderTest.
+3. To run the SquadLeaderTest project, right-click the project and choose **Run As > Android Application**. If you wish to run in an emulator, you must follow the directions in the ArcGIS Runtime SDK for Android to ensure that the emulator has proper hardware GPU support.
+
 ## Usage
 
 Launch the app on an Android device. An interactive map appears with several buttons and a data display that shows the current location in MGRS, time, speed, and heading.
