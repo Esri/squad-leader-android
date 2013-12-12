@@ -1,7 +1,7 @@
 squad-leader-android
 ====================
 
-[Building](#building)  
+[Building from source](#building-from-source)  
 [Usage](#usage)  
 [Setup](#setup)  
 [Licensing](#licensing)
@@ -12,18 +12,26 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 ### System requirements
 
+To run the app:
+
 - Android 2.3.3 or higher
+
+To build the app from source:
+
 - Android SDK
+  - Android API 14 or higher is required to build, even though the app will run on Android 2.3.3 (API 10) or higher
 - [ArcGIS Runtime SDK 10.2 for Android](https://developers.arcgis.com/en/android/install.html)
 - Eclipse 3.6.2 or higher
 
 ### Build steps
 
 1. Clone this repository, or fork it and clone your fork.
-2. In Eclipse, open the project found in your clone's source/SquadLeader directory.
-3. Add the v7 appcompat Android Support Library to the SquadLeader project ([instructions](http://developer.android.com/tools/support-library/setup.html)). The SquadLeader project's reference to android-support-v7-appcompat is probably broken (red X) at this point, in which case you should remove it and add a reference to the one that [the instructions](http://developer.android.com/tools/support-library/setup.html) tell you to create.
-3. If the project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.)
-4. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**.
+2. In Eclipse, open the project found in your clone's source/SquadLeader directory (**File > Import > Android > Existing Android Code Into Workspace**; do not copy the project to the workspace unless you know what you're doing).
+3. Add the v7 appcompat Android Support Library to the workspace ([instructions](http://developer.android.com/tools/support-library/setup.html)). That gives you a library project called android-support-v7-appcompat. Right-click the SquadLeader project and choose **Properties > Android**. The SquadLeader project's reference to android-support-v7-appcompat is probably broken (red X) at this point, in which case you should remove it and add a reference to the android-support-v7-appcompat library project you just added to the workspace.
+4. The squad-leader-android repo contains the aFileChooser repo as a submodule. The aFileChooser repo has an Eclipse Android project. Add it to the workspace using **File > Import > Android > Existing Android Code Into Workspace** (do not copy the project to the workspace unless you know what you're doing). Now right-click the SquadLeader project and choose **Properties > Android**. If the SquadLeader project's reference to aFileChooser is broken, remove it and add a reference to the aFileChooser library project you just added to the workspace.
+5. If any of the three projects (SquadLeader, android-support-v7-appcompat, aFileChooser) has errors, you may need to set the Android API level. Right-click the project and choose **Properties > Android**. Choose an Android API level 14 or higher. If you don't have API 14 or higher, install one in Eclipse by choosing **Window > Android SDK Manager** and selecting **SDK Platform** for API 14 or higher.
+6. If the SquadLeader project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.) You can also clean and build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
+7. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**. If you wish to run in an emulator, you must follow the directions in the ArcGIS Runtime SDK for Android to ensure that the emulator has proper hardware GPU support.
 5. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
 
 ### A note on military-apps-library-java
