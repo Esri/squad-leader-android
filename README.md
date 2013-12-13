@@ -1,7 +1,7 @@
 squad-leader-android
 ====================
 
-[Building](#building)  
+[Building from source](#building-from-source)  
 [Usage](#usage)  
 [Setup](#setup)  
 [Licensing](#licensing)
@@ -12,18 +12,29 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 ### System requirements
 
+To run the app:
+
 - Android 2.3.3 or higher
+  - Limited functionality when running on an Android emulator ([more info](#running-on-an-android-emulator))
+
+To build the app from source:
+
 - Android SDK
+  - Android API 14 or higher is required to build, even though the app will run on Android 2.3.3 (API 10) or higher
 - [ArcGIS Runtime SDK 10.2 for Android](https://developers.arcgis.com/en/android/install.html)
+  - Even if you install the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#build-steps)).
 - Eclipse 3.6.2 or higher
 
 ### Build steps
 
 1. Clone this repository, or fork it and clone your fork.
-2. In Eclipse, open the project found in your clone's source/SquadLeader directory.
-3. Add the v7 appcompat Android Support Library to the SquadLeader project ([instructions](http://developer.android.com/tools/support-library/setup.html)). The SquadLeader project's reference to android-support-v7-appcompat is probably broken (red X) at this point, in which case you should remove it and add a reference to the one that [the instructions](http://developer.android.com/tools/support-library/setup.html) tell you to create.
-3. If the project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.)
-4. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**.
+2. Download the ArcGIS Runtime SDK, unzip it, and copy the contents of the libs directory from the SDK to your clone's source/SquadLeader/libs directory. If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the directories (armeabi, armeabi-v7a, x86).
+2. In Eclipse, open the project found in your clone's source/SquadLeader directory (**File > Import > Android > Existing Android Code Into Workspace**; do not copy the project to the workspace unless you know what you're doing).
+3. Add the v7 appcompat Android Support Library to the workspace ([instructions](http://developer.android.com/tools/support-library/setup.html)). That gives you a library project called android-support-v7-appcompat. Right-click the SquadLeader project and choose **Properties > Android**. The SquadLeader project's reference to android-support-v7-appcompat is probably broken (red X) at this point, in which case you should remove it and add a reference to the android-support-v7-appcompat library project you just added to the workspace.
+4. The squad-leader-android repo contains the aFileChooser repo as a submodule in the source directory. The aFileChooser repo has an Eclipse Android project. Add it to the workspace using **File > Import > Android > Existing Android Code Into Workspace** (do not copy the project to the workspace unless you know what you're doing). Now right-click the SquadLeader project and choose **Properties > Android**. If the SquadLeader project's reference to aFileChooser is broken, remove it and add a reference to the aFileChooser library project you just added to the workspace.
+5. If any of the three projects (SquadLeader, android-support-v7-appcompat, aFileChooser) has errors, you may need to set the Android API level. Right-click the project and choose **Properties > Android**. Choose an Android API level 14 or higher. If you don't have API 14 or higher, install one in Eclipse by choosing **Window > Android SDK Manager** and selecting **SDK Platform** for API 14 or higher.
+6. If the SquadLeader project has errors, right-click the project in Eclipse and choose **ArcGIS Tools > Fix Project Properties**. (If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and install the ArcGIS Runtime SDK 10.2 for Android.) You can also clean and build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
+7. To run directly from Eclipse, right-click the project and choose **Run As > Android Application**. If you wish to run in an emulator, you must follow the directions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to ensure that the emulator has proper hardware GPU support.
 5. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
 
 ### A note on military-apps-library-java
@@ -31,9 +42,15 @@ The Squad Leader template demonstrates best practices for building handheld mili
 Squad Leader leverages [military-apps-library-java](https://github.com/ArcGIS/military-apps-library-java) as a submodule of the squad-leader-android repository. If ever you should want to update to the latest military-apps-library-java commit instead of the commit used by the squad-leader-android commit you're using, you can open a GitHub shell in squad-leader-android and run the following:
 
 <code>
-$ cd .\military-apps-library-java  
+$ cd .\source\military-apps-library-java  
 $ git pull origin master
 </code>
+
+### Running unit tests
+
+1. Follow the [build steps](#build-steps) above.
+2. In the same Eclipse workspace, open the project found in your clone's source/SquadLeader/tests (**File > Import > Android > Existing Android Code Into Workspace**; do not copy the project to the workspace unless you know what you're doing). The project name is SquadLeaderTest.
+3. To run the SquadLeaderTest project, right-click the project and choose **Run As > Android Application**. If you wish to run in an emulator, you must follow the directions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to ensure that the emulator has proper hardware GPU support.
 
 ## Usage
 
@@ -75,7 +92,7 @@ To navigate to an MGRS location, go to **Menu** > **Go to MGRS Location**. Type 
 
 ### Reporting
 
-Squad Leader sends and receives Geomessages to and from other instances of Squad Leader as well as other ArcGIS for the Military apps and services, including Vehicle Commander and GeoEvent Processor. The app has many [settings](#change-settings) that govern outgoing messages.
+Squad Leader sends and receives Geomessages to and from other instances of Squad Leader as well as other ArcGIS for the Military apps and services, including Vehicle Commander and GeoEvent Processor. The app has many [settings](#change-settings) that govern outgoing messages. You can [simulate messages](#simulating-messages) if desired, especially for testing and demonstrations.
 
 #### Position reports
 
@@ -154,7 +171,13 @@ You can clear any layers you have added and go back to the original map configur
 
 Squad Leader runs on Android devices version 2.3.3 and higher. This includes all Honeycomb devices and higher, as well as some but not all Gingerbread devices.
 
+#### Running on an Android emulator
+
+Like any app using ArcGIS Runtime for Android, Squad Leader can run on an Android emulator. But you must follow the instructions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to create an Android virtual device (AVD) that will work with ArcGIS Runtime. Please note that the Android emulator runs in a firewall-restricted sandbox that cannot communicate over UDP with outside processes, meaning you cannot send or receive Geomessages (spot reports, etc.) from or to Squad Leader running on an emulator.
+
 ### Installation and configuration
+
+In order to install the app, your device must allow the installation of apps from unknown sources. On some devices, this setting is under **Settings > Security**. On other devices, this setting is under **Settings > Manage Applications**. Still other devices might have this setting elsewhere.
 
 Install the app from the APK file you can download from [ArcGIS for Defense and Intelligence](http://www.arcgis.com/home/group.html?owner=Arcgisonline_defense&title=ArcGIS%20for%20Defense%20and%20Intelligence).
 
@@ -189,6 +212,10 @@ For best results, be sure that one and only one layer with basemap="true" also h
 If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
 
 After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+
+### Simulating messages
+
+You can run the Message Simulator application included in the [Vehicle Commander](https://github.com/Esri/vehicle-commander) template ([source](https://github.com/Esri/vehicle-commander/tree/master/source/MessageSimulator), [sample messages](https://github.com/Esri/vehicle-commander/blob/master/source/MessageSimulator/SampleMessages/AFM_Sample_MSGS-719.xml). This is especially useful for testing and demonstration purposes. Note that these simulated messages will not make it to Squad Leader running on an emulator ([more info](#running-on-an-android-emulator)).
 
 ## Resources
 
