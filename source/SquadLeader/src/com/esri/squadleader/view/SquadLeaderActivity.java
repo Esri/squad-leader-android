@@ -576,7 +576,7 @@ public class SquadLeaderActivity extends FragmentActivity
         case REQUEST_CHOOSER:
             if (resultCode == RESULT_OK) {  
                 final Uri uri = data.getData();
-                File file = FileUtils.getFile(uri);
+                File file = new File(FileUtils.getPath(this, uri));
                 mapController.getLocationController().setGpxFile(file);
                 try {
                     mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);

@@ -1,6 +1,6 @@
-[submodule "military-apps-library-java"]
-	path = military-apps-library-java
+[submodule "source/military-apps-library-java"]
+	path = source/military-apps-library-java
 	url = https://github.com/ArcGIS/military-apps-library-java.git
-[submodule "aFileChooser"]
-	path = aFileChooser
+[submodule "source/aFileChooser"]
+	path = source/aFileChooser
 	url = https://github.com/iPaulPro/aFileChooser.git
