@@ -537,7 +537,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * Returns the map point for the screen coordinates provided.
      * @param screenX
      * @param screenY
-     * @return
+     * @return a Point object in map coordinates for the specified screen X and Y,
+     *         or null if the map is not initialized and hence can't convert to map coordinates.
      */
     public Point toMapPointObject(int screenX, int screenY) {
         return mapView.toMapPoint(screenX, screenY);
@@ -546,7 +547,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @Override
     public double[] toMapPoint(int screenX, int screenY) {
         Point pt = toMapPointObject(screenX, screenY);
-        return new double[] { pt.getX(), pt.getY() };
+        if (null == pt) {
+            return null;
+        } else {
+            return new double[] { pt.getX(), pt.getY() };
+        }
     }
 
     @Override
@@ -613,7 +618,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     /**
      * Converts a map point to an MGRS string.
      * @param point the point, in map coordinates, to convert to an MGRS string.
-     * @return an MGRS string corresponding to the input point.
+     * @return an MGRS string corresponding to the input point, or null if the point
+     *         cannot be converted.
      */
     public String pointToMgrs(Point point) {
         SpatialReference sr = mapView.getSpatialReference();
@@ -628,10 +634,16 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * Converts a map point to an MGRS string.
      * @param point the point to convert to an MGRS string.
      * @param fromSr the spatial reference of the point.
-     * @return an MGRS string corresponding to the input point.
+     * @return an MGRS string corresponding to the input point, or null if the point
+     *         cannot be converted.
      */
     public String pointToMgrs(Point point, SpatialReference fromSr) {
-        return CoordinateConversion.pointToMgrs(point, fromSr, MGRSConversionMode.AUTO, 5, false, true);
+        try {
+            return CoordinateConversion.pointToMgrs(point, fromSr, MGRSConversionMode.AUTO, 5, false, true);
+        } catch (Throwable t) {
+            Log.e(TAG, "Could not convert " + point, t);
+            return null;
+        }
     }
 
     @Override

@@ -714,7 +714,11 @@ public class SquadLeaderActivity extends FragmentActivity
                     new Thread() {
                         public void run() {
                             final double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
-                            chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                            if (null != mapPoint) {
+                                chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                            } else {
+                                Log.i(TAG, "Couldn't convert chem light to map coordinates");
+                            }
                         };
                     }.start();
                 }
@@ -733,7 +737,9 @@ public class SquadLeaderActivity extends FragmentActivity
                 public void onSingleTap(final float x, final float y) {
                     Point pt = mapController.toMapPointObject((int) x, (int) y);
                     Intent intent = new Intent(SquadLeaderActivity.this, SpotReportActivity.class);
-                    intent.putExtra(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME, mapController.pointToMgrs(pt));
+                    if (null != pt) {
+                        intent.putExtra(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME, mapController.pointToMgrs(pt));
+                    }
                     startActivityForResult(intent, SPOT_REPORT_ACTIVITY);
                 }
             });
