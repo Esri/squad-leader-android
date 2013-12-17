@@ -95,34 +95,6 @@ public class AddLayerFromWebDialogFragment extends DialogFragment {
                                 Throwable cause = e;
                                 while (null != cause && !foundCpve) {
                                     if (cause instanceof CertPathValidatorException) {
-                                        StringBuilder sb = new StringBuilder("The server presented a certificate that is invalid, is untrusted, or belongs ")
-                                                .append("to a server with a different hostname. This app has no way of knowing whether that server is operated ")
-                                                .append("by a trustworthy party. You can connect anyway at your own risk by accepting the certificate.\n\nDetails:");
-                                        CertPathValidatorException cpve = (CertPathValidatorException) cause;
-                                        CertPath certPath = cpve.getCertPath();
-                                        Certificate cert = certPath.getCertificates().get(0);
-                                        if (cert instanceof X509Certificate) {
-                                            X509Certificate x509Cert = (X509Certificate) cert;
-                                            sb.append("\nIssued to: '").append(x509Cert.getSubjectDN().getName()).append("'");
-                                            sb.append("\nIssued by: '").append(x509Cert.getIssuerDN().getName()).append("'");
-                                            sb.append("\nValid from " ).append(x509Cert.getNotBefore().toString()).append(" to ").append(x509Cert.getNotAfter().toString());
-                                        } else {
-                                            sb.append(cert.toString());
-                                        }
-                                        sb.append("\n\nNOTE: tapping the Accept button doesn't actually work yet. This will work in a future Squad Leader build.");
-                                        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                                        builder.setMessage(sb.toString())
-                                               .setTitle(R.string.cert_error_dialog_title);
-                                        builder.setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                //TODO figure out how to accept the certificate before calling addLayer again
-                                                addLayer(useAsBasemap, urlString);
-                                            }
-                                        });
-                                        builder.setNegativeButton(R.string.refuse_recommended, null);
-
-                                        AlertDialog dialog = builder.create();
-                                        dialog.show();
                                         foundCpve = true;
                                     } else {
                                         cause = cause.getCause();
@@ -130,7 +102,9 @@ public class AddLayerFromWebDialogFragment extends DialogFragment {
                                 }
                                 if (!foundCpve) {
                                     Toast.makeText(activity, "Couldn't add layer from web: " + e.getClass().getName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                }                                                
+                                } else {
+                                    Toast.makeText(activity, "Couldn't add layer: Untrusted certificate for " + urlString, Toast.LENGTH_LONG).show();
+                                }
                             }
                         });
                         return null;
