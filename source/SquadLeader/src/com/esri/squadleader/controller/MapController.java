@@ -141,6 +141,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             
         });
         
+        setAutoPan(autoPan);
+        
         mapView.setAllowRotationByPinch(true);
         
         mapView.getGrid().setType(GridType.MGRS);
