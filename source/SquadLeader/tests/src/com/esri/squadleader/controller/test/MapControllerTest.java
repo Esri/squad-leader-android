@@ -27,6 +27,8 @@ import android.content.Context;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.esri.android.map.MapView;
+import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.android.map.event.OnStatusChangedListener.STATUS;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.LayerType;
 import com.esri.squadleader.controller.MapController;
@@ -149,7 +151,14 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
     }
     
     private void reloadMapController() {
-        mapController = new MapController((MapView) activity.findViewById(com.esri.squadleader.R.id.map), activity.getAssets());
+        mapController = new MapController((MapView) activity.findViewById(com.esri.squadleader.R.id.map), activity.getAssets(),
+                new OnStatusChangedListener() {
+                    
+                    @Override
+                    public void onStatusChanged(Object source, STATUS status) {
+                        
+                    }
+                });
     }
     
     private void clearExistingPreferences(Context context) {
