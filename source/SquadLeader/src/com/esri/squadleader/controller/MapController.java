@@ -112,6 +112,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     private final MapView mapView;
     private final AssetManager assetManager;
+    private final OnStatusChangedListener layerListener;
     private final List<BasemapLayer> basemapLayers = new ArrayList<BasemapLayer>();
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
@@ -125,9 +126,14 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     /**
      * Creates a new MapController.
      * @param mapView the MapView being controlled by the new MapController.
+     * @param assetManager the application's AssetManager.
+     * @param layerListener an OnStatusChangedListener that will be set for each layer that is added to
+     *                      the map through this MapController. If null, each layer will keep its existing
+     *                      or default listener.
      */
     @SuppressWarnings("serial")
-    public MapController(final MapView mapView, AssetManager assetManager) {
+    public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
+        this.layerListener = layerListener;
         ((LocationController) getLocationController()).setLocationService(mapView.getLocationService());
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
@@ -373,6 +379,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     private void addLayer(Layer layer, boolean isOverlay) {
         //TODO do something with isOverlay (i.e. implement overlay layers)
+        if (null != layerListener) {
+            layer.setOnStatusChangedListener(layerListener);
+        }
         mapView.addLayer(layer);
         nonBasemapLayers.add(layer);
         fireLayersChanged(isOverlay);
@@ -395,6 +404,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     private void addBasemapLayer(BasemapLayer basemapLayer, boolean isOverlay) {
         //TODO do something with isOverlay (i.e. implement overlay layers)
+        if (null != layerListener) {
+            basemapLayer.getLayer().setOnStatusChangedListener(layerListener);
+        }
         mapView.addLayer(basemapLayer.getLayer(), basemapLayers.size());
         basemapLayers.add(basemapLayer);
         if (basemapLayer.getLayer().isVisible()) {

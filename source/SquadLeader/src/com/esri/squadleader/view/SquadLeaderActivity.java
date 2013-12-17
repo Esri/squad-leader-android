@@ -337,7 +337,7 @@ public class SquadLeaderActivity extends FragmentActivity
             
         });
 
-        mapController = new MapController(mapView, getAssets());
+        mapController = new MapController(mapView, getAssets(), new LayerErrorListener(this));
         ((NorthArrowView) findViewById(R.id.northArrowView)).setMapController(mapController);
         try {
             mil2525cController = new AdvancedSymbolController(
