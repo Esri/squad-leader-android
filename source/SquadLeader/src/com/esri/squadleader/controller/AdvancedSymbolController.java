@@ -161,13 +161,11 @@ public class AdvancedSymbolController {
             if (0 > Arrays.binarySearch(messageTypesSupportedSorted, messageType)) {
                 if ("trackrep".equals(messageType)) {
                     message.setProperty(Geomessage.TYPE_FIELD_NAME, "track_report");
-                } else if ("chemlight".equals(messageType)) {
-                    message.setProperty(Geomessage.TYPE_FIELD_NAME, "chemlight1");
                 }
             }
             
             //Translate from an AFM color string to an ArcGIS Runtime for Android color string
-            if ("chemlight1".equals(message.getProperty(Geomessage.TYPE_FIELD_NAME))) {
+            if ("chemlight".equals(message.getProperty(Geomessage.TYPE_FIELD_NAME))) {
                 String colorString = (String) message.getProperty("color");
                 if (null == colorString) {
                     colorString = (String) message.getProperty("chemlight");
