@@ -50,6 +50,7 @@ import com.esri.squadleader.util.Utilities;
 public class AdvancedSymbolController {
     
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
+    private static final SpatialReference WGS1984 = SpatialReference.create(4326);
 
     private final MapController mapController;
     private final MessageGroupLayer groupLayer;
@@ -181,6 +182,37 @@ public class AdvancedSymbolController {
                 }
                 if (null != colorString) {
                     message.setProperty("chemlight", colorString);
+                }
+            }
+            
+            //Workaround for https://github.com/Esri/squad-leader-android/issues/63
+            //TODO remove this workaround when the issue is fixed in ArcGIS Runtime
+            if (message.getProperties().containsKey("datetimevalid")) {
+                if (!message.getProperties().containsKey("z")) {
+                    message.setProperty("z", "0");
+                }
+                String controlPoints = (String) message.getProperty(Geomessage.CONTROL_POINTS_FIELD_NAME);
+                if (null != controlPoints) {
+                    StringTokenizer tok = new StringTokenizer(controlPoints, ",; ");
+                    if (2 <= tok.countTokens()) {
+                        try {
+                            Double x = Double.parseDouble(tok.nextToken());
+                            Double y = Double.parseDouble(tok.nextToken());
+                            String wkid = (String) message.getProperty(Geomessage.WKID_FIELD_NAME);
+                            if (null != wkid) {
+                                Point projectedPoint = (Point) GeometryEngine.project(
+                                        new Point(x, y),
+                                        SpatialReference.create(Integer.parseInt(wkid)),
+                                        WGS1984);
+                                x = projectedPoint.getX();
+                                y = projectedPoint.getY();
+                            }
+                            message.setProperty("x", x);
+                            message.setProperty("y", y);
+                        } catch (NumberFormatException nfe) {
+                            Log.e(TAG, "_control_points or WKID NumberFormatException", nfe);
+                        }
+                    }
                 }
             }
             
