@@ -144,6 +144,14 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         double multiplier = Math.pow(10, decimalPlaces);
         convertedRoundedHeading = Math.round(convertedRoundedHeading * multiplier) / multiplier;
         String headingString = (0 == decimalPlaces) ? Integer.toString((int) convertedRoundedHeading) : Double.toString(convertedRoundedHeading);
+        //Pad with zeroes if necessary
+        int pointIndex = headingString.indexOf('.');
+        if (-1 < pointIndex) {
+            String decimals = headingString.substring(pointIndex + 1);
+            for (int i = 0; i < decimalPlaces - decimals.length(); i++) {
+                headingString += '0';
+            }
+        }
         return headingString +
                 (null == toAngularUnit ? "" : Utilities.getAngularUnitAbbreviation(toAngularUnit.getID(), toAngularUnit.getAbbreviation()));
     }
