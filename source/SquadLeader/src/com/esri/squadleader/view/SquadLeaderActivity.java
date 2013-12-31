@@ -212,6 +212,7 @@ public class SquadLeaderActivity extends FragmentActivity
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     
     private MapController mapController = null;
+    private NorthArrowView northArrowView = null;
     private SpotReportController spotReportController = null;
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
@@ -338,7 +339,9 @@ public class SquadLeaderActivity extends FragmentActivity
         });
 
         mapController = new MapController(mapView, getAssets(), new LayerErrorListener(this));
-        ((NorthArrowView) findViewById(R.id.northArrowView)).setMapController(mapController);
+        northArrowView = (NorthArrowView) findViewById(R.id.northArrowView);
+        northArrowView.setMapController(mapController);
+        northArrowView.startRotation();
         try {
             mil2525cController = new AdvancedSymbolController(
                     mapController,
@@ -487,12 +490,14 @@ public class SquadLeaderActivity extends FragmentActivity
     protected void onPause() {
         super.onPause();
         mapController.pause();
+        northArrowView.stopRotation();
     }
     
     @Override
     protected void onResume() {
         super.onResume();
         mapController.unpause();
+        northArrowView.startRotation();
     }
     
     @Override
