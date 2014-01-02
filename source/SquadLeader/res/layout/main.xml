@@ -124,7 +124,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/imageButton_zoomIn"
-        android:background="@drawable/ic_north_arrow"
+        android:src="@drawable/ic_north_arrow"
         android:contentDescription="@string/north_arrow_desc"
         android:onClick="northArrowView_clicked"/>
 

@@ -15,17 +15,15 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.content.Context;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import com.esri.squadleader.controller.MapController;
@@ -41,32 +39,19 @@ import com.esri.squadleader.util.Utilities;
  */
 public class NorthArrowView extends ImageView {
     
-    private static class NorthArrowHandler extends Handler {
-        
-        private final WeakReference<NorthArrowView> view;        
-        private float currentAngle = 0f;
-        private final Object animLock = new Object();
-        private RotateAnimation anim = null;
-
-        NorthArrowHandler(NorthArrowView view) {
-            this.view = new WeakReference<NorthArrowView>(view);
-        }
+    private final Handler handler = new Handler() {
         
         @Override
         public void handleMessage(Message msg) {
             float nextAngle = 360 - msg.getData().getFloat("rotation");
-            synchronized (animLock) {
-                anim = new RotateAnimation(currentAngle, nextAngle, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
-                anim.setDuration(Utilities.ANIMATION_PERIOD_MS);
-                view.get().startAnimation(anim);
-            }
-            
-            currentAngle = nextAngle;
+            Matrix matrix = new Matrix();
+            setScaleType(ScaleType.MATRIX);
+            matrix.postRotate(nextAngle, getDrawable().getBounds().width()/2, getDrawable().getBounds().height()/2);
+            setImageMatrix(matrix);
         }
         
-    }
+    };
     
-    private final NorthArrowHandler handler = new NorthArrowHandler(this);
     private final Timer timer = new Timer(true);
     private TimerTask timerTask = null;
     
