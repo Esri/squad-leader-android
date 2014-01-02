@@ -69,7 +69,7 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
     
     @Override
     protected void tearDown() throws Exception {
-        
+        activity.finish();
     }
 
 }
