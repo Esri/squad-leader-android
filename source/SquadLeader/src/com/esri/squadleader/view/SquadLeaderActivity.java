@@ -37,7 +37,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -77,7 +77,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends FragmentActivity
+public class SquadLeaderActivity extends ActionBarActivity
         implements AddLayerListener, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
@@ -437,7 +437,7 @@ public class SquadLeaderActivity extends FragmentActivity
                     params.addRule(RelativeLayout.RIGHT_OF, -1);
                     params.addRule(RelativeLayout.LEFT_OF, R.id.imageButton_zoomIn);
                     params.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.imageButton_zoomIn);
-                    params.addRule(RelativeLayout.ABOVE, R.id.imageButton_openMapMenu);
+                    params.addRule(RelativeLayout.ABOVE, R.id.toggleButton_grid);
                 }
             }
             displayView.setLayoutParams(params);
@@ -503,7 +503,7 @@ public class SquadLeaderActivity extends FragmentActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.map_menu, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
     
     @Override
@@ -666,10 +666,6 @@ public class SquadLeaderActivity extends FragmentActivity
     
     public void toggleButton_status911_clicked(final View view) {
         positionReportController.setStatus911(((ToggleButton) view).isChecked());
-    }
-    
-    public void imageButton_openMapMenu_clicked(final View view) {
-        openOptionsMenu();
     }
 
     public void onValidLayerInfos(LayerInfo[] layerInfos) {
