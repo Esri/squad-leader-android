@@ -14,7 +14,6 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="add_layer_from_web">Add Layer from Web</string>
-    <string name="map_menu">Map Menu</string>
     <string name="url">URL</string>
     <string name="add_layer_from_web_fragment_tag">AddLayerFromWebDialogFragment</string>
     <string name="add_layer">Add Layer</string>

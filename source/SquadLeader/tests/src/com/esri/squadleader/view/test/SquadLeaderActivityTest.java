@@ -45,18 +45,6 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
     }
     
     @UiThreadTest
-    public void testZoomIn() throws InterruptedException {
-        Thread.sleep(500);
-        final double oldScale = mapView.getScale();
-        Log.d(getClass().getName(), "oldScale is " + oldScale);
-        zoomInButton.performClick();
-        Thread.sleep(500);
-        double newScale = mapView.getScale();
-        Log.d(getClass().getName(), "newScale is " + newScale);
-        assertEquals(oldScale / 2.0, newScale, 0.001);
-    }
-    
-    @UiThreadTest
     public void testFollowMe() throws InterruptedException {
         boolean initiallySelected = followMeButton.isSelected();
         
@@ -69,7 +57,7 @@ public class SquadLeaderActivityTest extends ActivityInstrumentationTestCase2<Sq
     
     @Override
     protected void tearDown() throws Exception {
-        
+        activity.finish();
     }
 
 }

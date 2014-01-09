@@ -24,7 +24,7 @@
     
     <ToggleButton
         android:id="@+id/toggleButton_status911"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_alignParentRight="true"
@@ -37,7 +37,7 @@
     
     <ToggleButton
         android:id="@+id/toggleButton_spotReport"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/imageButton_openBasemapPanel"
         android:layout_alignTop="@+id/imageButton_openBasemapPanel"
@@ -53,6 +53,8 @@
         android:layout_height="wrap_content"
         android:layout_alignRight="@+id/imageButton_openBasemapPanel"
         android:layout_below="@+id/imageButton_openBasemapPanel"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
         android:orientation="vertical">
         <ToggleButton
             android:id="@+id/toggleButton_chemLightRed"
@@ -95,23 +97,13 @@
             android:onClick="toggleButton_chemLightBlue_clicked"/>
     </RadioGroup>
 
-    <ImageButton
-        android:id="@+id/imageButton_openMapMenu"
-        android:layout_width="wrap_content"
+    <ToggleButton
+        android:id="@+id/toggleButton_grid"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/selector_open_menu"
-        android:contentDescription="@string/map_menu"
-        android:onClick="imageButton_openMapMenu_clicked"/>
-
-    <ToggleButton
-        android:id="@+id/toggleButton_grid"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/imageButton_openMapMenu"
-        android:layout_alignBottom="@+id/imageButton_openMapMenu"
         android:background="@drawable/selector_grid"
         android:textOn=""
         android:textOff=""
@@ -124,7 +116,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/imageButton_zoomIn"
-        android:background="@drawable/ic_north_arrow"
+        android:src="@drawable/ic_north_arrow"
         android:contentDescription="@string/north_arrow_desc"
         android:onClick="northArrowView_clicked"/>
 
@@ -151,10 +143,10 @@
 
     <ToggleButton
         android:id="@+id/toggleButton_followMe"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@+id/imageButton_zoomOut"
-        android:layout_alignBottom="@+id/imageButton_openMapMenu"
+        android:layout_alignBottom="@+id/toggleButton_grid"
         android:background="@drawable/selector_follow_me"
         android:textOn=""
         android:textOff=""
@@ -168,7 +160,7 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_toLeftOf="@+id/imageButton_zoomIn"
-        android:layout_above="@+id/imageButton_openMapMenu"
+        android:layout_above="@+id/toggleButton_grid"
         android:layout_alignBottom="@+id/imageButton_zoomIn"
         android:background="@drawable/location_display_background">
         

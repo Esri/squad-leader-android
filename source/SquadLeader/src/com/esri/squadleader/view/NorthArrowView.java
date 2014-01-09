@@ -15,17 +15,15 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.content.Context;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import com.esri.squadleader.controller.MapController;
@@ -34,33 +32,26 @@ import com.esri.squadleader.util.Utilities;
 /**
  * A View that displays a north arrow according to the current rotation of the map.
  * After instantiating the view, call the setMapController(MapController) method so
- * that the north arrow will rotate with the map.
+ * that the north arrow will rotate with the map.<br/>
+ * <br/>
+ * IMPORTANT: be sure to call startRotation when the view is displayed and stopRotation
+ * when the view is hidden.
  */
 public class NorthArrowView extends ImageView {
     
-    private static class NorthArrowHandler extends Handler {
-        
-        private final WeakReference<NorthArrowView> view;        
-        private float currentAngle = 0f;
-
-        NorthArrowHandler(NorthArrowView view) {
-            this.view = new WeakReference<NorthArrowView>(view);
-        }
+    private final Handler handler = new Handler() {
         
         @Override
         public void handleMessage(Message msg) {
             float nextAngle = 360 - msg.getData().getFloat("rotation");
-
-            RotateAnimation anim = new RotateAnimation(currentAngle, nextAngle, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
-            anim.setDuration(Utilities.ANIMATION_PERIOD_MS);
-            view.get().startAnimation(anim);
-            
-            currentAngle = nextAngle;
+            Matrix matrix = new Matrix();
+            setScaleType(ScaleType.MATRIX);
+            matrix.postRotate(nextAngle, getDrawable().getBounds().width()/2, getDrawable().getBounds().height()/2);
+            setImageMatrix(matrix);
         }
         
-    }
+    };
     
-    private final NorthArrowHandler handler = new NorthArrowHandler(this);
     private final Timer timer = new Timer(true);
     private TimerTask timerTask = null;
     
@@ -79,18 +70,19 @@ public class NorthArrowView extends ImageView {
     }
     
     /**
-     * Sets this north arrow's MapController so that it can rotate.
+     * Sets this north arrow's MapController so that it can rotate. Call startRotation
+     * to start the rotation and stopRotation to stop it.
      * @param mapController the MapController.
      */
     public void setMapController(MapController mapController) {
         this.mapController = mapController;
-        startRotation();
     }
     
-    private void startRotation() {
-        if (null != timerTask) {
-            timerTask.cancel();
-        }
+    /**
+     * Starts rotating this view according to the map's rotation.
+     */
+    public void startRotation() {
+        stopRotation();
         timerTask = new TimerTask() {
             
             @Override
@@ -106,6 +98,16 @@ public class NorthArrowView extends ImageView {
             
         };
         timer.schedule(timerTask, 0, Utilities.ANIMATION_PERIOD_MS);
+    }
+    
+    /**
+     * Stops rotating this view. Ideally you should call stopRotation when the view will
+     * no longer be displayed.
+     */
+    public void stopRotation() {
+        if (null != timerTask) {
+            timerTask.cancel();
+        }
     }
 
 }

@@ -17,40 +17,27 @@ package com.esri.squadleader.controller.test;
 
 import org.junit.Test;
 
-import android.test.ActivityInstrumentationTestCase2;
+import android.test.AndroidTestCase;
 
 import com.esri.core.geometry.AngularUnit;
 import com.esri.squadleader.controller.LocationController;
-import com.esri.squadleader.view.SquadLeaderActivity;
 
-public class LocationControllerTest extends ActivityInstrumentationTestCase2<SquadLeaderActivity> {
-    
-    private SquadLeaderActivity activity;
-    private LocationController locationController;
-    
-    public LocationControllerTest() {
-        super(SquadLeaderActivity.class);
-    }
-    
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        activity = getActivity();
-        locationController = (LocationController) activity.getMapController().getLocationController();
-    }
+public class LocationControllerTest extends AndroidTestCase {
     
     @Test
     public void test001HeadingToString() {
-        String expected = "180";
-        String actual = LocationController.headingToString(180.0, (AngularUnit) AngularUnit.create(4326), 0);
+        final AngularUnit degreeUnit = (AngularUnit) AngularUnit.create(AngularUnit.Code.DEGREE);
+        
+        String expected = "180°";
+        String actual = LocationController.headingToString(180.0, degreeUnit, 0);
         assertEquals(expected, actual);
         
-        expected = "180.0";
-        actual = LocationController.headingToString(180.0, (AngularUnit) AngularUnit.create(4326), 1);
+        expected = "180.0°";
+        actual = LocationController.headingToString(180.0, degreeUnit, 1);
         assertEquals(expected, actual);
         
-        expected = "180.00";
-        actual = LocationController.headingToString(180.0, (AngularUnit) AngularUnit.create(4326), 2);
+        expected = "180.00°";
+        actual = LocationController.headingToString(180.0, degreeUnit, 2);
         assertEquals(expected, actual);
     }
 
