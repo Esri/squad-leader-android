@@ -24,7 +24,7 @@
     
     <ToggleButton
         android:id="@+id/toggleButton_status911"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_alignParentRight="true"
@@ -37,7 +37,7 @@
     
     <ToggleButton
         android:id="@+id/toggleButton_spotReport"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/imageButton_openBasemapPanel"
         android:layout_alignTop="@+id/imageButton_openBasemapPanel"
@@ -53,6 +53,8 @@
         android:layout_height="wrap_content"
         android:layout_alignRight="@+id/imageButton_openBasemapPanel"
         android:layout_below="@+id/imageButton_openBasemapPanel"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
         android:orientation="vertical">
         <ToggleButton
             android:id="@+id/toggleButton_chemLightRed"
@@ -97,7 +99,7 @@
 
     <ToggleButton
         android:id="@+id/toggleButton_grid"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:layout_alignParentLeft="true"
@@ -141,7 +143,7 @@
 
     <ToggleButton
         android:id="@+id/toggleButton_followMe"
-        android:layout_width="wrap_content"
+        android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@+id/imageButton_zoomOut"
         android:layout_alignBottom="@+id/toggleButton_grid"
