@@ -113,7 +113,7 @@ public class AdvancedSymbolController {
                     try {
                         Geometry pt = new Point(Double.parseDouble(tok.nextToken()), Double.parseDouble(tok.nextToken()));
                         final int wkid = Integer.parseInt((String) geomessage.getProperty(Geomessage.WKID_FIELD_NAME));
-                        if (wkid != mapController.getSpatialReference().getID()) {
+                        if (null != mapController.getSpatialReference() && wkid != mapController.getSpatialReference().getID()) {
                             pt = GeometryEngine.project(pt, SpatialReference.create(wkid), mapController.getSpatialReference());
                         }
                         Integer graphicId = spotReportIdToGraphicId.get(geomessage.getId());
