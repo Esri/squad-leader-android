@@ -122,7 +122,7 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         layerInfo.setName("Test Name");
         layerInfo.setVisible(false);
         mapController.addLayer(layerInfo);
-        assertEquals(1, mapController.getNonBasemapLayers().size());
+        assertEquals(4, mapController.getNonBasemapLayers().size());
         assertEquals(10, mapController.getBasemapLayers().size());
         
         mapController.reset();
@@ -130,7 +130,8 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
     }
     
     private static void checkBasemaps(MapController mapController) {
-        assertEquals(0, mapController.getNonBasemapLayers().size());
+        //One graphics layer automatically added for messages
+        assertEquals(1, mapController.getNonBasemapLayers().size());
         assertEquals(10, mapController.getBasemapLayers().size());
         checkBasemapLayer(mapController, 0, "Imagery", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
         checkBasemapLayer(mapController, 1, "Streets", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer");
@@ -166,7 +167,8 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
     }
     
     private void runTestsAgainstTestMapConfig() {
-        assertEquals(0, mapController.getNonBasemapLayers().size());
+      //One graphics layer automatically added for messages
+        assertEquals(1, mapController.getNonBasemapLayers().size());
         assertEquals(1, mapController.getBasemapLayers().size());
         assertEquals("Test Layer", mapController.getBasemapLayers().get(0).getLayer().getName());
         assertEquals("http://my/fake/URL", mapController.getBasemapLayers().get(0).getLayer().getUrl());
