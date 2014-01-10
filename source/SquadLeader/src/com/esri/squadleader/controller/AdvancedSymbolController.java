@@ -161,7 +161,7 @@ public class AdvancedSymbolController {
             String messageType = (String) message.getProperty(Geomessage.TYPE_FIELD_NAME);
             if (0 > Arrays.binarySearch(messageTypesSupportedSorted, messageType)) {
                 if ("trackrep".equals(messageType)) {
-                    message.setProperty(Geomessage.TYPE_FIELD_NAME, "track_report");
+                    message.setProperty(Geomessage.TYPE_FIELD_NAME, "position_report");
                 }
             }
             
