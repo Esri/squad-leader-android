@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="custom_rules">
+  <!-- This file copies the files needed by the squad leader ant build
+       It is called by the standard android ant build.xml
+       To create the build.xml file use: android update project
+       IMPORTANT: you will need to set the property: dir.arcgis.jars
+                  to the value of the ArcGIS Runtime for Android jars on your local machine
+    -->
+
+ <property name="dir.arcgis.jars" value="{TODO:CHANGE_PATH_TO:/arcgis-android-sdk-v10.2/libs"/>  
+    <target name="-pre-build">
+    <copy todir="./libs">
+      <fileset dir="${dir.arcgis.jars}" />
+    </copy>
+    <copy todir="./src/com/esri/militaryapps">
+      <fileset dir="../military-apps-library-java/source/MilitaryAppsLibrary/src/com/esri/militaryapps" />
+    </copy>
+    </target>
+</project>
