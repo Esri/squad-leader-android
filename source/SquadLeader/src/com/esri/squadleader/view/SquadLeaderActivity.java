@@ -507,6 +507,15 @@ public class SquadLeaderActivity extends ActionBarActivity
     }
     
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean labelsOn = true;//TODO set labelsOn to true iff labels are turned on
+        MenuItem menuItem_toggleLabels = menu.findItem(R.id.toggle_labels);
+        menuItem_toggleLabels.setIcon(labelsOn ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
+        menuItem_toggleLabels.setChecked(labelsOn);
+        return super.onPrepareOptionsMenu(menu);
+    }
+    
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add_layer_from_web:
@@ -565,6 +574,11 @@ public class SquadLeaderActivity extends ActionBarActivity
             case R.id.settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivityForResult(intent, SETTINGS_ACTIVITY);
+                return true;
+            case R.id.toggle_labels:
+                item.setChecked(!item.isChecked());
+                item.setIcon(item.isChecked() ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
+                //TODO turn labels on or off
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
