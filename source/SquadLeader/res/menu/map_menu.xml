@@ -9,6 +9,11 @@
         android:icon="@drawable/ic_action_place"
         android:title="@string/go_to_mgrs"
         squadleader:showAsAction="ifRoom" />
+    <item android:id="@+id/toggle_labels"
+        android:icon="@drawable/ic_action_labels"
+        android:title="@string/toggle_labels"
+        android:checkable="true"
+        squadleader:showAsAction="ifRoom" />
     <item android:id="@+id/set_location_mode" android:title="@string/set_location_mode" />
     <item android:id="@+id/settings" android:title="@string/settings" />
 </menu>

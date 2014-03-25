@@ -122,7 +122,7 @@ To build the app from source:
 
 Squad Leader leverages the following as submodules of the squad-leader-android repository. 
 
-* [military-apps-library-java](https://github.com/ArcGIS/military-apps-library-java) 
+* [military-apps-library-java](https://github.com/Esri/military-apps-library-java) 
 * [aFileChooser](https://github.com/iPaulPro/aFileChooser)
  
 If you should want to update to the latest commit instead of the commit used by the squad-leader-android commit you're using, you can open a GitHub shell in squad-leader-android and run the following:
@@ -144,7 +144,7 @@ More information for configuring and running the application see the [User Guide
 
 Find a bug or want to request a new feature?  Please let us know by submitting an issue.
 
-See [Issues](https://github.com/ArcGIS/squad-leader-android/issues) for a list of known issues.
+See [Issues](https://github.com/Esri/squad-leader-android/issues) for a list of known issues.
 
 ## Contributing
 

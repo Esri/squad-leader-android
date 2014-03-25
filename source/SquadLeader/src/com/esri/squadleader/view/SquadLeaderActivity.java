@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013 Esri
+ * Copyright 2013-2014 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -507,6 +507,21 @@ public class SquadLeaderActivity extends ActionBarActivity
     }
     
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        String key = getString(R.string.pref_labels);
+        if (!prefs.contains(key)) {
+            prefs.edit().putBoolean(key, true).commit();
+        }
+        boolean labelsOn = prefs.getBoolean(key, true);
+        mil2525cController.setShowLabels(labelsOn);
+        MenuItem menuItem_toggleLabels = menu.findItem(R.id.toggle_labels);
+        menuItem_toggleLabels.setIcon(labelsOn ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
+        menuItem_toggleLabels.setChecked(labelsOn);
+        return super.onPrepareOptionsMenu(menu);
+    }
+    
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add_layer_from_web:
@@ -565,6 +580,14 @@ public class SquadLeaderActivity extends ActionBarActivity
             case R.id.settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivityForResult(intent, SETTINGS_ACTIVITY);
+                return true;
+            case R.id.toggle_labels:
+                item.setChecked(!item.isChecked());
+                item.setIcon(item.isChecked() ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
+                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                String key = getString(R.string.pref_labels);
+                prefs.edit().putBoolean(key, item.isChecked()).commit();
+                mil2525cController.setShowLabels(item.isChecked());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
