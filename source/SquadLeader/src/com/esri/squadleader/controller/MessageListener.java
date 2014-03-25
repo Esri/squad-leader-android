@@ -36,7 +36,7 @@ public class MessageListener implements MessageControllerListener {
 
     @Override
     public void geomessageReceived(Geomessage geomessage) {
-        advancedSymbolController.addGeomessage(geomessage);
+        advancedSymbolController.handleGeomessage(geomessage);
     }
 
     @Override

@@ -508,7 +508,13 @@ public class SquadLeaderActivity extends ActionBarActivity
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean labelsOn = true;//TODO set labelsOn to true iff labels are turned on
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        String key = getString(R.string.pref_labels);
+        if (!prefs.contains(key)) {
+            prefs.edit().putBoolean(key, true).commit();
+        }
+        boolean labelsOn = prefs.getBoolean(key, true);
+        mil2525cController.setShowLabels(labelsOn);
         MenuItem menuItem_toggleLabels = menu.findItem(R.id.toggle_labels);
         menuItem_toggleLabels.setIcon(labelsOn ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
         menuItem_toggleLabels.setChecked(labelsOn);
@@ -578,7 +584,10 @@ public class SquadLeaderActivity extends ActionBarActivity
             case R.id.toggle_labels:
                 item.setChecked(!item.isChecked());
                 item.setIcon(item.isChecked() ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
-                //TODO turn labels on or off
+                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                String key = getString(R.string.pref_labels);
+                prefs.edit().putBoolean(key, item.isChecked()).commit();
+                mil2525cController.setShowLabels(item.isChecked());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
