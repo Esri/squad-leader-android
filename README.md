@@ -146,6 +146,8 @@ Find a bug or want to request a new feature?  Please let us know by submitting a
 
 See [Issues](https://github.com/Esri/squad-leader-android/issues) for a list of known issues.
 
+Of particular note is [issue 84: Squad Leader app freezes when it's been running for some period of time](https://github.com/Esri/squad-leader-android/issues/84) . On some devices, we have noticed that the Squad Leader application will freeze after a few minutes of inactivity. In this situation, the application should be stopped and then started again. This issue will be addressed in a future release.
+
 ## Contributing
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
