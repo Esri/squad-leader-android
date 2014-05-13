@@ -62,6 +62,7 @@ import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.SpotReport;
+import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
@@ -379,6 +380,11 @@ public class SquadLeaderActivity extends ActionBarActivity
                         }
                     }.start();
                 }
+            }
+            
+            @Override
+            public void onStateChanged(LocationProviderState state) {
+                
             }
         });
         

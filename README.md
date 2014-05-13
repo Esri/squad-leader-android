@@ -27,7 +27,7 @@ To build the app from source:
 
 - Android SDK
   - Android API 14 or higher is required to build, even though the app will run on Android 2.3.3 (API 10) or higher
-- [ArcGIS Runtime SDK 10.2 (or higher) for Android](https://developers.arcgis.com/en/android/install.html)
+- [ArcGIS Runtime SDK 10.2+ (10.2.3 recommended) for Android](https://developers.arcgis.com/en/android/install.html)
   - Even if you have installed the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#building-with-eclipse)).
 - Eclipse 3.6.2 or higher (Eclipse for Android recommended)
 - Android Support Library
@@ -67,8 +67,9 @@ To build the app from source:
 1. If any of the three projects (SquadLeader, android-support-v7-appcompat, aFileChooser) have errors, you may need to try the following:
     1.  You may need to set the Android API level. Right-click the project and choose **Properties > Android**. Choose an Android API level 14 or higher. If you don't have API 14 or higher, install one in Eclipse by choosing **Window > Android SDK Manager** and selecting **SDK Platform** for API 14 or higher.
     1.  Right-click the project and choose **Android Tools > Fix Project Properties**
-    1.  Right-click the SquadLeader project and choose **ArcGIS Tools > Fix Project Properties** - If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and ensure you haved installed the ArcGIS Runtime SDK 10.2 for Android Eclipse Plugin.
+    1.  Right-click the SquadLeader project and choose **ArcGIS Tools > Fix Project Properties** - If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and ensure you haved installed the ArcGIS Runtime SDK 10.2.3 for Android Eclipse Plugin.
     1.  You may also need to clean and re-build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
+1. If you previously built Squad Leader and then upgraded your ArcGIS Runtime SDK for Android, right-click the project and choose **ArcGIS Tools > Fix Project Properties**. This will replace the *.so binaries in your previous build with the binaries in the upgraded SDK.
 1. To run directly from Eclipse
     1. Right-click the SquadLeader project and choose **Run As > Android Application**. 
     1. If you wish to run in an emulator, see: [Notes on Running with the Android Emulator](#notes-on-running-with-the-android-emulator)

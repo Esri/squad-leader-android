@@ -62,6 +62,7 @@ import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.MapConfigReader;
+import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -722,6 +723,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 };
             }.start();
         }
+    }
+    
+    @Override
+    public void onStateChanged(LocationProviderState state) {
+        
     }
 
     @Override
