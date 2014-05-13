@@ -27,7 +27,7 @@ To build the app from source:
 
 - Android SDK
   - Android API 14 or higher is required to build, even though the app will run on Android 2.3.3 (API 10) or higher
-- [ArcGIS Runtime SDK 10.2.3 (or higher) for Android](https://developers.arcgis.com/en/android/install.html)
+- [ArcGIS Runtime SDK 10.2+ (10.2.3 recommended) for Android](https://developers.arcgis.com/en/android/install.html)
   - Even if you have installed the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#building-with-eclipse)).
 - Eclipse 3.6.2 or higher (Eclipse for Android recommended)
 - Android Support Library
