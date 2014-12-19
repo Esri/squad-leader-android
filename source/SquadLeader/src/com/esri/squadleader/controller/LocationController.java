@@ -25,7 +25,7 @@ import org.xml.sax.SAXException;
 import android.location.LocationListener;
 import android.os.Bundle;
 
-import com.esri.android.map.LocationService;
+import com.esri.android.map.LocationDisplayManager;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider;
@@ -33,7 +33,7 @@ import com.esri.squadleader.util.Utilities;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
     
-    private LocationService locationService = null;
+    private LocationDisplayManager locationDisplayManager = null;
     
     public LocationController(boolean startImmediately)
             throws ParserConfigurationException, SAXException, IOException {
@@ -45,8 +45,8 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         super(mode, startImmediately);
     }
     
-    public void setLocationService(LocationService locationService) {
-        this.locationService = locationService;
+    public void setLocationService(LocationDisplayManager locationService) {
+        this.locationDisplayManager = locationService;
     }
 
     @Override
@@ -60,14 +60,14 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
                 setupLocationListener();
                 switch (getState()) {
                     case PAUSED: {
-                        if (null != locationService) {
-                            locationService.resume();
+                        if (null != locationDisplayManager) {
+                            locationDisplayManager.resume();
                         }
                         break;
                     }
                     case STOPPED: {
-                        if (null != locationService) {
-                            locationService.start();
+                        if (null != locationDisplayManager) {
+                            locationDisplayManager.start();
                         }
                         break;
                     }
@@ -81,16 +81,16 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
 
             @Override
             public void pause() {
-                if (null != locationService) {
-                    locationService.pause();
+                if (null != locationDisplayManager) {
+                    locationDisplayManager.pause();
                 }
                 state = LocationProviderState.PAUSED;
             }
 
             @Override
             public void stop() {
-                if (null != locationService) {
-                    locationService.stop();
+                if (null != locationDisplayManager) {
+                    locationDisplayManager.stop();
                 }
                 state = LocationProviderState.STOPPED;
             }
@@ -101,8 +101,8 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             }
             
             private void setupLocationListener() {
-                if (null != locationService) {
-                    locationService.setLocationListener(new LocationListener() {
+                if (null != locationDisplayManager) {
+                    locationDisplayManager.setLocationListener(new LocationListener() {
                         
                         @Override
                         public void onStatusChanged(String provider, int status, Bundle extras) {}

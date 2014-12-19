@@ -42,6 +42,8 @@ import android.util.Log;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
+import com.esri.android.map.LocationDisplayManager;
+import com.esri.android.map.LocationDisplayManager.AutoPanMode;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISFeatureLayer;
@@ -96,8 +98,12 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             //If we're using the device's location service, we don't need to add the graphic.
             if (LocationMode.SIMULATOR == mapController.getLocationController().getMode()) {
                 if (-1 == mapController.locationGraphicId) {
-                    mapController.locationGraphicId = mapController.locationGraphicsLayer.addGraphic(
-                            new Graphic(mapPoint, mapController.mapView.getLocationService().getSymbol()));
+                    try {
+                        mapController.locationGraphicId = mapController.locationGraphicsLayer.addGraphic(
+                                new Graphic(mapPoint, mapController.mapView.getLocationDisplayManager().getDefaultSymbol()));
+                    } catch (Exception e) {
+                        Log.e(TAG, "Couldn't add location graphic", e);
+                    }
                 } else {
                     mapController.locationGraphicsLayer.updateGraphic(mapController.locationGraphicId, mapPoint);
                 }
@@ -135,7 +141,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @SuppressWarnings("serial")
     public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
         this.layerListener = layerListener;
-        ((LocationController) getLocationController()).setLocationService(mapView.getLocationService());
+        ((LocationController) getLocationController()).setLocationService(mapView.getLocationDisplayManager());
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
@@ -750,8 +756,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         this.autoPan = autoPan;
-        if (null != mapView.getLocationService()) {
-            mapView.getLocationService().setAutoPan(autoPan);
+        LocationDisplayManager locationDisplayManager = mapView.getLocationDisplayManager();
+        if (null != locationDisplayManager) {
+            locationDisplayManager.setAutoPanMode(autoPan ? AutoPanMode.LOCATION : AutoPanMode.OFF);
         }
     }
 
