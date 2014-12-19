@@ -262,6 +262,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             if (0 != mapConfig.getScale()) {
                 zoomToScale(mapConfig.getScale(), mapConfig.getCenterX(), mapConfig.getCenterY());
             }
+            setRotation(mapConfig.getRotation());
         }
         
         addLayer(locationGraphicsLayer, true);
