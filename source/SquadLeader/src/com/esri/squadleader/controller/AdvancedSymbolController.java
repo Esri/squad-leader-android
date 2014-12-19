@@ -184,5 +184,10 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         Message message = MessageHelper.create2525CRemoveMessage(geomessageId, messageType);
         groupLayer.getMessageProcessor().processMessage(message);
     }
+
+    @Override
+    protected void toggleLabels() {
+        //There's nothing we need to do here
+    }
     
 }
