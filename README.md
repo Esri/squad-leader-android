@@ -128,10 +128,8 @@ Squad Leader leverages the following as submodules of the squad-leader-android r
  
 If you should want to update to the latest commit instead of the commit used by the squad-leader-android commit you're using, you can open a GitHub shell in squad-leader-android and run the following:
 
-<code>
-$ cd .\source\military-apps-library-java  
-$ git pull origin master
-</code>
+  <code>$ cd .\source\military-apps-library-java</code>  
+  <code>$ git pull origin master</code>
 
 ## User Guide
 
