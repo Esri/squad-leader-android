@@ -200,6 +200,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             } else if (key.equals(getString(R.string.pref_username))) {
                 try {
                     usernamePreference = sharedPreferences.getString(key, usernamePreference);
+                    messageController.setSenderUsername(usernamePreference);
                     positionReportController.setUsername(usernamePreference);
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't get " + key + " value", t);
@@ -208,11 +209,11 @@ public class SquadLeaderActivity extends ActionBarActivity
         }
     };
     
-    private final MessageController messageController;
-    private final ChemLightController chemLightController;
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     
     private MapController mapController = null;
+    private MessageController messageController;
+    private ChemLightController chemLightController;
     private NorthArrowView northArrowView = null;
     private SpotReportController spotReportController = null;
     private AdvancedSymbolController mil2525cController = null;
@@ -244,8 +245,6 @@ public class SquadLeaderActivity extends ActionBarActivity
             }
         };
         
-        messageController = new MessageController(messagePortPreference);
-        chemLightController = new ChemLightController(messageController);
     }
 
     @Override
@@ -253,6 +252,13 @@ public class SquadLeaderActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
+        try {
+            usernamePreference = sp.getString(getString(R.string.pref_username), usernamePreference);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't get preference", t);
+        }
+        messageController = new MessageController(messagePortPreference, usernamePreference);
+        chemLightController = new ChemLightController(messageController);
         try {
             int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
             angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
@@ -279,11 +285,6 @@ public class SquadLeaderActivity extends ActionBarActivity
                 positionReportsPeriodPreference = PositionReportController.DEFAULT_PERIOD;
                 sp.edit().putString(getString(R.string.pref_positionReportPeriod), Integer.toString(positionReportsPeriodPreference)).commit();
             }
-        } catch (Throwable t) {
-            Log.d(TAG, "Couldn't get preference", t);
-        }
-        try {
-            usernamePreference = sp.getString(getString(R.string.pref_username), usernamePreference);
         } catch (Throwable t) {
             Log.d(TAG, "Couldn't get preference", t);
         }
@@ -497,6 +498,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         super.onPause();
         mapController.pause();
         northArrowView.stopRotation();
+        messageController.stopReceiving();
+        positionReportController.setEnabled(false);
     }
     
     @Override
@@ -504,6 +507,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         super.onResume();
         mapController.unpause();
         northArrowView.startRotation();
+        messageController.startReceiving();
+        positionReportController.setEnabled(true);
     }
     
     @Override
