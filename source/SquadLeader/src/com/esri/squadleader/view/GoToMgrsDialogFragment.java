@@ -75,7 +75,7 @@ public class GoToMgrsDialogFragment extends DialogFragment {
         if (null != listener) {
             LayoutInflater inflater = getActivity().getLayoutInflater();
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            final View inflatedView = inflater.inflate(R.layout.go_to_mgrs, null);
+            final View inflatedView = inflater.inflate(R.layout.go_to_mgrs, null, false);
             builder.setView(inflatedView);
             builder.setTitle(getString(R.string.go_to_mgrs));
             builder.setNegativeButton(R.string.cancel, null);
