@@ -25,6 +25,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.esri.android.map.GraphicsLayer;
+import com.esri.android.map.Layer;
 import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
@@ -192,6 +193,26 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 //                graphicsLayer.setRenderer(dictionaryRenderer);
 //            }
 //        }
+    }
+
+    @Override
+    public String[] getMessageLayerNames() {
+        Layer[] layers = groupLayer.getLayers();
+        String[] names = new String[layers.length];
+        for (int i = 0; i < layers.length; i++) {
+            names[i] = layers[i].getName();
+        }
+        return names;
+    }
+
+    @Override
+    public void clearLayer(String layerName) {
+        Layer[] layers = groupLayer.getLayers(layerName);
+        for (Layer layer : layers) {
+            if (layer instanceof GraphicsLayer) {
+                ((GraphicsLayer) layer).removeAll();
+            }
+        }
     }
     
 }
