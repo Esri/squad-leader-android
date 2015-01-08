@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import com.esri.squadleader.util.Utilities;
 public class AdvancedSymbolController extends com.esri.militaryapps.controller.AdvancedSymbolController {
     
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
-    private static final SpatialReference WGS1984 = SpatialReference.create(4326);
 
     private final MapController mapController;
     private final MessageGroupLayer groupLayer;
@@ -109,14 +108,6 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             Log.e(TAG, "Could not parse spot report", nfe);
             return null;
         }
-    }
-    
-    @Override
-    protected String translateMessageTypeName(String geomessageTypeName) {
-        if ("trackrep".equals(geomessageTypeName)) {
-            geomessageTypeName = "position_report";
-        }
-        return geomessageTypeName;
     }
     
     @Override
@@ -187,7 +178,20 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 
     @Override
     protected void toggleLabels() {
-        //There's nothing we need to do here
+        /**
+         * TODO this is the right way to toggle the labels, but there is a bug in the Runtime SDK for
+         * Android that causes it not to work (NIM102986). When that bug is fixed, uncomment this code
+         * and test it.
+         */
+//        Layer[] layers = groupLayer.getLayers();
+//        for (Layer layer : layers) {
+//            GraphicsLayer graphicsLayer = (GraphicsLayer) layer;
+//            if (graphicsLayer.getRenderer() instanceof DictionaryRenderer) {
+//                DictionaryRenderer dictionaryRenderer = (DictionaryRenderer) graphicsLayer.getRenderer();
+//                dictionaryRenderer.setLabelsVisible(isShowLabels());
+//                graphicsLayer.setRenderer(dictionaryRenderer);
+//            }
+//        }
     }
     
 }
