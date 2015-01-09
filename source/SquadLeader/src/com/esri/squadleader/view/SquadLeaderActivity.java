@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -61,8 +61,8 @@ import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
-import com.esri.militaryapps.model.SpotReport;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
@@ -71,6 +71,7 @@ import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
+import com.esri.squadleader.view.ClearMessagesDialogFragment.ClearMessagesHelper;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
 
@@ -79,7 +80,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
  * controls.
  */
 public class SquadLeaderActivity extends ActionBarActivity
-        implements AddLayerListener, GoToMgrsHelper {
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -219,6 +220,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
+    private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
     private final Timer clockTimer = new Timer(true);
@@ -542,6 +544,13 @@ public class SquadLeaderActivity extends ActionBarActivity
                 }
                 addLayerFromWebDialogFragment.show(getSupportFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
                 return true;
+            case R.id.clear_messages:
+                //Present Clear Messages dialog
+                if (null == clearMessagesDialogFragment) {
+                    clearMessagesDialogFragment = new ClearMessagesDialogFragment();
+                }
+                clearMessagesDialogFragment.show(getSupportFragmentManager(), getString(R.string.clear_messages_fragment_tag));
+                return true;
             case R.id.go_to_mgrs:
                 //Present Go to MGRS dialog
                 if (null == goToMgrsDialogFragment) {
@@ -785,6 +794,11 @@ public class SquadLeaderActivity extends ActionBarActivity
     
     private void changePort(int newPort) {
         messageController.setPort(newPort);
+    }
+
+    @Override
+    public AdvancedSymbolController getAdvancedSymbolController() {
+        return mil2525cController;
     }
     
 }

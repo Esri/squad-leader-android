@@ -20,6 +20,8 @@
     <string name="use_as_basemap">Use as Basemap</string>
     <string name="create_spot_report">Create Spot Report</string>
     <string name="toggle_grid">Toggle Grid</string>
+    <string name="clear_messages">Clear Messages</string>
+    <string name="clear_messages_fragment_tag">ClearMessagesFragment</string>
     <string name="go_to_mgrs">Go to MGRS Location</string>
     <string name="go_to_mgrs_fragment_tag">GoToMgrsFragment</string>
     <string name="mgrs">MGRS</string>
@@ -77,4 +79,5 @@
     <string name="title_activity_spot_report">Spot Report</string>
     <string name="send">Send</string>
     <string name="toggle_labels">Toggle Labels</string>
+    <string name="all_layers">All Layers</string>
 </resources>
