@@ -65,6 +65,7 @@ public class ClearMessagesDialogFragment extends DialogFragment {
             final View inflatedView = inflater.inflate(R.layout.clear_messages, null, false);
             builder.setView(inflatedView);
             builder.setTitle(getString(R.string.clear_messages));
+            builder.setNegativeButton(R.string.cancel, null);
             ListView listView = (ListView) inflatedView.findViewById(R.id.listView_layerToClear);
             String[] layerNames = listener.getAdvancedSymbolController().getMessageLayerNames();
             String[] layerNamesPlusAll = new String[layerNames.length + 2];
