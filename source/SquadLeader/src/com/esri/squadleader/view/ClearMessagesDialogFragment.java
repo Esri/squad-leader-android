@@ -67,9 +67,10 @@ public class ClearMessagesDialogFragment extends DialogFragment {
             builder.setTitle(getString(R.string.clear_messages));
             ListView listView = (ListView) inflatedView.findViewById(R.id.listView_layerToClear);
             String[] layerNames = listener.getAdvancedSymbolController().getMessageLayerNames();
-            String[] layerNamesPlusAll = new String[layerNames.length + 1];
+            String[] layerNamesPlusAll = new String[layerNames.length + 2];
             layerNamesPlusAll[0] = getString(R.string.all_layers);
             System.arraycopy(layerNames, 0, layerNamesPlusAll, 1, layerNames.length);
+            layerNamesPlusAll[layerNamesPlusAll.length - 1] = AdvancedSymbolController.SPOT_REPORT_LAYER_NAME;
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, layerNamesPlusAll);
             listView.setAdapter(adapter);
             final Dialog dialog = builder.create();

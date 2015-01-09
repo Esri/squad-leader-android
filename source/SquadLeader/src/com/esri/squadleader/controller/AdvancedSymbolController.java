@@ -47,6 +47,8 @@ import com.esri.squadleader.util.Utilities;
 public class AdvancedSymbolController extends com.esri.militaryapps.controller.AdvancedSymbolController {
     
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
+    
+    public static final String SPOT_REPORT_LAYER_NAME = "Spot Reports";
 
     private final MapController mapController;
     private final MessageGroupLayer groupLayer;
@@ -81,6 +83,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         }
         
         spotReportLayer = new GraphicsLayer();
+        spotReportLayer.setName(SPOT_REPORT_LAYER_NAME);
         mapController.addLayer(spotReportLayer);
         
         groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
@@ -207,12 +210,21 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 
     @Override
     public void clearLayer(String layerName) {
+        if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
+            spotReportLayer.removeAll();
+        }
         Layer[] layers = groupLayer.getLayers(layerName);
         for (Layer layer : layers) {
             if (layer instanceof GraphicsLayer) {
                 ((GraphicsLayer) layer).removeAll();
             }
         }
+    }
+    
+    @Override
+    public void clearAllMessages() {
+        super.clearAllMessages();
+        spotReportLayer.removeAll();
     }
     
 }
