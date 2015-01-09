@@ -45,14 +45,17 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -211,6 +214,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     };
     
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
+    private final OnSingleTapListener defaultOnSingleTapListener;
     
     private MapController mapController = null;
     private MessageController messageController;
@@ -247,6 +251,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             }
         };
         
+        defaultOnSingleTapListener = createDefaultOnSingleTapListener();
     }
 
     @Override
@@ -768,7 +773,7 @@ public class SquadLeaderActivity extends ActionBarActivity
                 }
             });
         } else {
-            mapController.setOnSingleTapListener(null);
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
     
@@ -788,7 +793,7 @@ public class SquadLeaderActivity extends ActionBarActivity
                 }
             });
         } else {
-            mapController.setOnSingleTapListener(null);
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
     
@@ -799,6 +804,34 @@ public class SquadLeaderActivity extends ActionBarActivity
     @Override
     public AdvancedSymbolController getAdvancedSymbolController() {
         return mil2525cController;
+    }
+    
+    private OnSingleTapListener createDefaultOnSingleTapListener() {
+        return new OnSingleTapListener() {
+            
+            @Override
+            public void onSingleTap(float x, float y) {
+                Callout callout = mapController.getCallout();
+                //Identify a chem light
+                Graphic chemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5);
+                if (null != chemLight) {
+                    View calloutView = getLayoutInflater().inflate(R.layout.chem_light_callout, null);
+                    callout.setStyle(R.xml.chem_light_callout_style);
+                    callout.refresh();
+                    callout.animatedShow((Point) chemLight.getGeometry(), calloutView);
+                } else {
+                    callout.animatedHide();
+                }
+            }
+        };
+    }
+    
+    public void chemLightColorChangeClicked(View view) {
+        if (view instanceof TextView) {
+            CharSequence text = ((TextView) view).getText();
+            Toast.makeText(this, "TODO clicked: " + text, Toast.LENGTH_SHORT).show();
+        }
+        mapController.getCallout().animatedHide();
     }
     
 }

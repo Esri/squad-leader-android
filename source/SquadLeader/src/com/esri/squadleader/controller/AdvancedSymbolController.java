@@ -227,4 +227,33 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         spotReportLayer.removeAll();
     }
     
+    /**
+     * Identifies at most one Graphic in the specified layer within the specified tolerance.
+     * @param layerName the layer name.
+     * @param screenX the X value in pixels.
+     * @param screenY the Y value in pixels.
+     * @param tolerance the tolerance in pixels.
+     * @return the Graphic in the specified layer within the specified tolerance that is closest
+     *         to the point specified by screenX and screenY, or null if no such Graphic exists.
+     */
+    public Graphic identifyOneGraphic(String layerName, float screenX, float screenY, int tolerance) {
+        Layer[] layerList = groupLayer.getLayers(layerName);
+        if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
+            Layer[] newLayerList = new Layer[layerList.length + 1];
+            System.arraycopy(layerList, 0, newLayerList, 1, layerList.length);
+            newLayerList[0] = spotReportLayer;
+            layerList = newLayerList;
+        }
+        for (Layer layer : layerList) {
+            if (layer instanceof GraphicsLayer) {
+                GraphicsLayer gl = (GraphicsLayer) layer;
+                int[] graphicIds = gl.getGraphicIDs(screenX, screenY, tolerance, 1);
+                if (0 < graphicIds.length) {
+                    return gl.getGraphic(graphicIds[0]);
+                }
+            }
+        }
+        return null;
+    }
+    
 }
