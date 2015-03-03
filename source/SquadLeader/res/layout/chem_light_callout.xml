@@ -1,23 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    style="?android:attr/buttonBarStyle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:orientation="horizontal" >
     
     <Button
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1"
+        android:layout_margin="2.5dp"
+        android:background="@drawable/selector_chemlights_red"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/chemlight_red"
         android:onClick="chemLightColorChangeClicked"/>
     <Button
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="2"
+        android:layout_margin="2.5dp"
+        android:background="@drawable/selector_chemlights_yellow"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/chemlight_yellow"
         android:onClick="chemLightColorChangeClicked"/>
     <Button
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="3"
+        android:layout_margin="2.5dp"
+        android:background="@drawable/selector_chemlights_green"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/chemlight_green"
         android:onClick="chemLightColorChangeClicked"/>
-
+    <Button
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2.5dp"
+        android:background="@drawable/selector_chemlights_blue"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/chemlight_blue"
+        android:onClick="chemLightColorChangeClicked"/>
+    
 </LinearLayout>
