@@ -7,8 +7,8 @@
     
     <Button
         style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_margin="2.5dp"
         android:background="@drawable/selector_chemlights_red"
         android:textOn=""
@@ -17,8 +17,8 @@
         android:onClick="chemLightColorChangeClicked"/>
     <Button
         style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_margin="2.5dp"
         android:background="@drawable/selector_chemlights_yellow"
         android:textOn=""
@@ -27,8 +27,8 @@
         android:onClick="chemLightColorChangeClicked"/>
     <Button
         style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_margin="2.5dp"
         android:background="@drawable/selector_chemlights_green"
         android:textOn=""
@@ -37,8 +37,8 @@
         android:onClick="chemLightColorChangeClicked"/>
     <Button
         style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_margin="2.5dp"
         android:background="@drawable/selector_chemlights_blue"
         android:textOn=""
