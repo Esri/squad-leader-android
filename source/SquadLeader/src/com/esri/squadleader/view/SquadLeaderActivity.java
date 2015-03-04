@@ -45,7 +45,6 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
@@ -56,6 +55,7 @@ import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
+import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -237,6 +237,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
+    private Graphic poppedUpChemLight = null;
     
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -813,12 +814,12 @@ public class SquadLeaderActivity extends ActionBarActivity
             public void onSingleTap(float x, float y) {
                 Callout callout = mapController.getCallout();
                 //Identify a chem light
-                Graphic chemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5);
-                if (null != chemLight) {
+                poppedUpChemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5);
+                if (null != poppedUpChemLight) {
                     View calloutView = getLayoutInflater().inflate(R.layout.chem_light_callout, null);
                     callout.setStyle(R.xml.chem_light_callout_style);
                     callout.refresh();
-                    callout.animatedShow((Point) chemLight.getGeometry(), calloutView);
+                    callout.animatedShow((Point) poppedUpChemLight.getGeometry(), calloutView);
                 } else {
                     callout.animatedHide();
                 }
@@ -827,10 +828,26 @@ public class SquadLeaderActivity extends ActionBarActivity
     }
     
     public void chemLightColorChangeClicked(View view) {
-        if (view instanceof TextView) {
-            CharSequence text = ((TextView) view).getText();
-            Toast.makeText(this, "TODO clicked: " + text, Toast.LENGTH_SHORT).show();
+        if (null != poppedUpChemLight && null != view && null != view.getTag() && view.getTag() instanceof String) {
+            try {
+                Point pt = (Point) poppedUpChemLight.getGeometry();
+                SpatialReference sr = poppedUpChemLight.getSpatialReference();
+                if (null == sr) {
+                    sr = mapController.getSpatialReference();
+                }
+                int rgb = Integer.parseInt((String) view.getTag());
+                chemLightController.sendChemLight(
+                        pt.getX(),
+                        pt.getY(),
+                        sr.getID(),
+                        rgb,
+                        (String) poppedUpChemLight.getAttributeValue(MessageHelper.MESSAGE_ID_PROPERTY_NAME));
+            } catch (NumberFormatException nfe) {
+                Log.e(TAG, "Couldn't parse RGB " + view.getTag(), nfe);
+            }
         }
+        
+        poppedUpChemLight = null;
         mapController.getCallout().animatedHide();
     }
     
