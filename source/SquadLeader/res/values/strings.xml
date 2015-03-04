@@ -21,6 +21,7 @@
     <string name="create_spot_report">Create Spot Report</string>
     <string name="toggle_grid">Toggle Grid</string>
     <string name="clear_messages">Clear Messages</string>
+    <string name="remove">Remove</string>
     <string name="clear_messages_fragment_tag">ClearMessagesFragment</string>
     <string name="go_to_mgrs">Go to MGRS Location</string>
     <string name="go_to_mgrs_fragment_tag">GoToMgrsFragment</string>

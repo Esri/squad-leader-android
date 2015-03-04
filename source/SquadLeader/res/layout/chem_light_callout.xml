@@ -49,5 +49,15 @@
         android:textOff=""
         android:contentDescription="@string/chemlight_blue"
         android:onClick="chemLightColorChangeClicked"/>
+    <Button
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="2.5dp"
+        android:background="@drawable/ic_action_discard_light"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/remove"
+        android:onClick="chemLightRemoveClicked"/>
     
 </LinearLayout>

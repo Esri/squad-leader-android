@@ -55,13 +55,13 @@ import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
-import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
+import com.esri.militaryapps.model.Geomessage;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
@@ -830,23 +830,38 @@ public class SquadLeaderActivity extends ActionBarActivity
     public void chemLightColorChangeClicked(View view) {
         if (null != poppedUpChemLight && null != view && null != view.getTag() && view.getTag() instanceof String) {
             try {
-                Point pt = (Point) poppedUpChemLight.getGeometry();
-                SpatialReference sr = poppedUpChemLight.getSpatialReference();
-                if (null == sr) {
-                    sr = mapController.getSpatialReference();
-                }
-                int rgb = Integer.parseInt((String) view.getTag());
-                chemLightController.sendChemLight(
-                        pt.getX(),
-                        pt.getY(),
-                        sr.getID(),
-                        rgb,
-                        (String) poppedUpChemLight.getAttributeValue(MessageHelper.MESSAGE_ID_PROPERTY_NAME));
+                final Point pt = (Point) poppedUpChemLight.getGeometry();
+                final SpatialReference sr = (null != poppedUpChemLight.getSpatialReference())
+                        ? poppedUpChemLight.getSpatialReference() : mapController.getSpatialReference();
+                final int rgb = Integer.parseInt((String) view.getTag());
+                final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
+                new Thread() {
+                    public void run() {
+                        chemLightController.sendChemLight(pt.getX(), pt.getY(), sr.getID(), rgb, id);
+                    }
+                }.start();
             } catch (NumberFormatException nfe) {
                 Log.e(TAG, "Couldn't parse RGB " + view.getTag(), nfe);
             }
         }
         
+        closeChemLightCallout();
+    }
+    
+    public void chemLightRemoveClicked(View view) {
+        if (null != poppedUpChemLight) {
+            final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
+            new Thread() {
+                public void run() {
+                    chemLightController.removeChemLight(id);
+                }
+            }.start();
+        }
+        
+        closeChemLightCallout();
+    }
+    
+    private void closeChemLightCallout() {
         poppedUpChemLight = null;
         mapController.getCallout().animatedHide();
     }
