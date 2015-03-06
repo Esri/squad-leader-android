@@ -266,7 +266,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             Log.d(TAG, "Couldn't get preference", t);
         }
         messageController = new MessageController(messagePortPreference, usernamePreference);
-        chemLightController = new ChemLightController(messageController);
+        chemLightController = new ChemLightController(messageController, usernamePreference);
         try {
             int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
             angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
