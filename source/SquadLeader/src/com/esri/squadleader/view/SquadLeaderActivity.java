@@ -357,7 +357,8 @@ public class SquadLeaderActivity extends ActionBarActivity
                     mapController,
                     getAssets(),
                     getString(R.string.sym_dict_dirname),
-                    getResources().getDrawable(R.drawable.ic_spot_report));
+                    getResources().getDrawable(R.drawable.ic_spot_report),
+                    messageController);
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);

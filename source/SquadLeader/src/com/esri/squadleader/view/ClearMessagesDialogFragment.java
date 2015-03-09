@@ -20,10 +20,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Checkable;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -34,6 +36,8 @@ import com.esri.squadleader.controller.AdvancedSymbolController;
  * A dialog for clearing messages from the display.
  */
 public class ClearMessagesDialogFragment extends DialogFragment {
+    
+    private static final String TAG = ClearMessagesDialogFragment.class.getSimpleName();
     
     /**
      * A listener for this class to pass objects back to the Activity that called it.
@@ -81,11 +85,17 @@ public class ClearMessagesDialogFragment extends DialogFragment {
                 public void onItemClick(AdapterView<?> parent, View view,
                         int position, long id) {
                     if (view instanceof TextView) {
+                        boolean sendRemoveMessage = false;
+                        try {
+                            sendRemoveMessage = ((Checkable) inflatedView.findViewById(R.id.checkBox_sendRemoveMessage)).isChecked();
+                        } catch (Throwable t) {
+                            Log.e(TAG, null, t);
+                        }
                         final String text = ((TextView) view).getText().toString();
                         if (getString(R.string.all_layers).equals(text)) {
-                            listener.getAdvancedSymbolController().clearAllMessages();
+                            listener.getAdvancedSymbolController().clearAllMessages(sendRemoveMessage);
                         } else {
-                            listener.getAdvancedSymbolController().clearLayer(text);
+                            listener.getAdvancedSymbolController().clearLayer(text, sendRemoveMessage);
                         }
                     }
                     

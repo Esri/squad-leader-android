@@ -81,4 +81,5 @@
     <string name="send">Send</string>
     <string name="toggle_labels">Toggle Labels</string>
     <string name="all_layers">All Layers</string>
+    <string name="confirm_send_remove_message">Tell other users\' devices to delete my messages</string>
 </resources>

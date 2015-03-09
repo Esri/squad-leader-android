@@ -37,6 +37,7 @@ import com.esri.core.symbol.advanced.Message;
 import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.core.symbol.advanced.SymbolDictionary;
+import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.model.Geomessage;
 import com.esri.squadleader.util.Utilities;
 
@@ -54,6 +55,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     private final MessageGroupLayer groupLayer;
     private final GraphicsLayer spotReportLayer;
     private final Symbol spotReportSymbol;
+    private final MessageController messageController;
 
     /**
      * Creates a new AdvancedSymbolController.
@@ -63,13 +65,16 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
      * @param symbolDictionaryDirname the name of the asset directory that contains the advanced symbology
      *                                database.
      * @param spotReportIcon the Drawable for putting spot reports on the map.
+     * @param messageController a MessageController, for sending updates when messages are to be removed,
+     *        e.g. in clearLayer or clearAllMessages.
      * @throws FileNotFoundException if the advanced symbology database is absent or corrupt.
      */
     public AdvancedSymbolController(
             MapController mapController,
             AssetManager assetManager,
             String symbolDictionaryDirname,
-            Drawable spotReportIcon) throws FileNotFoundException {
+            Drawable spotReportIcon,
+            MessageController messageController) throws FileNotFoundException {
         super(mapController);
         this.mapController = mapController;
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -90,6 +95,8 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         mapController.addLayer(groupLayer);
         
         spotReportSymbol = new PictureMarkerSymbol(spotReportIcon);
+        
+        this.messageController = messageController;
     }
     
     @Override
@@ -179,6 +186,11 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         Message message = MessageHelper.create2525CRemoveMessage(geomessageId, messageType);
         groupLayer.getMessageProcessor().processMessage(message);
     }
+    
+    @Override
+    protected void removeSpotReportGraphic(int graphicId) {
+        spotReportLayer.removeGraphic(graphicId);
+    }
 
     @Override
     protected void toggleLabels() {
@@ -209,22 +221,50 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     }
 
     @Override
-    public void clearLayer(String layerName) {
+    public void clearLayer(String layerName, boolean sendRemoveMessageForOwnMessages) {
         if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
-            spotReportLayer.removeAll();
+            int[] graphicIds = spotReportLayer.getGraphicIDs();
+            for (int graphicId : graphicIds) {
+                Graphic graphic = spotReportLayer.getGraphic(graphicId);
+                removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+            }
         }
         Layer[] layers = groupLayer.getLayers(layerName);
         for (Layer layer : layers) {
             if (layer instanceof GraphicsLayer) {
-                ((GraphicsLayer) layer).removeAll();
+                GraphicsLayer graphicsLayer = (GraphicsLayer) layer;
+                int[] graphicIds = graphicsLayer.getGraphicIDs();
+                for (int graphicId : graphicIds) {
+                    Graphic graphic = graphicsLayer.getGraphic(graphicId);
+                    removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+                }
             }
         }
     }
     
+    private void removeGraphic(Graphic graphic, boolean sendRemoveMessageForOwnMessages) {
+        final String geomessageId = (String) graphic.getAttributeValue(Geomessage.ID_FIELD_NAME);
+        final String geomessageType = (String) graphic.getAttributeValue(Geomessage.TYPE_FIELD_NAME);
+        String uniqueDesignation = (String) graphic.getAttributeValue("uniquedesignation");
+        if (sendRemoveMessageForOwnMessages && null != uniqueDesignation && uniqueDesignation.equals(messageController.getSenderUsername())) {
+            new Thread() {
+                public void run() {
+                    try {
+                        sendRemoveMessage(messageController, geomessageId, geomessageType);
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Couldn't send REMOVE message", t);
+                    }
+                }
+            }.start();
+        } else {
+            processRemoveGeomessage(geomessageId, geomessageType);
+        }
+    }
+    
     @Override
-    public void clearAllMessages() {
-        super.clearAllMessages();
-        spotReportLayer.removeAll();
+    public void clearAllMessages(boolean sendRemoveMessageForOwnMessages) {
+        super.clearAllMessages(sendRemoveMessageForOwnMessages);
+        clearLayer(spotReportLayer.getName(), sendRemoveMessageForOwnMessages);
     }
     
     /**
