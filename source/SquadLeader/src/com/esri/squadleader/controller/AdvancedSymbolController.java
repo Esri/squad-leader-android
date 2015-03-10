@@ -224,29 +224,31 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     public void clearLayer(String layerName, boolean sendRemoveMessageForOwnMessages) {
         if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
             int[] graphicIds = spotReportLayer.getGraphicIDs();
-            if (null != graphicIds) {
-                for (int graphicId : graphicIds) {
-                    Graphic graphic = spotReportLayer.getGraphic(graphicId);
-                    removeGraphic(graphic, sendRemoveMessageForOwnMessages);
-                }
-            }
+            loopAndRemove(graphicIds, spotReportLayer, sendRemoveMessageForOwnMessages, true);
         }
         Layer[] layers = groupLayer.getLayers(layerName);
         for (Layer layer : layers) {
             if (layer instanceof GraphicsLayer) {
                 GraphicsLayer graphicsLayer = (GraphicsLayer) layer;
                 int[] graphicIds = graphicsLayer.getGraphicIDs();
-                if (null != graphicIds) {
-                    for (int graphicId : graphicIds) {
-                        Graphic graphic = graphicsLayer.getGraphic(graphicId);
-                        removeGraphic(graphic, sendRemoveMessageForOwnMessages);
-                    }
-                }
+                loopAndRemove(graphicIds, graphicsLayer, sendRemoveMessageForOwnMessages, false);
             }
         }
     }
     
-    private void removeGraphic(Graphic graphic, boolean sendRemoveMessageForOwnMessages) {
+    private void loopAndRemove(int[] graphicIds, GraphicsLayer graphicsLayer, boolean sendRemoveMessageForOwnMessages, boolean removeGraphics) {
+        if (null != graphicIds) {
+            for (int graphicId : graphicIds) {
+                Graphic graphic = graphicsLayer.getGraphic(graphicId);
+                removeGeomessage(graphic, sendRemoveMessageForOwnMessages);
+            }
+            if (removeGraphics) {
+                graphicsLayer.removeGraphics(graphicIds);
+            }
+        }
+    }
+    
+    private void removeGeomessage(Graphic graphic, boolean sendRemoveMessageForOwnMessages) {
         final String geomessageId = (String) graphic.getAttributeValue(Geomessage.ID_FIELD_NAME);
         final String geomessageType = (String) graphic.getAttributeValue(Geomessage.TYPE_FIELD_NAME);
         String uniqueDesignation = (String) graphic.getAttributeValue("uniquedesignation");
