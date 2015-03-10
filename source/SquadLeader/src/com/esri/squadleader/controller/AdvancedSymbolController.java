@@ -224,9 +224,11 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     public void clearLayer(String layerName, boolean sendRemoveMessageForOwnMessages) {
         if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
             int[] graphicIds = spotReportLayer.getGraphicIDs();
-            for (int graphicId : graphicIds) {
-                Graphic graphic = spotReportLayer.getGraphic(graphicId);
-                removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+            if (null != graphicIds) {
+                for (int graphicId : graphicIds) {
+                    Graphic graphic = spotReportLayer.getGraphic(graphicId);
+                    removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+                }
             }
         }
         Layer[] layers = groupLayer.getLayers(layerName);
@@ -234,9 +236,11 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             if (layer instanceof GraphicsLayer) {
                 GraphicsLayer graphicsLayer = (GraphicsLayer) layer;
                 int[] graphicIds = graphicsLayer.getGraphicIDs();
-                for (int graphicId : graphicIds) {
-                    Graphic graphic = graphicsLayer.getGraphic(graphicId);
-                    removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+                if (null != graphicIds) {
+                    for (int graphicId : graphicIds) {
+                        Graphic graphic = graphicsLayer.getGraphic(graphicId);
+                        removeGraphic(graphic, sendRemoveMessageForOwnMessages);
+                    }
                 }
             }
         }
