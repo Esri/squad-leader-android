@@ -20,14 +20,14 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 To run the app:
 
-- Android 2.3.3 or higher
+- Android 4.0.1 or higher
   - Limited functionality when running on an Android emulator ([more info](#notes-on-running-with-the-android-emulator))
 
 To build the app from source:
 
 - Android SDK
-  - Android API 14 or higher is required to build, even though the app will run on Android 2.3.3 (API 10) or higher
-- [ArcGIS Runtime SDK 10.2+ (10.2.3 recommended) for Android](https://developers.arcgis.com/en/android/install.html)
+  - Android API 14 or higher
+- [ArcGIS Runtime SDK 10.2.4 for Android](https://developers.arcgis.com/en/downloads/)
   - Even if you have installed the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#building-with-eclipse)).
 - Eclipse 3.6.2 or higher (Eclipse for Android recommended)
 - Android Support Library
@@ -153,7 +153,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 ## Licensing
 
-Copyright 2013 Esri
+Copyright 2013-2015 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

@@ -15,9 +15,14 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
+
+import org.json.JSONObject;
 
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
@@ -56,6 +61,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     private final GraphicsLayer spotReportLayer;
     private final Symbol spotReportSymbol;
     private final MessageController messageController;
+    private final File symDictDir;
 
     /**
      * Creates a new AdvancedSymbolController.
@@ -78,7 +84,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         super(mapController);
         this.mapController = mapController;
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File symDictDir = new File(downloadsDir, symbolDictionaryDirname);
+        symDictDir = new File(downloadsDir, symbolDictionaryDirname);
         if (!symDictDir.exists()) {
             try {
                 Utilities.copyAssetToDir(assetManager, symbolDictionaryDirname, downloadsDir.getAbsolutePath());
@@ -219,10 +225,53 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         }
         return names;
     }
+    
+    @Override
+    public String getMessageLayerName(String messageType) {
+        if (null == messageType) {
+            return null;
+        }
+        
+        File messageTypesDir = new File(symDictDir, "MessageTypes");
+        File[] files = messageTypesDir.listFiles(new FilenameFilter() {
+            
+            @Override
+            public boolean accept(File dir, String filename) {
+                return null != filename && filename.toLowerCase().endsWith(".json");
+            }
+        });
+        for (File file : files) {
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new FileReader(file));
+                StringBuffer sb = new StringBuffer();
+                String line = null;
+                while (null != (line = in.readLine())) {
+                    sb.append(line);
+                }
+                JSONObject obj = new JSONObject(sb.toString());
+                if (messageType.equals(obj.getString("type"))) {
+                    return obj.getString("layerName");
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Could not read and parse " + file.getAbsolutePath(), t);
+            } finally {
+                if (null != in) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Could not close file", e);
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
 
     @Override
     public void clearLayer(String layerName, boolean sendRemoveMessageForOwnMessages) {
-        if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
+        if ("spot_reports".equals(layerName)) {
             int[] graphicIds = spotReportLayer.getGraphicIDs();
             loopAndRemove(graphicIds, spotReportLayer, sendRemoveMessageForOwnMessages, true);
         }
