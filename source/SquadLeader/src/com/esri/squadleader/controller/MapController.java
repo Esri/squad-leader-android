@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.esri.android.map.Callout;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
@@ -779,6 +780,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     public double[] projectPoint(double x, double y, int fromWkid, int toWkid) {
         Point pt = (Point) GeometryEngine.project(new Point(x, y), SpatialReference.create(fromWkid), SpatialReference.create(toWkid));
         return new double[] { pt.getX(), pt.getY() };
+    }
+    
+    public Callout getCallout() {
+        return mapView.getCallout();
     }
 
 }

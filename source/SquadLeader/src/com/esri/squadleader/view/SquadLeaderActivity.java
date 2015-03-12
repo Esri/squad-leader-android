@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,22 +47,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
 import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
+import com.esri.militaryapps.model.Geomessage;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
-import com.esri.militaryapps.model.SpotReport;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
@@ -71,6 +74,7 @@ import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
+import com.esri.squadleader.view.ClearMessagesDialogFragment.ClearMessagesHelper;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
 
@@ -79,7 +83,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
  * controls.
  */
 public class SquadLeaderActivity extends ActionBarActivity
-        implements AddLayerListener, GoToMgrsHelper {
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -210,6 +214,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     };
     
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
+    private final OnSingleTapListener defaultOnSingleTapListener;
     
     private MapController mapController = null;
     private MessageController messageController;
@@ -219,6 +224,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
+    private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
     private final Timer clockTimer = new Timer(true);
@@ -231,6 +237,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
+    private Graphic poppedUpChemLight = null;
     
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -245,6 +252,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             }
         };
         
+        defaultOnSingleTapListener = createDefaultOnSingleTapListener();
     }
 
     @Override
@@ -258,7 +266,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             Log.d(TAG, "Couldn't get preference", t);
         }
         messageController = new MessageController(messagePortPreference, usernamePreference);
-        chemLightController = new ChemLightController(messageController);
+        chemLightController = new ChemLightController(messageController, usernamePreference);
         try {
             int wkid = Integer.parseInt(sp.getString(getString(R.string.pref_angularUnits), Integer.toString(AngularUnit.Code.DEGREE)));
             angularUnitPreference = (AngularUnit) AngularUnit.create(wkid);
@@ -349,7 +357,8 @@ public class SquadLeaderActivity extends ActionBarActivity
                     mapController,
                     getAssets(),
                     getString(R.string.sym_dict_dirname),
-                    getResources().getDrawable(R.drawable.ic_spot_report));
+                    getResources().getDrawable(R.drawable.ic_spot_report),
+                    messageController);
             mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
@@ -541,6 +550,13 @@ public class SquadLeaderActivity extends ActionBarActivity
                     addLayerFromWebDialogFragment = new AddLayerFromWebDialogFragment();
                 }
                 addLayerFromWebDialogFragment.show(getSupportFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
+                return true;
+            case R.id.clear_messages:
+                //Present Clear Messages dialog
+                if (null == clearMessagesDialogFragment) {
+                    clearMessagesDialogFragment = new ClearMessagesDialogFragment();
+                }
+                clearMessagesDialogFragment.show(getSupportFragmentManager(), getString(R.string.clear_messages_fragment_tag));
                 return true;
             case R.id.go_to_mgrs:
                 //Present Go to MGRS dialog
@@ -759,7 +775,7 @@ public class SquadLeaderActivity extends ActionBarActivity
                 }
             });
         } else {
-            mapController.setOnSingleTapListener(null);
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
     
@@ -779,12 +795,76 @@ public class SquadLeaderActivity extends ActionBarActivity
                 }
             });
         } else {
-            mapController.setOnSingleTapListener(null);
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
     
     private void changePort(int newPort) {
         messageController.setPort(newPort);
+    }
+
+    @Override
+    public AdvancedSymbolController getAdvancedSymbolController() {
+        return mil2525cController;
+    }
+    
+    private OnSingleTapListener createDefaultOnSingleTapListener() {
+        return new OnSingleTapListener() {
+            
+            @Override
+            public void onSingleTap(float x, float y) {
+                Callout callout = mapController.getCallout();
+                //Identify a chem light
+                poppedUpChemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5);
+                if (null != poppedUpChemLight) {
+                    View calloutView = getLayoutInflater().inflate(R.layout.chem_light_callout, null);
+                    callout.setStyle(R.xml.chem_light_callout_style);
+                    callout.refresh();
+                    callout.animatedShow((Point) poppedUpChemLight.getGeometry(), calloutView);
+                } else {
+                    callout.animatedHide();
+                }
+            }
+        };
+    }
+    
+    public void chemLightColorChangeClicked(View view) {
+        if (null != poppedUpChemLight && null != view && null != view.getTag() && view.getTag() instanceof String) {
+            try {
+                final Point pt = (Point) poppedUpChemLight.getGeometry();
+                final SpatialReference sr = (null != poppedUpChemLight.getSpatialReference())
+                        ? poppedUpChemLight.getSpatialReference() : mapController.getSpatialReference();
+                final int rgb = Integer.parseInt((String) view.getTag());
+                final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
+                new Thread() {
+                    public void run() {
+                        chemLightController.sendChemLight(pt.getX(), pt.getY(), sr.getID(), rgb, id);
+                    }
+                }.start();
+            } catch (NumberFormatException nfe) {
+                Log.e(TAG, "Couldn't parse RGB " + view.getTag(), nfe);
+            }
+        }
+        
+        closeChemLightCallout();
+    }
+    
+    public void chemLightRemoveClicked(View view) {
+        if (null != poppedUpChemLight) {
+            final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
+            new Thread() {
+                public void run() {
+                    chemLightController.removeChemLight(id);
+                }
+            }.start();
+        }
+        
+        closeChemLightCallout();
+    }
+    
+    private void closeChemLightCallout() {
+        poppedUpChemLight = null;
+        mapController.getCallout().animatedHide();
     }
     
 }

@@ -159,4 +159,14 @@ After the first launch, the app uses the bsaemap layers that it loaded previousl
 
 ### Simulating messages
 
-You can run the Message Simulator application included in the [Vehicle Commander](https://github.com/Esri/vehicle-commander) template ([source](https://github.com/Esri/vehicle-commander/tree/master/source/MessageSimulator), [sample messages](https://github.com/Esri/vehicle-commander/blob/master/source/MessageSimulator/SampleMessages/AFM_Sample_MSGS-719.xml). This is especially useful for testing and demonstration purposes. Note that these simulated messages will not make it to Squad Leader running on an emulator ([more info](#running-on-an-android-emulator)).
+You can run the GeoMessage Simulator application ([binary](http://www.esri.com/apps/products/download/index.cfm#ArcGIS_for_the_Military), [source](https://github.com/Esri/geomessage-simulator-qt)) to send messages to Squad Leader. GeoMessage Simulator is especially useful for testing and demonstration purposes. Note that these simulated messages will not make it to Squad Leader running on an emulator ([more info](#running-on-an-android-emulator)).
+
+Squad Leader supports the "removeall" Geomessage action to remove all messages of a certain type (e.g. position_report, chemlight, spot_report). Here's an example that removes all position reports:
+
+    <geomessages>
+        <geomessage v="1.0">
+            <_type>position_report</_type>
+            <_action>removeall</_action>
+            <_id>{b4b3eeaa-c769-11e4-8731-1681e6b88ec1}</_id>
+        </geomessage>
+    </geomessages>

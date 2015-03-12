@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_add_content"
         android:title="@string/add_layer_from_web"
         squadleader:showAsAction="ifRoom" />
+    <item android:id="@+id/clear_messages"
+        android:icon="@drawable/ic_action_discard"
+        android:title="@string/clear_messages"
+        squadleader:showAsAction="ifRoom" />
     <item android:id="@+id/go_to_mgrs"
         android:icon="@drawable/ic_action_place"
         android:title="@string/go_to_mgrs"
