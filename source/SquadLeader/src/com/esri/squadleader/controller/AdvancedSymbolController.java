@@ -43,6 +43,7 @@ import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.core.symbol.advanced.SymbolDictionary;
 import com.esri.militaryapps.controller.MessageController;
+import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.Geomessage;
 import com.esri.squadleader.util.Utilities;
 
@@ -231,6 +232,10 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     public String getMessageLayerName(String messageType) {
         if (null == messageType) {
             return null;
+        }
+        
+        if (SpotReportController.REPORT_TYPE.equals(messageType)) {
+            return SPOT_REPORT_LAYER_NAME;
         }
         
         File messageTypesDir = new File(symDictDir, "MessageTypes");
