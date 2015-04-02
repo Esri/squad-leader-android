@@ -43,6 +43,7 @@ import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.core.symbol.advanced.SymbolDictionary;
 import com.esri.militaryapps.controller.MessageController;
+import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.Geomessage;
 import com.esri.squadleader.util.Utilities;
 
@@ -184,7 +185,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 
     @Override
     public String getActionPropertyName() {
-        return MessageHelper.MESSAGE_ACTION_PROPERTY_NAME;
+        return MessageHelper.MESSAGE_ACTION_PROPERTY_NAME.toLowerCase();
     }
 
     @Override
@@ -219,10 +220,11 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     @Override
     public String[] getMessageLayerNames() {
         Layer[] layers = groupLayer.getLayers();
-        String[] names = new String[layers.length];
+        String[] names = new String[layers.length + 1];
         for (int i = 0; i < layers.length; i++) {
             names[i] = layers[i].getName();
         }
+        names[layers.length] = SPOT_REPORT_LAYER_NAME;
         return names;
     }
     
@@ -230,6 +232,10 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     public String getMessageLayerName(String messageType) {
         if (null == messageType) {
             return null;
+        }
+        
+        if (SpotReportController.REPORT_TYPE.equals(messageType)) {
+            return SPOT_REPORT_LAYER_NAME;
         }
         
         File messageTypesDir = new File(symDictDir, "MessageTypes");
@@ -271,7 +277,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 
     @Override
     public void clearLayer(String layerName, boolean sendRemoveMessageForOwnMessages) {
-        if ("spot_reports".equals(layerName)) {
+        if (SPOT_REPORT_LAYER_NAME.equals(layerName)) {
             int[] graphicIds = spotReportLayer.getGraphicIDs();
             loopAndRemove(graphicIds, spotReportLayer, sendRemoveMessageForOwnMessages, true);
         }
