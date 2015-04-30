@@ -47,6 +47,19 @@
         android:contentDescription="@string/create_spot_report"
         android:onClick="toggleButton_spotReport_clicked"/>
     
+    <ToggleButton
+        android:id="@+id/toggleButton_viewshed"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_toRightOf="@+id/toggleButton_spotReport"
+        android:layout_alignTop="@+id/toggleButton_spotReport"
+        android:background="@drawable/selector_viewshed"
+        android:textOn=""
+        android:textOff=""
+        android:contentDescription="@string/calculate_viewshed"
+        android:onClick="toggleButton_viewshed_clicked"/>
+    
     <RadioGroup
         android:id="@+id/radioGroup_chemLightButtons"
         android:layout_width="wrap_content"

@@ -42,6 +42,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -58,6 +59,7 @@ import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
+import com.esri.militaryapps.controller.MapConfigListener;
 import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
@@ -65,12 +67,14 @@ import com.esri.militaryapps.model.Geomessage;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
+import com.esri.squadleader.controller.ViewshedController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
@@ -209,6 +213,11 @@ public class SquadLeaderActivity extends ActionBarActivity
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't get " + key + " value", t);
                 }
+            } else if (key.equals(getString(R.string.pref_viewshedObserverHeight))) {
+                float observerHeight = Float.parseFloat(sharedPreferences.getString(key, "-1"));
+                if (observerHeight >= 0f && null != viewshedController) {
+                    viewshedController.setObserverHeight(observerHeight);
+                }
             }
         }
     };
@@ -223,6 +232,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private SpotReportController spotReportController = null;
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
+    private ViewshedController viewshedController = null;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
@@ -237,6 +247,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
+    private float observerHeightPreference = 2f;
     private Graphic poppedUpChemLight = null;
     
     public SquadLeaderActivity() throws SocketException {
@@ -399,6 +410,18 @@ public class SquadLeaderActivity extends ActionBarActivity
         });
         
         messageController.addListener(new MessageListener(mil2525cController));
+        
+
+        if (null != mapController.getLastMapConfig()) {
+            createViewshedController(mapController.getLastMapConfig().getViewshedElevationPath());
+        }
+        mapController.addMapConfigListener(new MapConfigListener() {
+            
+            @Override
+            public void mapConfigRead(MapConfig mapConfig) {
+                createViewshedController(mapConfig.getViewshedElevationPath());
+            }
+        });
 
         clockTimerTask = new TimerTask() {
             
@@ -428,6 +451,18 @@ public class SquadLeaderActivity extends ActionBarActivity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
         
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+    }
+    
+    private void createViewshedController(String elevationPath) {
+        if (null != viewshedController && null != viewshedController.getLayer()) {
+            mapController.removeLayer(viewshedController.getLayer());
+        }
+        try {
+            viewshedController = new ViewshedController(elevationPath);
+            mapController.addLayer(viewshedController.getLayer());
+        } catch (Exception e) {
+            Log.d(TAG, "Couldn't set up ViewshedController", e);
+        }
     }
     
     @Override
@@ -755,7 +790,8 @@ public class SquadLeaderActivity extends ActionBarActivity
     private void listenForChemLightTap(View button, final int color) {
         if (null != button && null != button.getParent() && button.getParent() instanceof RadioGroup) {
             ((RadioGroup) button.getParent()).check(button.getId());
-            ((ToggleButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+            ((CompoundButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+            ((CompoundButton) findViewById(R.id.toggleButton_viewshed)).setChecked(false);
         }
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
@@ -781,6 +817,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     
     public void toggleButton_spotReport_clicked(final View button) {
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
+        findViewById(R.id.toggleButton_viewshed).setSelected(false);
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
@@ -792,6 +829,25 @@ public class SquadLeaderActivity extends ActionBarActivity
                         intent.putExtra(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME, mapController.pointToMgrs(pt));
                     }
                     startActivityForResult(intent, SPOT_REPORT_ACTIVITY);
+                }
+            });
+        } else {
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
+        }
+    }
+    
+    public void toggleButton_viewshed_clicked(final View button) {
+        ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
+        ((CompoundButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+        if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
+            mapController.setOnSingleTapListener(new OnSingleTapListener() {
+                
+                @Override
+                public void onSingleTap(final float x, final float y) {
+                    if (null != viewshedController) {
+                        Point pt = mapController.toMapPointObject((int) x, (int) y);
+                        viewshedController.calculateViewshed(pt);
+                    }
                 }
             });
         } else {

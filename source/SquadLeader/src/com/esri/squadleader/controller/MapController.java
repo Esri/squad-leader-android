@@ -130,6 +130,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
+    private MapConfig lastMapConfig = null;
 
     /**
      * Creates a new MapController.
@@ -245,6 +246,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         if (null != mapConfig) {
+            fireMapConfigRead(mapConfig);
+            lastMapConfig = mapConfig;
             //Load map layers from mapConfig
             for (BasemapLayerInfo layerInfo : mapConfig.getBasemapLayers()) {
                 Layer layer = createLayer(layerInfo);
@@ -270,6 +273,15 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
     
     /**
+     * Returns the last MapConfig that this MapController successfully read. Note that making changes
+     * to this MapConfig object has no effect on this MapController.
+     * @return the last MapConfig that this MapController successfully read.
+     */
+    public MapConfig getLastMapConfig() {
+        return lastMapConfig;
+    }
+    
+    /**
      * Set a listener that fires when the map is single-tapped. Set to null to remove the current listener.
      * @param listener the listener.
      */
@@ -285,6 +297,18 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         super.reset();
         removeAllLayers();
         reloadMapConfig(false);
+    }
+    
+    /**
+     * Removes a layer from the map.
+     * @param layer the layer to remove.
+     * @return true if the layer was present in the map and hence was removed.
+     */
+    public boolean removeLayer(Layer layer) {
+        boolean removed = basemapLayers.remove(layer);
+        removed |= nonBasemapLayers.remove(layer);
+        mapView.removeLayer(layer);
+        return removed;
     }
     
     public void removeAllLayers() {
