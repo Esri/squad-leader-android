@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -122,6 +122,9 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
         } else if (key.equals(getString(R.string.pref_positionReportPeriod))) {
             EditTextPreference editTextPref = (EditTextPreference) pref;
             pref.setSummary(editTextPref.getText() + getString(R.string.pref_positionReportPeriod_summary));
+        } else if (key.equals(getString(R.string.pref_viewshedObserverHeight))) {
+            EditTextPreference editTextPref = (EditTextPreference) pref;
+            pref.setSummary(editTextPref.getText() + getString(R.string.pref_viewshedObserverHeight_summary));
         }
     }
     
