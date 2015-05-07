@@ -210,29 +210,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         if (null == mapConfig) {
-            //Read mapconfig from the SD card
-            InputStream mapConfigInputStream = null;
-            File mapConfigFile = new File(
-                    context.getString(R.string.squad_leader_home_dir),
-                    context.getString(R.string.map_config_filename));
-            if (mapConfigFile.exists() && mapConfigFile.isFile()) {
-                Log.d(TAG, "Loading mapConfig from " + mapConfigFile.getAbsolutePath());
-                try {
-                    mapConfigInputStream = new FileInputStream(mapConfigFile);
-                } catch (FileNotFoundException e) {
-                    //Swallow and let it load built-in mapconfig.xml
-                }
-            }
-            if (null == mapConfigInputStream) {
-                Log.d(TAG, "Loading mapConfig from app's " + context.getString(R.string.map_config_filename) + " asset");
-                try {
-                    mapConfigInputStream = assetManager.open(context.getString(R.string.map_config_filename));
-                } catch (IOException e) {
-                    Log.e(TAG, "Couldn't load any " + context.getString(R.string.map_config_filename) + ", including the one built into the app", e);
-                }
-            }
             try {
-                mapConfig = MapConfigReader.readMapConfig(mapConfigInputStream);
+                mapConfig = Utilities.readMapConfig(context, assetManager);
                 if (null != mapConfig) {
                     //Write mapConfig to preferences
                     FileOutputStream out = context.openFileOutput(context.getString(R.string.map_config_prefname), Context.MODE_PRIVATE);

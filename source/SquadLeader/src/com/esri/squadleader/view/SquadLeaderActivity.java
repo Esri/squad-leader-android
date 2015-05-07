@@ -409,17 +409,32 @@ public class SquadLeaderActivity extends ActionBarActivity
             }
         });
         
-        messageController.addListener(new MessageListener(mil2525cController));
-        
+        messageController.addListener(new MessageListener(mil2525cController));        
 
         if (null != mapController.getLastMapConfig()) {
-            createViewshedController(mapController.getLastMapConfig().getViewshedElevationPath());
+            String viewshedElevationPath = mapController.getLastMapConfig().getViewshedElevationPath();
+            if (null == viewshedElevationPath) {
+                try {
+                    viewshedElevationPath = Utilities.readMapConfig(getApplicationContext(), getAssets()).getViewshedElevationPath();
+                } catch (Throwable t) {
+                    Log.e(TAG, "Couldn't set up viewshed", t);
+                }
+            }
+            createViewshedController(viewshedElevationPath);
         }
         mapController.addMapConfigListener(new MapConfigListener() {
             
             @Override
             public void mapConfigRead(MapConfig mapConfig) {
-                createViewshedController(mapConfig.getViewshedElevationPath());
+                String viewshedElevationPath = mapConfig.getViewshedElevationPath();
+                if (null == viewshedElevationPath) {
+                    try {
+                        viewshedElevationPath = Utilities.readMapConfig(getApplicationContext(), getAssets()).getViewshedElevationPath();
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Couldn't set up viewshed", t);
+                    }
+                }
+                createViewshedController(viewshedElevationPath);
             }
         });
 
