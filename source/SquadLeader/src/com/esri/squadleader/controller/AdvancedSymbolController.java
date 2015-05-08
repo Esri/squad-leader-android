@@ -85,6 +85,9 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         super(mapController);
         this.mapController = mapController;
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs();
+        }
         symDictDir = new File(downloadsDir, symbolDictionaryDirname);
         if (!symDictDir.exists()) {
             try {
