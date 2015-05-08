@@ -18,6 +18,7 @@ package com.esri.squadleader.controller;
 import java.io.FileNotFoundException;
 
 import android.graphics.Color;
+import android.os.Build;
 
 import com.esri.android.map.RasterLayer;
 import com.esri.core.analysis.Viewshed;
@@ -27,11 +28,18 @@ import com.esri.core.renderer.Colormap.UniqueValue;
 import com.esri.core.renderer.ColormapRenderer;
 
 /**
- * A controller that calculates viewsheds based on an elevation raster.
+ * A controller that calculates viewsheds based on an elevation raster. The Android OS must support an API level
+ * greater than or equal to MIN_API_LEVEL to use this class. 
  */
 public class ViewshedController {
     
     private static final String TAG = ViewshedController.class.getSimpleName();
+    
+    /**
+     * The minimum API level supported by this class. The constructor will check and throw an exception for lower
+     * API levels.
+     */
+    public static final int MIN_API_LEVEL = 16;
     
     private final MapController mapController;
     private final String elevationFilename;
@@ -49,11 +57,15 @@ public class ViewshedController {
      *        as the MapView.
      * @param mapController the MapController to which the viewshed layer will be added. Note that this class does not
      *        add the layer to the map, but this class removes the layer from the map when stop() is called.
-     * @throws RuntimeException if the elevation raster could not be opened and used for viewshed analysis.
+     * @throws RuntimeException if the elevation raster could not be opened and used for viewshed analysis, or if the
+     *         Android version is too old for viewshed analysis.
      * @throws FileNotFoundException if elevationFilename represents a file that does not exist.
      * @throws IllegalArgumentException if elevationFilename is null or an empty string.
      */
     public ViewshedController(String elevationFilename, MapController mapController) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
+        if (MIN_API_LEVEL > Build.VERSION.SDK_INT) {
+            throw new RuntimeException(getClass().getSimpleName() + " not supported below Android API level " + MIN_API_LEVEL);
+        }
         this.elevationFilename = elevationFilename;
         this.mapController = mapController;
         start();
