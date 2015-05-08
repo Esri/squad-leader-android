@@ -473,7 +473,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             mapController.removeLayer(viewshedController.getLayer());
         }
         try {
-            viewshedController = new ViewshedController(elevationPath);
+            viewshedController = new ViewshedController(elevationPath, mapController);
             mapController.addLayer(viewshedController.getLayer());
         } catch (Exception e) {
             Log.d(TAG, "Couldn't set up ViewshedController", e);
@@ -553,12 +553,32 @@ public class SquadLeaderActivity extends ActionBarActivity
     }
     
     @Override
+    protected void onStop() {
+        super.onStop();
+        if (null != viewshedController) {
+            viewshedController.stop();
+        }
+    }
+    
+    @Override
     protected void onPause() {
         super.onPause();
         mapController.pause();
         northArrowView.stopRotation();
         messageController.stopReceiving();
         positionReportController.setEnabled(false);
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (null != viewshedController) {
+            try {
+                viewshedController.start();
+            } catch (Throwable t) {
+                Log.e(TAG, "Could not start ViewshedController", t);
+            }
+        }
     }
     
     @Override
@@ -832,7 +852,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     
     public void toggleButton_spotReport_clicked(final View button) {
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
-        findViewById(R.id.toggleButton_viewshed).setSelected(false);
+        ((CompoundButton) findViewById(R.id.toggleButton_viewshed)).setChecked(false);
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
@@ -862,12 +882,20 @@ public class SquadLeaderActivity extends ActionBarActivity
                     if (null != viewshedController) {
                         Point pt = mapController.toMapPointObject((int) x, (int) y);
                         viewshedController.calculateViewshed(pt);
+                        findViewById(R.id.imageButton_clearViewshed).setVisibility(View.VISIBLE);
                     }
                 }
             });
         } else {
             mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
+    }
+    
+    public void imageButton_clearViewshed_clicked(final View button) {
+        if (null != viewshedController) {
+            viewshedController.getLayer().setVisible(false);
+        }
+        button.setVisibility(View.INVISIBLE);
     }
     
     private void changePort(int newPort) {

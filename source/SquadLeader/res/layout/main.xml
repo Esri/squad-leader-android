@@ -59,7 +59,19 @@
         android:textOff=""
         android:contentDescription="@string/calculate_viewshed"
         android:onClick="toggleButton_viewshed_clicked"/>
-    
+
+    <ImageButton
+        android:id="@+id/imageButton_clearViewshed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_below="@+id/toggleButton_viewshed"
+        android:layout_alignLeft="@+id/toggleButton_viewshed"
+        android:background="@drawable/selector_clear_viewshed"
+        android:contentDescription="@string/clear_viewshed"
+        android:visibility="invisible"
+        android:onClick="imageButton_clearViewshed_clicked"/>
+
     <RadioGroup
         android:id="@+id/radioGroup_chemLightButtons"
         android:layout_width="wrap_content"

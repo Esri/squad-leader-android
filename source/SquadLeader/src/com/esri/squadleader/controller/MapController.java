@@ -15,12 +15,10 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
@@ -63,9 +61,8 @@ import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
-import com.esri.militaryapps.model.MapConfig;
-import com.esri.militaryapps.model.MapConfigReader;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.MapConfig;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -286,7 +283,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     public boolean removeLayer(Layer layer) {
         boolean removed = basemapLayers.remove(layer);
         removed |= nonBasemapLayers.remove(layer);
-        mapView.removeLayer(layer);
+        try {
+            mapView.removeLayer(layer);
+        } catch (Throwable t) {
+            removed = false;
+        }
         return removed;
     }
     

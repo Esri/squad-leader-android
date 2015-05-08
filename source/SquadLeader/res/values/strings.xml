@@ -20,6 +20,7 @@
     <string name="use_as_basemap">Use as Basemap</string>
     <string name="create_spot_report">Create Spot Report</string>
     <string name="calculate_viewshed">Calculate Viewshed</string>
+    <string name="clear_viewshed">Clear Viewshed</string>
     <string name="toggle_grid">Toggle Grid</string>
     <string name="clear_messages">Clear Messages</string>
     <string name="remove">Remove</string>
