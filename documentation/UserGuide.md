@@ -122,6 +122,7 @@ You can clear any layers you have added and go back to the original map configur
 
 ### System requirements
 
+Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
 
 #### Running on an Android emulator
 
@@ -171,6 +172,7 @@ After the first launch, the app uses the bsaemap layers that it loaded previousl
 
 #### Configuring viewshed analysis
 
+Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. Note that the elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists. Otherwise, viewshed analysis will not be available.
 
 ### Simulating messages
 

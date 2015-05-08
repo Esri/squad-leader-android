@@ -8,6 +8,7 @@ The Squad Leader template demonstrates best practices for building handheld mili
 ## Sections
 
 * [Requirements](#requirements)
+* [Release Notes](#release-notes)
 * [Instructions](#instructions)
     * [Building from Source](#building-from-source)  
     * [Running Unit Tests](#running-unit-tests)
@@ -31,6 +32,17 @@ To build the app from source:
   - Even if you have installed the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#building-with-eclipse)).
 - Eclipse 3.6.2 or higher (Eclipse for Android recommended)
 - Android Support Library
+
+## Release Notes
+
+### 3.0.0
+
+#### What's New in Squad Leader 3.0.0
+* Uses ArcGIS Runtime 10.2.4.
+* Requires Android 4.0.1 or higher
+* Viewshed analysis
+    * Requires Android 4.1 (Android API level 16) or higher
+    * Viewshed requires elevation data on the device. See the [User Guide](documentation/UserGuide.md) for configuration details.
 
 ## Building from Source
 
