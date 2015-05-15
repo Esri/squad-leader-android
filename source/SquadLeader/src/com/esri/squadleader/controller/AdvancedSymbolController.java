@@ -90,7 +90,37 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             downloadsDir.mkdirs();
         }
         symDictDir = new File(downloadsDir, symbolDictionaryDirname);
-        if (!symDictDir.exists()) {
+        
+        boolean copyNeeded = !symDictDir.exists();
+        if (!copyNeeded) {
+            /**
+             * Check to see if we need to upgrade the symbol dictionary. One way is to
+             * see if PositionReport.json's renderer is of type 2525C (10.2) or mil2525c (10.2.4).
+             */
+            StringBuilder sb = new StringBuilder();
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new FileReader(new File(symDictDir, "messagetypes/PositionReport.json")));
+                String line;
+                while (null != (line = in.readLine())) {
+                    sb.append(line);
+                }
+                JSONObject json = new JSONObject(sb.toString());
+                if (!"mil2525c".equals(json.getJSONObject("renderer").getString("dictionaryType"))) {
+                    copyNeeded = true;
+                }
+            } catch (Exception e) {
+                copyNeeded = true;
+            } finally {
+                try {
+                    in.close();
+                } catch (Throwable t) {
+                    //Swallow
+                }
+            }
+        }
+        if (copyNeeded) {
+            symDictDir.delete();
             try {
                 Utilities.copyAssetToDir(assetManager, symbolDictionaryDirname, downloadsDir.getAbsolutePath());
             } catch (IOException e) {
