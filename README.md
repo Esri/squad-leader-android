@@ -39,6 +39,7 @@ To build the app from source:
 
 #### What's New in Squad Leader 3.0.0
 * Uses ArcGIS Runtime 10.2.4.
+  * If you built Squad Leader with a previous version of ArcGIS Runtime, you need to follow the step in [Building with Eclipse](#building-with-eclipse) below about copying the MIL-STD-2525C symbol dictionary into your clone. ArcGIS Runtime 10.2.4 will not work with older versions of the symbol dictionary.
 * Requires Android 4.0.1 or higher
 * Viewshed analysis
     * Requires Android 4.1 (Android API level 16) or higher
@@ -53,10 +54,7 @@ To build the app from source:
     1. Unzip the SDK
     1. Copy the contents of the `arcgis-android-sdk/libs` directory from the SDK to your clone's `source/SquadLeader/libs` directory. 
     1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the directories (armeabi, armeabi-v7a, x86).
-1. Get the latest military symbology files (mil2525c.dat, messagetypes/*.json):
-    1. Clone the [Esri/military-features-data](https://github.com/Esri/military-features-data) repo, or fork it and clone your fork.
-    2. Copy all the .json files from `Esri/military-features-data/data/mil2525c/messagetypes` to the `source/SquadLeader/assets/2525cSymDictionary/MessageTypes` directory in your Squad Leader clone.
-    3. Copy mil2525c.dat from `Esri/military-features-data/data/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone.
+1. Copy the MIL-STD-2525C symbol dictionary into your clone. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
 1. Check and if necessary install the Android Support Library v7 appcompat 
     1. Follow the [instructions](http://developer.android.com/tools/support-library/setup.html) on the Android support site for checking and/or adding the Android Support Library. 
     1. To verify, from a command prompt, run android and [observe the library is checked](documentation/dev-screen-shots/AndroidSupportLibrary.jpg)
