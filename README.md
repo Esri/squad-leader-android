@@ -55,7 +55,7 @@ To build the app from source:
     1. Copy the contents of the `arcgis-android-sdk/libs` directory from the SDK to your clone's `source/SquadLeader/libs` directory. 
     1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the directories (armeabi, armeabi-v7a, x86).
 1. Copy the MIL-STD-2525C symbol dictionary into your clone:
-    1. If you cloned a previous version of the Squad Leader code and have a directory called MessageTypes, you should delete it or rename it to messagetypes.
+    1. If you cloned a previous version of the Squad Leader code, delete the contents of `source/SquadLeader/assets/2525cSymDictionary` except for `.gitignore`.
     2. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
 1. Check and if necessary install the Android Support Library v7 appcompat 
     1. Follow the [instructions](http://developer.android.com/tools/support-library/setup.html) on the Android support site for checking and/or adding the Android Support Library. 
