@@ -1,4 +1,4 @@
-This repository contains elevation data from the Shuttle Radar Topography Mission (SRTM). See [license-ThirdParty.txt](license-ThirdParty.txt) for dataset citation details. See below for dataset citation details.
+This repository contains elevation data from the Shuttle Radar Topography Mission (SRTM). See below for dataset citation details.
 
 This project uses military-apps-library-java and aFileChooser. Use of these libraries is governed by the Apache License 2.0.
 
