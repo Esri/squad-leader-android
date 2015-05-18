@@ -81,6 +81,8 @@ To build the app from source:
     1.  Right-click the project and choose **Android Tools > Fix Project Properties**
     1.  Right-click the SquadLeader project and choose **ArcGIS Tools > Fix Project Properties** - If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and ensure you haved installed the ArcGIS Runtime SDK 10.2.3 for Android Eclipse Plugin.
     1.  You may also need to clean and re-build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
+1. Open `source/SquadLeader/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 3.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.4, which means the license string is optional.
+1. If you previously built Squad Leader and then upgraded your ArcGIS Runtime SDK for Android, right-click the project and choose **ArcGIS Tools > Fix Project Properties**. This will replace the *.so binaries in your previous build with the binaries in the upgraded SDK.
 1. To run directly from Eclipse
     1. Right-click the SquadLeader project and choose **Run As > Android Application**. 
     1. If you wish to run in an emulator, see: [Notes on Running with the Android Emulator](#notes-on-running-with-the-android-emulator)
