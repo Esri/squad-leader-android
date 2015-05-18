@@ -81,11 +81,12 @@ Then tap the location on the map for the chem light. The chem light is sent to l
 ### Viewshed analysis
 
 To run viewshed analysis, tap the viewshed button:
+
 ![Viewshed button](../source/SquadLeader/res/drawable/ic_viewshed_normal.png)
 
 Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see below), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
 
-![Ciewshed vutton](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
+![Viewshed button](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
 
 ### Change settings
 
