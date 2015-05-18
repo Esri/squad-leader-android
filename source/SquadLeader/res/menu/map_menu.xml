@@ -13,7 +13,10 @@
         android:icon="@drawable/ic_action_place"
         android:title="@string/go_to_mgrs"
         squadleader:showAsAction="ifRoom" />
+    <!--  TODO toggling labels won't work because of NIM102986. When that is fixed, make this menu item visible
+               and also uncomment the contents of AdvancedSymbolController.toggleLabels and test. -->
     <item android:id="@+id/toggle_labels"
+        android:visible="false"
         android:icon="@drawable/ic_action_labels"
         android:title="@string/toggle_labels"
         android:checkable="true"
