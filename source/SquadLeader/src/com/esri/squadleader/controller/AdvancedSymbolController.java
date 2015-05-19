@@ -210,6 +210,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         /**
          * Workaround: ArcGIS Runtime 10.2.4 requires a chem light message to have
          * a "sic" field.
+         * TODO remove workaround when BUG-000085707 is fixed in Runtime
          */
         if (ChemLightController.REPORT_TYPE.equals(message.getProperty(MessageHelper.MESSAGE_TYPE_PROPERTY_NAME))
                 && null == message.getProperty(Geomessage.SIC_FIELD_NAME)) {
