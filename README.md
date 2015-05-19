@@ -43,7 +43,7 @@ To build the app from source:
 * Requires Android 4.0.1 or higher
 * Viewshed analysis
     * Requires Android 4.1 (Android API level 16) or higher
-    * Viewshed requires elevation data on the device. See the [User Guide](documentation/UserGuide.md) for configuration details.
+    * Viewshed requires elevation data on the device. See the [User Guide](documentation/UserGuide.md#configuring-viewshed-analysis) for configuration details.
 * GeoMessage management (e.g. chem lights, spot reports, and position reports):
     * The user can remove all messages of a certain type or all messages of all types from the map, with the option to send a remove message for messages created by this user to other clients.
     * The user can modify or remove a chem light.
