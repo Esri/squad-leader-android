@@ -8,6 +8,7 @@ The Squad Leader template demonstrates best practices for building handheld mili
 ## Sections
 
 * [Requirements](#requirements)
+* [Release Notes](#release-notes)
 * [Instructions](#instructions)
     * [Building from Source](#building-from-source)  
     * [Running Unit Tests](#running-unit-tests)
@@ -32,6 +33,31 @@ To build the app from source:
 - Eclipse 3.6.2 or higher (Eclipse for Android recommended)
 - Android Support Library
 
+## Release Notes
+
+### 3.0.0
+
+#### What's New in Squad Leader 3.0.0
+* Uses ArcGIS Runtime 10.2.4.
+  * If you built Squad Leader with a previous version of ArcGIS Runtime, you need to follow the step in [Building with Eclipse](#building-with-eclipse) below about copying the MIL-STD-2525C symbol dictionary into your clone. ArcGIS Runtime 10.2.4 will not work with older versions of the symbol dictionary.
+* Requires Android 4.0.1 or higher
+* Viewshed analysis
+    * Requires Android 4.1 (Android API level 16) or higher
+    * Viewshed requires elevation data on the device. See the [User Guide](documentation/UserGuide.md#configuring-viewshed-analysis) for configuration details.
+* GeoMessage management (e.g. chem lights, spot reports, and position reports):
+    * The user can remove all messages of a certain type or all messages of all types from the map, with the option to send a remove message for messages created by this user to other clients.
+    * The user can modify or remove a chem light.
+    * The app recognizes the new "removeall" GeoMessage action, which removes all messages of a certain type:
+    ```
+        <geomessage v="1.0">
+            <_type>chemlight</_type>
+            <_action>removeall</_action>
+            <_id>{2e50e7ea-c76a-11e4-8731-1681e6b88ec1}</_id>
+        </geomessage>
+    ```
+* Using a client ID and license string that are configurable in strings.xml. Note that the current code only requires a Runtime Basic license, so the license string is optional.
+* Disabled the button that hides labels. Hiding labels on military symbols does not work in ArcGIS Runtime 10.2.4 (NIM102986). When the Runtime issue is fixed, we will re-enable the button that hides labels.
+
 ## Building from Source
 
 ### Building with Eclipse
@@ -41,10 +67,9 @@ To build the app from source:
     1. Unzip the SDK
     1. Copy the contents of the `arcgis-android-sdk/libs` directory from the SDK to your clone's `source/SquadLeader/libs` directory. 
     1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the directories (armeabi, armeabi-v7a, x86).
-1. Get the latest military symbology files (mil2525c.dat, messagetypes/*.json):
-    1. Clone the [Esri/military-features-data](https://github.com/Esri/military-features-data) repo, or fork it and clone your fork.
-    2. Copy all the .json files from `Esri/military-features-data/data/mil2525c/messagetypes` to the `source/SquadLeader/assets/2525cSymDictionary/MessageTypes` directory in your Squad Leader clone.
-    3. Copy mil2525c.dat from `Esri/military-features-data/data/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone.
+1. Copy the MIL-STD-2525C symbol dictionary into your clone:
+    1. If you cloned a previous version of the Squad Leader code, delete the contents of `source/SquadLeader/assets/2525cSymDictionary` except for `.gitignore`.
+    2. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
 1. Check and if necessary install the Android Support Library v7 appcompat 
     1. Follow the [instructions](http://developer.android.com/tools/support-library/setup.html) on the Android support site for checking and/or adding the Android Support Library. 
     1. To verify, from a command prompt, run android and [observe the library is checked](documentation/dev-screen-shots/AndroidSupportLibrary.jpg)
@@ -69,6 +94,7 @@ To build the app from source:
     1.  Right-click the project and choose **Android Tools > Fix Project Properties**
     1.  Right-click the SquadLeader project and choose **ArcGIS Tools > Fix Project Properties** - If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and ensure you haved installed the ArcGIS Runtime SDK 10.2.3 for Android Eclipse Plugin.
     1.  You may also need to clean and re-build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
+1. Open `source/SquadLeader/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 3.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.4, which means the license string is optional.
 1. If you previously built Squad Leader and then upgraded your ArcGIS Runtime SDK for Android, right-click the project and choose **ArcGIS Tools > Fix Project Properties**. This will replace the *.so binaries in your previous build with the binaries in the upgraded SDK.
 1. To run directly from Eclipse
     1. Right-click the SquadLeader project and choose **Run As > Android Application**. 
@@ -173,6 +199,8 @@ Portions of this code use third-party libraries:
 - Use of the JSON Java library available at http://www.json.org/java/index.html is governed by the JSON License.
 
 See [license-ThirdParty.txt](license-ThirdParty.txt) for the details of these licenses.
+
+This repository contains elevation data from the Shuttle Radar Topography Mission (SRTM). See [license-ThirdParty.txt](license-ThirdParty.txt) for dataset citation details.
 
 [](Esri Tags: ArcGIS Defense and Intelligence Military Defense Portal Android ArcGISSolutions)
 [](Esri Language: Java)

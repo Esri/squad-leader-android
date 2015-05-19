@@ -42,6 +42,7 @@ import com.esri.core.symbol.advanced.Message;
 import com.esri.core.symbol.advanced.MessageGroupLayer;
 import com.esri.core.symbol.advanced.MessageHelper;
 import com.esri.core.symbol.advanced.SymbolDictionary;
+import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.Geomessage;
@@ -85,8 +86,41 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         super(mapController);
         this.mapController = mapController;
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs();
+        }
         symDictDir = new File(downloadsDir, symbolDictionaryDirname);
-        if (!symDictDir.exists()) {
+        
+        boolean copyNeeded = !symDictDir.exists();
+        if (!copyNeeded) {
+            /**
+             * Check to see if we need to upgrade the symbol dictionary. One way is to
+             * see if PositionReport.json's renderer is of type 2525C (10.2) or mil2525c (10.2.4).
+             */
+            StringBuilder sb = new StringBuilder();
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new FileReader(new File(symDictDir, "messagetypes/PositionReport.json")));
+                String line;
+                while (null != (line = in.readLine())) {
+                    sb.append(line);
+                }
+                JSONObject json = new JSONObject(sb.toString());
+                if (!"mil2525c".equals(json.getJSONObject("renderer").getString("dictionaryType"))) {
+                    copyNeeded = true;
+                }
+            } catch (Exception e) {
+                copyNeeded = true;
+            } finally {
+                try {
+                    in.close();
+                } catch (Throwable t) {
+                    //Swallow
+                }
+            }
+        }
+        if (copyNeeded) {
+            symDictDir.delete();
             try {
                 Utilities.copyAssetToDir(assetManager, symbolDictionaryDirname, downloadsDir.getAbsolutePath());
             } catch (IOException e) {
@@ -169,13 +203,27 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             message.setID(geomessage.getId());
         }
         
+        return _processMessage(message);
+    }
+    
+    private boolean _processMessage(Message message) {        
+        /**
+         * Workaround: ArcGIS Runtime 10.2.4 requires a chem light message to have
+         * a "sic" field.
+         */
+        if (ChemLightController.REPORT_TYPE.equals(message.getProperty(MessageHelper.MESSAGE_TYPE_PROPERTY_NAME))
+                && null == message.getProperty(Geomessage.SIC_FIELD_NAME)) {
+            String sic = "SFGPU----------";
+            message.setProperty(Geomessage.SIC_FIELD_NAME, sic);
+        }
+        
         return groupLayer.getMessageProcessor().processMessage(message);
     }
     
     @Override
     protected boolean processHighlightMessage(String geomessageId, String messageType, boolean highlight) {
         Message message = MessageHelper.create2525CHighlightMessage(geomessageId, messageType, highlight);
-        return groupLayer.getMessageProcessor().processMessage(message);
+        return _processMessage(message);
     }
 
     @Override
@@ -191,7 +239,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     @Override
     protected void processRemoveGeomessage(String geomessageId, String messageType) {
         Message message = MessageHelper.create2525CRemoveMessage(geomessageId, messageType);
-        groupLayer.getMessageProcessor().processMessage(message);
+        _processMessage(message);
     }
     
     @Override

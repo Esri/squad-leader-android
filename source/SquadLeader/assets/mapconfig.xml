@@ -75,14 +75,10 @@
         <scale>288895.277144</scale>
         <rotation>0</rotation>
     </initialextent>
-    <!--viewshed>
-        <servicepath>\data\FastVisibilityByDistance.gpk</servicepath>
-        <taskname>Fast Visibility By Distance</taskname>
+    <viewshed>
+        <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
         <observerheight>2.0</observerheight>
-        <observerparamname>Observer</observerparamname>
-        <observerheightparamname>ObserverHeight</observerheightparamname>
-        <radiusparamname>Radius</radiusparamname>
-    </viewshed-->
+    </viewshed>
     <extensions>
         <!--
         A toolbar item is a JButton, a ToolbarToggleButton, or an instance

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, SquadLeaderActivity!</string>
     <string name="app_name">Squad Leader</string>
     <string name="zoom_in">Zoom In</string>
     <string name="zoom_out">Zoom Out</string>
@@ -19,6 +18,8 @@
     <string name="add_layer">Add Layer</string>
     <string name="use_as_basemap">Use as Basemap</string>
     <string name="create_spot_report">Create Spot Report</string>
+    <string name="calculate_viewshed">Calculate Viewshed</string>
+    <string name="clear_viewshed">Clear Viewshed</string>
     <string name="toggle_grid">Toggle Grid</string>
     <string name="clear_messages">Clear Messages</string>
     <string name="remove">Remove</string>
@@ -41,6 +42,8 @@
     <string name="display_heading">Heading:&#160;</string>
     <string name="display_time">Time:&#160;</string>
     <string name="pref_angularUnits">Angular units</string>
+    <string name="pref_viewshedObserverHeight">Viewshed observer height</string>
+    <string name="pref_viewshedObserverHeight_summary">&#160;(in the units that the elevation dataset uses, usually meters)</string>
     <string-array name="pref_angularUnits_entries">
         <item>Degrees</item>
         <item>Mils</item>

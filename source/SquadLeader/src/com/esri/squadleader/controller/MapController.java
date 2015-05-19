@@ -15,12 +15,10 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
@@ -63,9 +61,8 @@ import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
-import com.esri.militaryapps.model.MapConfig;
-import com.esri.militaryapps.model.MapConfigReader;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.MapConfig;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -130,6 +127,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
+    private MapConfig lastMapConfig = null;
 
     /**
      * Creates a new MapController.
@@ -209,29 +207,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         if (null == mapConfig) {
-            //Read mapconfig from the SD card
-            InputStream mapConfigInputStream = null;
-            File mapConfigFile = new File(
-                    context.getString(R.string.squad_leader_home_dir),
-                    context.getString(R.string.map_config_filename));
-            if (mapConfigFile.exists() && mapConfigFile.isFile()) {
-                Log.d(TAG, "Loading mapConfig from " + mapConfigFile.getAbsolutePath());
-                try {
-                    mapConfigInputStream = new FileInputStream(mapConfigFile);
-                } catch (FileNotFoundException e) {
-                    //Swallow and let it load built-in mapconfig.xml
-                }
-            }
-            if (null == mapConfigInputStream) {
-                Log.d(TAG, "Loading mapConfig from app's " + context.getString(R.string.map_config_filename) + " asset");
-                try {
-                    mapConfigInputStream = assetManager.open(context.getString(R.string.map_config_filename));
-                } catch (IOException e) {
-                    Log.e(TAG, "Couldn't load any " + context.getString(R.string.map_config_filename) + ", including the one built into the app", e);
-                }
-            }
             try {
-                mapConfig = MapConfigReader.readMapConfig(mapConfigInputStream);
+                mapConfig = Utilities.readMapConfig(context, assetManager);
                 if (null != mapConfig) {
                     //Write mapConfig to preferences
                     FileOutputStream out = context.openFileOutput(context.getString(R.string.map_config_prefname), Context.MODE_PRIVATE);
@@ -245,6 +222,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         if (null != mapConfig) {
+            fireMapConfigRead(mapConfig);
+            lastMapConfig = mapConfig;
             //Load map layers from mapConfig
             for (BasemapLayerInfo layerInfo : mapConfig.getBasemapLayers()) {
                 Layer layer = createLayer(layerInfo);
@@ -270,6 +249,15 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
     
     /**
+     * Returns the last MapConfig that this MapController successfully read. Note that making changes
+     * to this MapConfig object has no effect on this MapController.
+     * @return the last MapConfig that this MapController successfully read.
+     */
+    public MapConfig getLastMapConfig() {
+        return lastMapConfig;
+    }
+    
+    /**
      * Set a listener that fires when the map is single-tapped. Set to null to remove the current listener.
      * @param listener the listener.
      */
@@ -285,6 +273,22 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         super.reset();
         removeAllLayers();
         reloadMapConfig(false);
+    }
+    
+    /**
+     * Removes a layer from the map.
+     * @param layer the layer to remove.
+     * @return true if the layer was present in the map and hence was removed.
+     */
+    public boolean removeLayer(Layer layer) {
+        boolean removed = basemapLayers.remove(layer);
+        removed |= nonBasemapLayers.remove(layer);
+        try {
+            mapView.removeLayer(layer);
+        } catch (Throwable t) {
+            removed = false;
+        }
+        return removed;
     }
     
     public void removeAllLayers() {

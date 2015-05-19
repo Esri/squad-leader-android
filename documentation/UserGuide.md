@@ -78,6 +78,16 @@ To create a chem light, tap one of the colored chem light buttons:
 
 Then tap the location on the map for the chem light. The chem light is sent to listening clients, including your own device, which displays the chem light on the map.
 
+### Viewshed analysis
+
+To run viewshed analysis, tap the viewshed button:
+
+![Viewshed button](../source/SquadLeader/res/drawable/ic_viewshed_normal.png)
+
+Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see below), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
+
+![Viewshed button](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
+
 ### Change settings
 
 To change application settings, tap the menu button and choose Settings. You can change various settings:
@@ -113,7 +123,7 @@ You can clear any layers you have added and go back to the original map configur
 
 ### System requirements
 
-Squad Leader runs on Android devices version 2.3.3 and higher. This includes all Honeycomb devices and higher, as well as some but not all Gingerbread devices.
+Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
 
 #### Running on an Android emulator
 
@@ -141,6 +151,10 @@ Optional: before running the app for the first time, if you wish to specify whic
             </anchor>
             <scale>250000</scale>
         </initialextent>
+        <viewshed>
+            <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
+            <observerheight>2.0</observerheight>
+        </viewshed>
     </mapconfig>
 
 Layer type should be one of the following:
@@ -156,6 +170,10 @@ For best results, be sure that one and only one layer with basemap="true" also h
 If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
 
 After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+
+#### Configuring viewshed analysis
+
+Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. Note that the elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
 
 ### Simulating messages
 

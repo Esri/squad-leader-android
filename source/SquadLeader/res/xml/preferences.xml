@@ -8,6 +8,12 @@
         android:entryValues="@array/pref_angularUnits_values"
         android:defaultValue="@string/wkid_degrees" />
     <EditTextPreference
+        android:key="@string/pref_viewshedObserverHeight"
+        android:title="@string/pref_viewshedObserverHeight"
+        android:summary="@string/pref_viewshedObserverHeight_summary"
+        android:inputType="number"
+        android:defaultValue="2" />
+    <EditTextPreference
         android:key="@string/pref_username"
         android:title="@string/pref_username"
         android:defaultValue="Squad Leader" />

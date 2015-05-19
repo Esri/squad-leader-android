@@ -42,6 +42,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -51,6 +52,7 @@ import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
@@ -58,6 +60,7 @@ import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
+import com.esri.militaryapps.controller.MapConfigListener;
 import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.PositionReportController;
 import com.esri.militaryapps.controller.SpotReportController;
@@ -65,12 +68,14 @@ import com.esri.militaryapps.model.Geomessage;
 import com.esri.militaryapps.model.LayerInfo;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
+import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
+import com.esri.squadleader.controller.ViewshedController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
@@ -209,6 +214,11 @@ public class SquadLeaderActivity extends ActionBarActivity
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't get " + key + " value", t);
                 }
+            } else if (key.equals(getString(R.string.pref_viewshedObserverHeight))) {
+                float observerHeight = Float.parseFloat(sharedPreferences.getString(key, "-1"));
+                if (observerHeight >= 0f && null != viewshedController) {
+                    viewshedController.setObserverHeight(observerHeight);
+                }
             }
         }
     };
@@ -223,6 +233,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private SpotReportController spotReportController = null;
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
+    private ViewshedController viewshedController = null;
     private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
     private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
@@ -237,6 +248,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
+    private float observerHeightPreference = 2f;
     private Graphic poppedUpChemLight = null;
     
     public SquadLeaderActivity() throws SocketException {
@@ -258,6 +270,9 @@ public class SquadLeaderActivity extends ActionBarActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        ArcGISRuntime.setClientId(getString(R.string.clientId));
+        ArcGISRuntime.License.setLicense(getString(R.string.licenseString));
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
         try {
@@ -398,7 +413,34 @@ public class SquadLeaderActivity extends ActionBarActivity
             }
         });
         
-        messageController.addListener(new MessageListener(mil2525cController));
+        messageController.addListener(new MessageListener(mil2525cController));        
+
+        if (null != mapController.getLastMapConfig()) {
+            String viewshedElevationPath = mapController.getLastMapConfig().getViewshedElevationPath();
+            if (null == viewshedElevationPath) {
+                try {
+                    viewshedElevationPath = Utilities.readMapConfig(getApplicationContext(), getAssets()).getViewshedElevationPath();
+                } catch (Throwable t) {
+                    Log.e(TAG, "Couldn't set up viewshed", t);
+                }
+            }
+            createViewshedController(viewshedElevationPath);
+        }
+        mapController.addMapConfigListener(new MapConfigListener() {
+            
+            @Override
+            public void mapConfigRead(MapConfig mapConfig) {
+                String viewshedElevationPath = mapConfig.getViewshedElevationPath();
+                if (null == viewshedElevationPath) {
+                    try {
+                        viewshedElevationPath = Utilities.readMapConfig(getApplicationContext(), getAssets()).getViewshedElevationPath();
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Couldn't set up viewshed", t);
+                    }
+                }
+                createViewshedController(viewshedElevationPath);
+            }
+        });
 
         clockTimerTask = new TimerTask() {
             
@@ -428,6 +470,20 @@ public class SquadLeaderActivity extends ActionBarActivity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
         
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+    }
+    
+    private void createViewshedController(String elevationPath) {
+        if (null != viewshedController && null != viewshedController.getLayer()) {
+            mapController.removeLayer(viewshedController.getLayer());
+        }
+        try {
+            viewshedController = new ViewshedController(elevationPath, mapController);
+            mapController.addLayer(viewshedController.getLayer());
+            findViewById(R.id.toggleButton_viewshed).setVisibility(View.VISIBLE);
+        } catch (Exception e) {
+            Log.d(TAG, "Couldn't set up ViewshedController", e);
+            findViewById(R.id.toggleButton_viewshed).setVisibility(View.INVISIBLE);
+        }
     }
     
     @Override
@@ -503,12 +559,32 @@ public class SquadLeaderActivity extends ActionBarActivity
     }
     
     @Override
+    protected void onStop() {
+        super.onStop();
+        if (null != viewshedController) {
+            viewshedController.stop();
+        }
+    }
+    
+    @Override
     protected void onPause() {
         super.onPause();
         mapController.pause();
         northArrowView.stopRotation();
         messageController.stopReceiving();
         positionReportController.setEnabled(false);
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (null != viewshedController) {
+            try {
+                viewshedController.start();
+            } catch (Throwable t) {
+                Log.e(TAG, "Could not start ViewshedController", t);
+            }
+        }
     }
     
     @Override
@@ -755,7 +831,8 @@ public class SquadLeaderActivity extends ActionBarActivity
     private void listenForChemLightTap(View button, final int color) {
         if (null != button && null != button.getParent() && button.getParent() instanceof RadioGroup) {
             ((RadioGroup) button.getParent()).check(button.getId());
-            ((ToggleButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+            ((CompoundButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+            ((CompoundButton) findViewById(R.id.toggleButton_viewshed)).setChecked(false);
         }
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
@@ -781,6 +858,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     
     public void toggleButton_spotReport_clicked(final View button) {
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
+        ((CompoundButton) findViewById(R.id.toggleButton_viewshed)).setChecked(false);
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
@@ -797,6 +875,33 @@ public class SquadLeaderActivity extends ActionBarActivity
         } else {
             mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
+    }
+    
+    public void toggleButton_viewshed_clicked(final View button) {
+        ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
+        ((CompoundButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
+        if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
+            mapController.setOnSingleTapListener(new OnSingleTapListener() {
+                
+                @Override
+                public void onSingleTap(final float x, final float y) {
+                    if (null != viewshedController) {
+                        Point pt = mapController.toMapPointObject((int) x, (int) y);
+                        viewshedController.calculateViewshed(pt);
+                        findViewById(R.id.imageButton_clearViewshed).setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        } else {
+            mapController.setOnSingleTapListener(defaultOnSingleTapListener);
+        }
+    }
+    
+    public void imageButton_clearViewshed_clicked(final View button) {
+        if (null != viewshedController) {
+            viewshedController.getLayer().setVisible(false);
+        }
+        button.setVisibility(View.INVISIBLE);
     }
     
     private void changePort(int newPort) {
