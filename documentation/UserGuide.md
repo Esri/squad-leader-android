@@ -58,7 +58,17 @@ After the first launch, the app uses the bsaemap layers that it loaded previousl
 
 #### Configuring viewshed analysis
 
-Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. Note that the elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
+Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
+
+##### Limitations of viewshed analysis:
+
+- The elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work.
+- If you can choose which spatial reference your map uses, to maximize viewshed accuracy, choose a projection appropriate for the area of interest. The best kind of projection for viewshed analysis is a local projection that is specific to your geographic area of interest. A UTM projection is a good choice. The [sample data](../data) is in the Web Mercator projection, which is excellent for worldwide visualization but not as good for analysis as a local projection is. Unprojected data--longitude/latitude, such as WGS 1984--generally produces the least accurate results.
+- ArcGIS Runtime's viewshed analysis is a type of "visual analysis:"
+  - It uses the GPU, is massively multithreaded, and performs very quickly.
+  - It uses an elevation raster stored on the device and thus works offline.
+  - The analysis is limited to the current map extent.
+  - It provides a good approximation of the viewshed that is not as rigorous as [the ArcGIS Viewshed geoprocessing tool](https://desktop.arcgis.com/en/desktop/latest/tools/spatial-analyst-toolbox/viewshed.htm), which is not available offline on Android.
 
 ### Simulating messages
 
@@ -157,6 +167,8 @@ To run viewshed analysis, tap the viewshed button:
 Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see [configuration instructions](#configuring-viewshed-analysis)), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
 
 ![Viewshed button](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
+
+See some [limitations of Squad Leader's viewshed analysis](#limitations-of-viewshed-analysis).
 
 ### Change settings
 
