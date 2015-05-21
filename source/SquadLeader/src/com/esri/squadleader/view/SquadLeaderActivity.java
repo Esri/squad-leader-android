@@ -477,7 +477,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             mapController.removeLayer(viewshedController.getLayer());
         }
         try {
-            viewshedController = new ViewshedController(elevationPath, mapController);
+            viewshedController = new ViewshedController(elevationPath);
             mapController.addLayer(viewshedController.getLayer());
             findViewById(R.id.toggleButton_viewshed).setVisibility(View.VISIBLE);
         } catch (Exception e) {
@@ -556,13 +556,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
-    }
-    
-    @Override
-    protected void onStop() {
-        super.onStop();
         if (null != viewshedController) {
-            viewshedController.stop();
+            viewshedController.dispose();
         }
     }
     
@@ -573,18 +568,6 @@ public class SquadLeaderActivity extends ActionBarActivity
         northArrowView.stopRotation();
         messageController.stopReceiving();
         positionReportController.setEnabled(false);
-    }
-    
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (null != viewshedController) {
-            try {
-                viewshedController.start();
-            } catch (Throwable t) {
-                Log.e(TAG, "Could not start ViewshedController", t);
-            }
-        }
     }
     
     @Override
