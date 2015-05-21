@@ -29,7 +29,10 @@ import com.esri.core.renderer.ColormapRenderer;
 
 /**
  * A controller that calculates viewsheds based on an elevation raster. The Android OS must support an API level
- * greater than or equal to MIN_API_LEVEL to use this class. 
+ * greater than or equal to MIN_API_LEVEL to use this class.<br/>
+ * <br/>
+ * To make wise use of resources, call dispose() when you are done with this class. A good place to call dispose()
+ * is the onDestroy() method of the Activity that uses this class.
  */
 public class ViewshedController {
     
@@ -41,7 +44,6 @@ public class ViewshedController {
      */
     public static final int MIN_API_LEVEL = 16;
     
-    private final MapController mapController;
     private final String elevationFilename;
     
     private Viewshed viewshed;
@@ -55,19 +57,16 @@ public class ViewshedController {
      * @param elevationFilename the full path to the elevation dataset to be used for viewshed analysis.
      *        This could be a TIF file, for example. The dataset should be in the same spatial reference
      *        as the MapView.
-     * @param mapController the MapController to which the viewshed layer will be added. Note that this class does not
-     *        add the layer to the map, but this class removes the layer from the map when stop() is called.
      * @throws RuntimeException if the elevation raster could not be opened and used for viewshed analysis, or if the
      *         Android version is too old for viewshed analysis.
      * @throws FileNotFoundException if elevationFilename represents a file that does not exist.
      * @throws IllegalArgumentException if elevationFilename is null or an empty string.
      */
-    public ViewshedController(String elevationFilename, MapController mapController) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
+    public ViewshedController(String elevationFilename) throws IllegalArgumentException, FileNotFoundException, RuntimeException {
         if (MIN_API_LEVEL > Build.VERSION.SDK_INT) {
             throw new RuntimeException(getClass().getSimpleName() + " not supported below Android API level " + MIN_API_LEVEL);
         }
         this.elevationFilename = elevationFilename;
-        this.mapController = mapController;
         start();
     }
     
@@ -78,7 +77,7 @@ public class ViewshedController {
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
-    public void start() throws IllegalArgumentException, FileNotFoundException, RuntimeException {
+    private void start() throws IllegalArgumentException, FileNotFoundException, RuntimeException {
         if (!started) {
             viewshed = new Viewshed(elevationFilename);
             layer = new RasterLayer(viewshed.getOutputFunctionRasterSource());
@@ -94,19 +93,17 @@ public class ViewshedController {
     /**
      * Finalizes the controller by disposing the private Viewshed object and removing the viewshed layer from the map.
      */
-    public void stop() {
+    private void stop() {
         started = false;
-        if (null != layer) {
-            mapController.removeLayer(layer);
-        }
         if (null != viewshed) {
             viewshed.dispose();
-        }        
+        }
     }
     
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
+    /**
+     * Disposes this controller, releasing the resources it uses. 
+     */
+    public void dispose() {
         stop();
     }
     

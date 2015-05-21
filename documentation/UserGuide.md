@@ -1,8 +1,88 @@
 User Guide - squad-leader-android 
 ====================
 
-[Usage](#usage)  
 [Setup](#setup)  
+[Usage](#usage)  
+
+## Setup
+
+### System requirements
+
+Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
+
+#### Running on an Android emulator
+
+Like any app using ArcGIS Runtime for Android, Squad Leader can run on an Android emulator. But you must follow the instructions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to create an Android virtual device (AVD) that will work with ArcGIS Runtime. Please note that the Android emulator runs in a firewall-restricted sandbox that cannot communicate over UDP with outside processes, meaning you cannot send or receive Geomessages (spot reports, etc.) from or to Squad Leader running on an emulator.
+
+### Installation and configuration
+
+In order to install the app, your device must allow the installation of apps from unknown sources. On some devices, this setting is under **Settings > Security**. On other devices, this setting is under **Settings > Manage Applications**. Still other devices might have this setting elsewhere.
+
+Install the app from the APK file you can download from [ArcGIS for Defense and Intelligence](http://www.arcgis.com/home/group.html?owner=Arcgisonline_defense&title=ArcGIS%20for%20Defense%20and%20Intelligence).
+
+Optional: before running the app for the first time, if you wish to specify which layers the app initially uses, you can create a file called mapconfig.xml and put it in /mnt/sdcard/SquadLeader on the target device. Here is a simple mapconfig.xml file:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <mapconfig name="test map">
+        <layers>
+            <layer name="Imagery" visible="true" type="TiledMapServiceLayer" basemap="true">
+                <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer</url>
+            </layer>
+        </layers>
+        <initialextent>
+            <anchor>
+                <x>7842690</x>
+                <y>4086500</y>
+            </anchor>
+            <scale>250000</scale>
+        </initialextent>
+        <viewshed>
+            <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
+            <observerheight>2.0</observerheight>
+        </viewshed>
+    </mapconfig>
+
+Layer type should be one of the following:
+
+- DynamicMapServiceLayer (dynamic map service)
+- TiledCacheLayer (file:/// URL to a local TPK or compact cache)
+- TiledMapServiceLayer (cached map service)
+- FeatureServiceLayer (feature service; either an entire feature service like ".../FeatureServer" or a single layer like ".../FeatureServer/42")
+- ImageServiceLayer (image service)
+
+For best results, be sure that one and only one layer with basemap="true" also has visible="true".
+
+If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
+
+After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+
+#### Configuring viewshed analysis
+
+Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
+
+##### Limitations of viewshed analysis:
+
+- The elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work.
+- If you can choose which spatial reference your map uses, to maximize viewshed accuracy, choose a projection appropriate for the area of interest. The best kind of projection for viewshed analysis is a local projection that is specific to your geographic area of interest. A UTM projection is a good choice. The [sample data](../data) is in the Web Mercator projection, which is excellent for worldwide visualization but not as good for analysis as a local projection is. Unprojected data--longitude/latitude, such as WGS 1984--generally produces the least accurate results.
+- ArcGIS Runtime's viewshed analysis is a type of "visual analysis:"
+  - It uses the GPU, is massively multithreaded, and performs very quickly.
+  - It uses an elevation raster stored on the device and thus works offline.
+  - The analysis is limited to the current map extent.
+  - It provides a good approximation of the viewshed that is not as rigorous as [the ArcGIS Viewshed geoprocessing tool](https://desktop.arcgis.com/en/desktop/latest/tools/spatial-analyst-toolbox/viewshed.htm), which is not available offline on Android.
+
+### Simulating messages
+
+You can run the GeoMessage Simulator application ([binary](http://www.esri.com/apps/products/download/index.cfm#ArcGIS_for_the_Military), [source](https://github.com/Esri/geomessage-simulator-qt)) to send messages to Squad Leader. GeoMessage Simulator is especially useful for testing and demonstration purposes. Note that these simulated messages will not make it to Squad Leader running on an emulator ([more info](#running-on-an-android-emulator)).
+
+Squad Leader supports the "removeall" Geomessage action to remove all messages of a certain type (e.g. position_report, chemlight, spot_report). Here's an example that removes all position reports:
+
+    <geomessages>
+        <geomessage v="1.0">
+            <_type>position_report</_type>
+            <_action>removeall</_action>
+            <_id>{b4b3eeaa-c769-11e4-8731-1681e6b88ec1}</_id>
+        </geomessage>
+    </geomessages>
 
 ## Usage
 
@@ -84,9 +164,11 @@ To run viewshed analysis, tap the viewshed button:
 
 ![Viewshed button](../source/SquadLeader/res/drawable/ic_viewshed_normal.png)
 
-Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see below), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
+Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see [configuration instructions](#configuring-viewshed-analysis)), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
 
 ![Viewshed button](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
+
+See some [limitations of Squad Leader's viewshed analysis](#limitations-of-viewshed-analysis).
 
 ### Change settings
 
@@ -119,72 +201,3 @@ You can clear any layers you have added and go back to the original map configur
 1. If /mnt/sdcard/SquadLeader/mapconfig.xml exists on the device, it will be used for resetting the map.
 2. Otherwise, Squad Leader's built-in default map configuration will be used.
 
-## Setup
-
-### System requirements
-
-Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
-
-#### Running on an Android emulator
-
-Like any app using ArcGIS Runtime for Android, Squad Leader can run on an Android emulator. But you must follow the instructions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to create an Android virtual device (AVD) that will work with ArcGIS Runtime. Please note that the Android emulator runs in a firewall-restricted sandbox that cannot communicate over UDP with outside processes, meaning you cannot send or receive Geomessages (spot reports, etc.) from or to Squad Leader running on an emulator.
-
-### Installation and configuration
-
-In order to install the app, your device must allow the installation of apps from unknown sources. On some devices, this setting is under **Settings > Security**. On other devices, this setting is under **Settings > Manage Applications**. Still other devices might have this setting elsewhere.
-
-Install the app from the APK file you can download from [ArcGIS for Defense and Intelligence](http://www.arcgis.com/home/group.html?owner=Arcgisonline_defense&title=ArcGIS%20for%20Defense%20and%20Intelligence).
-
-Optional: before running the app for the first time, if you wish to specify which layers the app initially uses, you can create a file called mapconfig.xml and put it in /mnt/sdcard/SquadLeader on the target device. Here is a simple mapconfig.xml file:
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <mapconfig name="test map">
-        <layers>
-            <layer name="Imagery" visible="true" type="TiledMapServiceLayer" basemap="true">
-                <url>http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer</url>
-            </layer>
-        </layers>
-        <initialextent>
-            <anchor>
-                <x>7842690</x>
-                <y>4086500</y>
-            </anchor>
-            <scale>250000</scale>
-        </initialextent>
-        <viewshed>
-            <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
-            <observerheight>2.0</observerheight>
-        </viewshed>
-    </mapconfig>
-
-Layer type should be one of the following:
-
-- DynamicMapServiceLayer (dynamic map service)
-- TiledCacheLayer (file:/// URL to a local TPK or compact cache)
-- TiledMapServiceLayer (cached map service)
-- FeatureServiceLayer (feature service; either an entire feature service like ".../FeatureServer" or a single layer like ".../FeatureServer/42")
-- ImageServiceLayer (image service)
-
-For best results, be sure that one and only one layer with basemap="true" also has visible="true".
-
-If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
-
-After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
-
-#### Configuring viewshed analysis
-
-Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. Note that the elevation raster must be in the same spatial reference as the first layer added to the map or the analysis will not work. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
-
-### Simulating messages
-
-You can run the GeoMessage Simulator application ([binary](http://www.esri.com/apps/products/download/index.cfm#ArcGIS_for_the_Military), [source](https://github.com/Esri/geomessage-simulator-qt)) to send messages to Squad Leader. GeoMessage Simulator is especially useful for testing and demonstration purposes. Note that these simulated messages will not make it to Squad Leader running on an emulator ([more info](#running-on-an-android-emulator)).
-
-Squad Leader supports the "removeall" Geomessage action to remove all messages of a certain type (e.g. position_report, chemlight, spot_report). Here's an example that removes all position reports:
-
-    <geomessages>
-        <geomessage v="1.0">
-            <_type>position_report</_type>
-            <_action>removeall</_action>
-            <_id>{b4b3eeaa-c769-11e4-8731-1681e6b88ec1}</_id>
-        </geomessage>
-    </geomessages>
