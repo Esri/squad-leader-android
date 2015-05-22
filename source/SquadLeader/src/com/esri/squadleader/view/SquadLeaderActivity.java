@@ -248,7 +248,6 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String vehicleTypePreference = "Dismounted";
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
-    private float observerHeightPreference = 2f;
     private Graphic poppedUpChemLight = null;
     
     public SquadLeaderActivity() throws SocketException {
@@ -374,7 +373,6 @@ public class SquadLeaderActivity extends ActionBarActivity
                     getString(R.string.sym_dict_dirname),
                     getResources().getDrawable(R.drawable.ic_spot_report),
                     messageController);
-            mapController.setAdvancedSymbologyController(mil2525cController);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
         }
@@ -820,6 +818,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
+                private static final long serialVersionUID = 7556722404624511983L;
+
                 @Override
                 public void onSingleTap(final float x, final float y) {
                     new Thread() {
@@ -845,6 +845,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
+                private static final long serialVersionUID = -1281957679086948899L;
+
                 @Override
                 public void onSingleTap(final float x, final float y) {
                     Point pt = mapController.toMapPointObject((int) x, (int) y);
@@ -866,6 +868,8 @@ public class SquadLeaderActivity extends ActionBarActivity
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
                 
+                private static final long serialVersionUID = 4291964186019821102L;
+
                 @Override
                 public void onSingleTap(final float x, final float y) {
                     if (null != viewshedController) {
@@ -899,6 +903,8 @@ public class SquadLeaderActivity extends ActionBarActivity
     private OnSingleTapListener createDefaultOnSingleTapListener() {
         return new OnSingleTapListener() {
             
+            private static final long serialVersionUID = 3247725674465463146L;
+
             @Override
             public void onSingleTap(float x, float y) {
                 Callout callout = mapController.getCallout();
