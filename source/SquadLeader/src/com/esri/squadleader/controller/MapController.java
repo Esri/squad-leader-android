@@ -148,8 +148,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             @Override
             public void onStatusChanged(Object source, STATUS status) {
                 if (source == mapView && STATUS.INITIALIZED == status) {
-                    if (null != mapView.getSpatialReference()) {
-                        lastSpatialReference = mapView.getSpatialReference();
+                    if (null != getSpatialReference()) {
+                        lastSpatialReference = getSpatialReference();
                     }
                     fireMapReady();
                 }
@@ -591,7 +591,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @deprecated use pointsToMgrs instead.
      */
     public String[] toMilitaryGrid(Point[] points) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -617,7 +617,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a list of MGRS strings corresponding to the input points.
      */
     public List<String> pointsToMgrs(List<Point> points) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -642,7 +642,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *         cannot be converted.
      */
     public String pointToMgrs(Point point) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -688,7 +688,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a list of map points in the coordinate system of the map.
      */
     public List<Point> mgrsToPoints(List<String> mgrsStrings) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -702,7 +702,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a map point in the coordinate system of the map.
      */
     public Point mgrsToPoint(String mgrsString) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -713,7 +713,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @Override
     public void onLocationChanged(com.esri.militaryapps.model.Location location) {
         if (null != location) {
-            final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), mapView.getSpatialReference());
+            final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), getSpatialReference());
             Bundle bundle = new Bundle();
             bundle.putDouble(LocationChangeHandler.KEY_MAPX, mapPoint.getX());
             bundle.putDouble(LocationChangeHandler.KEY_MAPY, mapPoint.getY());
