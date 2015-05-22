@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 package com.esri.squadleader.view;
 
 import java.net.URL;
-import java.security.cert.CertPath;
 import java.security.cert.CertPathValidatorException;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLHandshakeException;
 
