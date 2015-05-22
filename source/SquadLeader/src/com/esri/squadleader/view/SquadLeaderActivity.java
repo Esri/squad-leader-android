@@ -720,7 +720,6 @@ public class SquadLeaderActivity extends ActionBarActivity
                                 if (null != pt) {
                                     spotReport.setLocationX(pt.getX());
                                     spotReport.setLocationY(pt.getY());
-                                    Log.d(TAG, "onActivityResult: mapController.getSpatialReference() is " + mapController.getSpatialReference());
                                     spotReport.setLocationWkid(mapController.getSpatialReference().getID());
                                 }
                             }                
@@ -827,7 +826,6 @@ public class SquadLeaderActivity extends ActionBarActivity
                         public void run() {
                             final double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
                             if (null != mapPoint) {
-                                Log.d(TAG, "listenForChemLightTap: mapController.getSpatialReference() is " + mapController.getSpatialReference());
                                 chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
                             } else {
                                 Log.i(TAG, "Couldn't convert chem light to map coordinates");
