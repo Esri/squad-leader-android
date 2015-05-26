@@ -10,6 +10,10 @@ User Guide - squad-leader-android
 
 Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
 
+#### Uncheck "Don't Keep Activities"
+
+On the Android device, go to Settings > Developer Options or Settings > General > Developer Options. (Some devices don't have Developer Options available by default. If your device does not have Developer Options, you can skip this step.) If your device has Developer Options available, ensure that **"Don't keep activites"** or **"Do not keep activities"** is **unchecked**. If that option is checked, the map will reset whenever the user leaves it, such as when the spot report form or the settings dialog appears.
+
 #### Running on an Android emulator
 
 Like any app using ArcGIS Runtime for Android, Squad Leader can run on an Android emulator. But you must follow the instructions in [this blog post](http://blogs.esri.com/esri/arcgis/2012/05/02/arcgis-runtime-sdk-for-android-v1-1-supports-android-emulator/) to create an Android virtual device (AVD) that will work with ArcGIS Runtime. Please note that the Android emulator runs in a firewall-restricted sandbox that cannot communicate over UDP with outside processes, meaning you cannot send or receive Geomessages (spot reports, etc.) from or to Squad Leader running on an emulator.

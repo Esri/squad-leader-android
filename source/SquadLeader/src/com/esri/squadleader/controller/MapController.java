@@ -123,11 +123,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
     private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
     private final Object lastLocationLock = new Object(); 
-    private AdvancedSymbolController advancedSymbolController = null;
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
     private MapConfig lastMapConfig = null;
+    private SpatialReference lastSpatialReference = null;
 
     /**
      * Creates a new MapController.
@@ -137,16 +137,20 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *                      the map through this MapController. If null, each layer will keep its existing
      *                      or default listener.
      */
-    @SuppressWarnings("serial")
     public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
         this.layerListener = layerListener;
         ((LocationController) getLocationController()).setLocationService(mapView.getLocationDisplayManager());
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
+            private static final long serialVersionUID = 3362997958525760249L;
+
             @Override
             public void onStatusChanged(Object source, STATUS status) {
                 if (source == mapView && STATUS.INITIALIZED == status) {
+                    if (null != getSpatialReference()) {
+                        lastSpatialReference = getSpatialReference();
+                    }
                     fireMapReady();
                 }
             }
@@ -363,17 +367,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         }
         return layer;
     }
-    
-    /**
-     * Sets the AdvancedSymbolController that this MapController will use for advanced symbology
-     * (e.g. 2525C). Setting this controller is optional, but advanced symbology will not work if you
-     * do not set this controller.
-     * @param controller the AdvancedSymbolController that this MapController will use for advanced
-     *                   symbology.
-     */
-    public void setAdvancedSymbologyController(AdvancedSymbolController controller) {
-        this.advancedSymbolController = controller;
-    }
 
     /**
      * Adds a non-basemap layer to the map.
@@ -545,7 +538,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     public Point panTo(String newCenterMgrs) {
         newCenterMgrs = Utilities.convertToValidMgrs(newCenterMgrs,
-                pointToMgrs(mapView.getMapBoundaryExtent().getCenter()));
+                pointToMgrs(mapView.getMaxExtent().getCenter()));
         if (null != newCenterMgrs) {
             Point pt = mgrsToPoint(newCenterMgrs);
             if (null != pt) {
@@ -598,7 +591,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @deprecated use pointsToMgrs instead.
      */
     public String[] toMilitaryGrid(Point[] points) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -624,7 +617,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a list of MGRS strings corresponding to the input points.
      */
     public List<String> pointsToMgrs(List<Point> points) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -649,7 +642,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *         cannot be converted.
      */
     public String pointToMgrs(Point point) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -695,7 +688,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a list of map points in the coordinate system of the map.
      */
     public List<Point> mgrsToPoints(List<String> mgrsStrings) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -709,7 +702,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return a map point in the coordinate system of the map.
      */
     public Point mgrsToPoint(String mgrsString) {
-        SpatialReference sr = mapView.getSpatialReference();
+        SpatialReference sr = getSpatialReference();
         if (null == sr) {
             //Assume Web Mercator (3857)
             sr = SpatialReference.create(3857);
@@ -720,7 +713,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     @Override
     public void onLocationChanged(com.esri.militaryapps.model.Location location) {
         if (null != location) {
-            final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), mapView.getSpatialReference());
+            final Point mapPoint = GeometryEngine.project(location.getLongitude(), location.getLatitude(), getSpatialReference());
             Bundle bundle = new Bundle();
             bundle.putDouble(LocationChangeHandler.KEY_MAPX, mapPoint.getX());
             bundle.putDouble(LocationChangeHandler.KEY_MAPY, mapPoint.getY());
@@ -778,7 +771,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * @return the spatial reference of the MapView that this controller controls.
      */
     public SpatialReference getSpatialReference() {
-        return mapView.getSpatialReference();
+        SpatialReference sr = mapView.getSpatialReference();
+        if (null == sr) {
+            sr = lastSpatialReference;
+        }
+        return sr;
     }
     
     public double[] projectPoint(double x, double y, int fromWkid, int toWkid) {

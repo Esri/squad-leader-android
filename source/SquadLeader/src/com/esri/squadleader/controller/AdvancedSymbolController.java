@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Locale;
 
 import org.json.JSONObject;
 
@@ -234,7 +235,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
 
     @Override
     public String getActionPropertyName() {
-        return MessageHelper.MESSAGE_ACTION_PROPERTY_NAME.toLowerCase();
+        return MessageHelper.MESSAGE_ACTION_PROPERTY_NAME.toLowerCase(Locale.getDefault());
     }
 
     @Override
@@ -292,7 +293,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             
             @Override
             public boolean accept(File dir, String filename) {
-                return null != filename && filename.toLowerCase().endsWith(".json");
+                return null != filename && filename.toLowerCase(Locale.getDefault()).endsWith(".json");
             }
         });
         for (File file : files) {
