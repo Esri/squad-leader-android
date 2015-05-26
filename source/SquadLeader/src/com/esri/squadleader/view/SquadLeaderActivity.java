@@ -108,6 +108,8 @@ public class SquadLeaderActivity extends ActionBarActivity
      */
     private static final int SPOT_REPORT_ACTIVITY = 15504;
     
+    private static final String LAST_WKID_KEY = "lastWkid";
+    
     private final Handler locationChangeHandler = new Handler() {
         
         private final SpatialReference SR = SpatialReference.create(4326);
@@ -249,6 +251,7 @@ public class SquadLeaderActivity extends ActionBarActivity
     private String uniqueIdPreference = UUID.randomUUID().toString();
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
+    private SpatialReference lastSpatialReference = null;
     
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -468,6 +471,33 @@ public class SquadLeaderActivity extends ActionBarActivity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
         
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+    }
+    
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        
+        if (null != getSpatialReference()) {
+            outState.putInt(LAST_WKID_KEY, getSpatialReference().getID());
+        }
+    }
+    
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        
+        int wkid = savedInstanceState.getInt(LAST_WKID_KEY);
+        if (0 != wkid) {
+            lastSpatialReference = SpatialReference.create(wkid);
+        }
+    }
+    
+    private SpatialReference getSpatialReference() {
+        if (null != mapController && null != mapController.getSpatialReference()) {
+            return mapController.getSpatialReference();
+        } else {
+            return lastSpatialReference;
+        }
     }
     
     private void createViewshedController(String elevationPath) {
@@ -720,7 +750,9 @@ public class SquadLeaderActivity extends ActionBarActivity
                                 if (null != pt) {
                                     spotReport.setLocationX(pt.getX());
                                     spotReport.setLocationY(pt.getY());
-                                    spotReport.setLocationWkid(mapController.getSpatialReference().getID());
+                                    if (null != getSpatialReference()) {
+                                        spotReport.setLocationWkid(getSpatialReference().getID());
+                                    }
                                 }
                             }                
                             try {
@@ -825,8 +857,8 @@ public class SquadLeaderActivity extends ActionBarActivity
                     new Thread() {
                         public void run() {
                             final double[] mapPoint = mapController.toMapPoint((int) x, (int) y);
-                            if (null != mapPoint) {
-                                chemLightController.sendChemLight(mapPoint[0], mapPoint[1], mapController.getSpatialReference().getID(), color);
+                            if (null != mapPoint && null != getSpatialReference()) {
+                                chemLightController.sendChemLight(mapPoint[0], mapPoint[1], getSpatialReference().getID(), color);
                             } else {
                                 Log.i(TAG, "Couldn't convert chem light to map coordinates");
                             }
@@ -927,7 +959,7 @@ public class SquadLeaderActivity extends ActionBarActivity
             try {
                 final Point pt = (Point) poppedUpChemLight.getGeometry();
                 final SpatialReference sr = (null != poppedUpChemLight.getSpatialReference())
-                        ? poppedUpChemLight.getSpatialReference() : mapController.getSpatialReference();
+                        ? poppedUpChemLight.getSpatialReference() : getSpatialReference();
                 final int rgb = Integer.parseInt((String) view.getTag());
                 final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
                 new Thread() {

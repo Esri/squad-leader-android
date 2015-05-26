@@ -23,6 +23,7 @@ To run the app:
 
 - Android 4.0.1 or higher
   - Limited functionality when running on an Android emulator ([more info](#notes-on-running-with-the-android-emulator))
+- In the Android device's settings, if Developer Options are available, ensure that **"Don't keep activites"** or **"Do not keep activities"** is **unchecked**. See the [User Guide](documentation/UserGuide.md#uncheck-dont-keep-activities) for details.
 
 To build the app from source:
 
