@@ -36,6 +36,16 @@ To build the app from source:
 
 ## Release Notes
 
+### 3.1.0
+
+#### What's New in Squad Leader 3.1.0
+* Changed geography from Afghanistan to California.
+    * IMPORTANT: if you upgrade to 4.1.0 and you don't have your own mapconfig.xml file, you must do one of the following to force Squad Leader to reset the map configuration:
+        * In Squad Leader, go to **Settings** and choose **Reset map**.
+        * Go to your device's application settings, choose **Squad Leader**, and choose **Clear Data**.
+    * You can use mapconfig.xml to adjust the geography as desired.
+    * The Afghanistan data files are available in the [3.0.0 release](../../tree/v3.0.0).
+
 ### 3.0.0
 
 #### What's New in Squad Leader 3.0.0
