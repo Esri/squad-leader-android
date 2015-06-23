@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="clientId">NOT SET (insert client ID here)</string>
+    <string name="licenseString">NOT SET (insert license string here)</string>
     <string name="app_name">Squad Leader</string>
     <string name="zoom_in">Zoom In</string>
     <string name="zoom_out">Zoom Out</string>
