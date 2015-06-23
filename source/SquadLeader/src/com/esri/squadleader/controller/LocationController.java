@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2014 Esri
+ * Copyright 2013-2015 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.esri.android.map.LocationDisplayManager;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider;
+import com.esri.squadleader.model.LocationSimulator;
 import com.esri.squadleader.util.Utilities;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
@@ -125,6 +126,16 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             }
             
         };
+    }
+    
+    @Override
+    protected LocationSimulator createLocationSimulator()
+            throws ParserConfigurationException, SAXException, IOException {
+        if (null == getGpxFile()) {
+            return new LocationSimulator();
+        } else {
+            return new LocationSimulator(getGpxFile());
+        }
     }
     
     /**
