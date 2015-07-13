@@ -41,7 +41,7 @@ Optional: before running the app for the first time, if you wish to specify whic
             <scale>250000</scale>
         </initialextent>
         <viewshed>
-            <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
+            <elevation>/mnt/sdcard/data/monterey_srtm_1arc_v3_webmercator.tif</elevation>
             <observerheight>2.0</observerheight>
         </viewshed>
     </mapconfig>
@@ -62,7 +62,7 @@ After the first launch, the app uses the bsaemap layers that it loaded previousl
 
 #### Configuring viewshed analysis
 
-Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
+Viewshed analysis is available on Android 4.1 and higher but must be configured. To configure viewshed analysis, you must put an elevation raster file on the device in a location where the app can read it, and you must edit mapconfig.xml to reference the elevation raster file. See https://developers.arcgis.com/android/guide/add-raster-data.htm for a list of supported raster file formats. See the example mapconfig.xml above for an example of configuring viewshed analysis. If no mapconfig.xml is present in /mnt/sdcard/SquadLeader, the app will use /mnt/sdcard/data/monterey_srtm_1arc_v3_webmercator.tif if it exists (you can download that raster from this repository's [data directory](../data) if desired). Otherwise, viewshed analysis will not be available.
 
 ##### Limitations of viewshed analysis:
 
@@ -191,7 +191,7 @@ To change application settings, tap the menu button and choose Settings. You can
 To change the location mode, tap the menu button and choose Set Location Mode. A dialog appears with various location mode choices:
 
 - **Hardware (GPS)**: the app uses the device's location capabilities, including GPS if available, to obtain the user's location, speed, and heading.
-- **Simulation (Built-in)**: the app uses GPS points in Jalalabad, Afghanistan, to simulate the user's location, speed, and heading.
+- **Simulation (Built-in)**: the app uses GPS points in Monterey, California, to simulate the user's location, speed, and heading.
 - **Simulation (GPX File)**: the app uses points from a GPX file to simulate the user's location, speed, and heading. After choosing this option, select a GPX file on your device.
 
 ### Add a layer from the web

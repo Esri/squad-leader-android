@@ -69,14 +69,14 @@
     </layers>
     <initialextent>
         <anchor>
-            <x>7842690</x>
-            <y>4086500</y>
+            <x>-13570000</x>
+            <y>4383000</y>
         </anchor>
-        <scale>288895.277144</scale>
+        <scale>72224</scale>
         <rotation>0</rotation>
     </initialextent>
     <viewshed>
-        <elevation>/mnt/sdcard/data/n34_e070_1arc_v3_webmercator.tif</elevation>
+        <elevation>/mnt/sdcard/data/monterey_srtm_1arc_v3_webmercator.tif</elevation>
         <observerheight>2.0</observerheight>
     </viewshed>
     <extensions>
