@@ -1,0 +1,36 @@
+apply plugin: 'com.android.application'
+android {
+    compileSdkVersion 19
+    buildToolsVersion "21.1.2"
+    compileOptions.encoding = 'ISO-8859-1'
+
+    defaultConfig {
+        applicationId "com.esri.squadleader"
+        minSdkVersion 15
+        targetSdkVersion 21
+
+        testApplicationId "com.esri.squadleader.test"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    dependencies {
+        compile 'com.esri.arcgis.android:arcgis-android:10.2.6'
+    }
+}
+
+dependencies {
+    compile project(':libraries:aFileChooser')
+}

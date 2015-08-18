@@ -1,0 +1,73 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Risky Project Location:
+-----------------------
+The tools *should* handle project locations in any directory. However,
+due to bugs, placing projects in directories containing spaces in the
+path, or characters like ", ' and &, have had issues. We're working to
+eliminate these bugs, but to save yourself headaches you may want to
+move your project to a location where this is not a problem.
+C:\Users\gary4620\Box Sync\experiments\SquadLeader-MigrateToAndroidStudio\squad-leader-android\source\SquadLeader
+                     -                                                                                           
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+* build.xml
+* custom_rules.xml
+* ic_launcher-web.png
+* ic_plus_normal-web.png
+* proguard-project.txt
+* tests\
+* tests\.classpath
+* tests\.project
+* tests\.settings\
+* tests\.settings\org.eclipse.jdt.core.prefs
+* tests\assets\
+* tests\assets\mapconfig.xml
+* tests\proguard-project.txt
+* tests\project.properties
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+* C:\Users\gary4620\Documents\GitHub\squad-leader-android\source\military-apps-library-java\source\MilitaryAppsLibrary\src\ => app\src\main\java\
+* C:\Users\gary4620\Documents\GitHub\squad-leader-android\source\military-apps-library-java\source\MilitaryAppsLibrary\src\com\esri\militaryapps\resources\MontereyDismounted.gpx => app\src\main\resources\com\esri\militaryapps\resources\MontereyDismounted.gpx
+* C:\Users\gary4620\Documents\GitHub\squad-leader-android\source\military-apps-library-java\source\MilitaryAppsLibrary\src\com\esri\militaryapps\resources\MontereyMounted.gpx => app\src\main\resources\com\esri\militaryapps\resources\MontereyMounted.gpx
+* C:\Users\gary4620\Documents\GitHub\squad-leader-android\source\military-apps-library-java\source\MilitaryAppsLibrary\src\com\esri\militaryapps\resources\OperationOscar.gpx => app\src\main\resources\com\esri\militaryapps\resources\OperationOscar.gpx
+* AndroidManifest.xml => app\src\main\AndroidManifest.xml
+* assets\ => app\src\main\assets\
+* libs\armeabi-v7a\librender_script_analysis.so => app\src\main\jniLibs\armeabi-v7a\librender_script_analysis.so
+* libs\armeabi-v7a\librs.main.so => app\src\main\jniLibs\armeabi-v7a\librs.main.so
+* libs\armeabi-v7a\libruntimecore_java.so => app\src\main\jniLibs\armeabi-v7a\libruntimecore_java.so
+* libs\armeabi\librender_script_analysis.so => app\src\main\jniLibs\armeabi\librender_script_analysis.so
+* libs\armeabi\librs.main.so => app\src\main\jniLibs\armeabi\librs.main.so
+* libs\armeabi\libruntimecore_java.so => app\src\main\jniLibs\armeabi\libruntimecore_java.so
+* libs\x86\librender_script_analysis.so => app\src\main\jniLibs\x86\librender_script_analysis.so
+* libs\x86\librs.main.so => app\src\main\jniLibs\x86\librs.main.so
+* libs\x86\libruntimecore_java.so => app\src\main\jniLibs\x86\libruntimecore_java.so
+* res\ => app\src\main\res\
+* src\ => app\src\main\java\
+* tests\res\ => app\src\androidTest\res\
+* tests\src\ => app\src\androidTest\java\
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)
