@@ -36,6 +36,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += '../../military-apps-library-java/source/MilitaryAppsLibrary/src'
+        main.resources.srcDirs += '../../military-apps-library-java/source/MilitaryAppsLibrary/src'
     }
 }
 
