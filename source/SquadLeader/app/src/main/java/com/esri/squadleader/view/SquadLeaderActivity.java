@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,7 +38,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -87,7 +87,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends ActionBarActivity
+public class SquadLeaderActivity extends Activity
         implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
@@ -636,21 +636,21 @@ public class SquadLeaderActivity extends ActionBarActivity
                 if (null == addLayerFromWebDialogFragment) {
                     addLayerFromWebDialogFragment = new AddLayerFromWebDialogFragment();
                 }
-                addLayerFromWebDialogFragment.show(getSupportFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
+                addLayerFromWebDialogFragment.show(getFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
                 return true;
             case R.id.clear_messages:
                 //Present Clear Messages dialog
                 if (null == clearMessagesDialogFragment) {
                     clearMessagesDialogFragment = new ClearMessagesDialogFragment();
                 }
-                clearMessagesDialogFragment.show(getSupportFragmentManager(), getString(R.string.clear_messages_fragment_tag));
+                clearMessagesDialogFragment.show(getFragmentManager(), getString(R.string.clear_messages_fragment_tag));
                 return true;
             case R.id.go_to_mgrs:
                 //Present Go to MGRS dialog
                 if (null == goToMgrsDialogFragment) {
                     goToMgrsDialogFragment = new GoToMgrsDialogFragment();
                 }
-                goToMgrsDialogFragment.show(getSupportFragmentManager(), getString(R.string.go_to_mgrs_fragment_tag));
+                goToMgrsDialogFragment.show(getFragmentManager(), getString(R.string.go_to_mgrs_fragment_tag));
                 return true;
             case R.id.set_location_mode:
                 //Present Set Location Mode dialog

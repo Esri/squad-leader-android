@@ -19,8 +19,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -35,7 +35,7 @@ import com.esri.militaryapps.model.SpotReport.Size;
 import com.esri.militaryapps.model.SpotReport.Unit;
 import com.esri.squadleader.R;
 
-public class SpotReportActivity extends ActionBarActivity {
+public class SpotReportActivity extends Activity {
     
     public static final String MGRS_EXTRA_NAME = "MgrsExtra";
     public static final String SPOT_REPORT_EXTRA_NAME = "SpotReportExtra";
