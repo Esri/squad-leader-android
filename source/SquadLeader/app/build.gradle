@@ -29,6 +29,10 @@ android {
     dependencies {
         compile 'com.esri.arcgis.android:arcgis-android:10.2.6'
     }
+
+    sourceSets {
+        main.java.srcDirs += '../../military-apps-library-java/source/MilitaryAppsLibrary/src'
+    }
 }
 
 dependencies {
