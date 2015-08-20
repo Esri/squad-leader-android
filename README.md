@@ -21,20 +21,31 @@ The Squad Leader template demonstrates best practices for building handheld mili
 
 To run the app:
 
-- Android 4.0.1 or higher
+- Android 4.0.3 or higher
   - Limited functionality when running on an Android emulator ([more info](#notes-on-running-with-the-android-emulator))
 - In the Android device's settings, if Developer Options are available, ensure that **"Don't keep activites"** or **"Do not keep activities"** is **unchecked**. See the [User Guide](documentation/UserGuide.md#uncheck-dont-keep-activities) for details.
 
 To build the app from source:
 
 - Android SDK
-  - Android API 14 or higher
-- [ArcGIS Runtime SDK 10.2.4 for Android](https://developers.arcgis.com/en/downloads/)
-  - Even if you have installed the Eclipse plugin from the online update site, you'll need to download the SDK to get the native binary files (see [build steps](#building-with-eclipse)).
-- Eclipse 3.6.2 or higher (Eclipse for Android recommended)
-- Android Support Library
+  - Android API 15 or higher
+  - Android Support Repository and Android Support Library must be installed, using the Android SDK Manager.
+- [ArcGIS Runtime SDK 10.2.6 for Android](https://developers.arcgis.com/en/downloads/)
+  - Even though the repository contains references to the online SDK in Android Studio, you'll need to download the SDK to get the native binary files used for visual analysis (see [build steps](#building-with-android-studio)).
+- One of the following:
+  - [Android Studio](http://developer.android.com/sdk/index.html) (**recommended**)
+    - Tested with version 1.2.1.1)
+    - Includes Gradle
+  - [Gradle](http://gradle.org/)
 
 ## Release Notes
+
+### 4.0.0
+
+#### What's New in Squad Leader 4.0.0
+* Uses ArcGIS Runtime 10.2.6
+* Migrated from Eclipse to Android Studio
+* Removed dependency on Android Support Library v7 appcompat
 
 ### 3.1.0
 
@@ -50,7 +61,7 @@ To build the app from source:
 
 #### What's New in Squad Leader 3.0.0
 * Uses ArcGIS Runtime 10.2.4.
-  * If you built Squad Leader with a previous version of ArcGIS Runtime, you need to follow the step in [Building with Eclipse](#building-with-eclipse) below about copying the MIL-STD-2525C symbol dictionary into your clone. ArcGIS Runtime 10.2.4 will not work with older versions of the symbol dictionary.
+  * If you built Squad Leader with a previous version of ArcGIS Runtime, you need to follow the step in [Building with Android Studio](#building-with-android-studio) below about copying the MIL-STD-2525C symbol dictionary into your clone. ArcGIS Runtime 10.2.4 will not work with older versions of the symbol dictionary.
 * Requires Android 4.0.1 or higher
 * Viewshed analysis
     * Requires Android 4.1 (Android API level 16) or higher
@@ -71,71 +82,36 @@ To build the app from source:
 
 ## Building from Source
 
-### Building with Eclipse
-
 1. Clone this repository, or fork it and clone your fork.
-1. Download and install the ArcGIS Runtime SDK for Android, 
-    1. Unzip the SDK
-    1. Copy the contents of the `arcgis-android-sdk/libs` directory from the SDK to your clone's `source/SquadLeader/libs` directory. 
-    1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the directories (armeabi, armeabi-v7a, x86).
+1. Download and install the ArcGIS Runtime SDK for Android.
+    1. Unzip the SDK.
+    1. Go to `arcgis-android-sdk/libs` and copy the `armeabi`, `armeabi-v7a`, and `x86` directories to your clone's `source/SquadLeader/app/src/main/jniLibs` directory.
+    1. In each of these newly copied directories in your clone's `source/SquadLeader/app/src/main/jniLibs` directory, delete `libruntimecore_java.so`.
+    1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the three directories.
 1. Copy the MIL-STD-2525C symbol dictionary into your clone:
-    1. If you cloned a previous version of the Squad Leader code, delete the contents of `source/SquadLeader/assets/2525cSymDictionary` except for `.gitignore`.
-    2. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
-1. Check and if necessary install the Android Support Library v7 appcompat 
-    1. Follow the [instructions](http://developer.android.com/tools/support-library/setup.html) on the Android support site for checking and/or adding the Android Support Library. 
-    1. To verify, from a command prompt, run android and [observe the library is checked](documentation/dev-screen-shots/AndroidSupportLibrary.jpg)
-1. Open Eclipse for Android. Some **IMPORTANT NOTES:**
-    1. When adding/importing projects to Eclipse ensure that you use the Android Import option:  **Android >  Import Existing Android Code into Workspace**.
-    1. This can be found at **File > Import > Android > Existing Android Code Into Workspace**.
-    1. When importing code, do not select/check the option copy the project to the workspace unless you know what you're doing.
-    1. Once a project has been imported, verify that the Android Property Page contains [no broken links](documentation/dev-screen-shots/SquadLeaderAndroidFixPath.jpg). If so, you will need to remove and re-add the project.
-1. Add/import the Android Support Library v7 appcompat into your Eclipse Workspace
-    1. In Eclipse import `{Android SDK Home}\sdk\extras\android\support\v7\appcompat`. 
-    1. This provides a library project called android-support-v7-appcompat. 
-1. Add/import the aFileChooser project and check its properties
-    1. The squad-leader-android repo contains the aFileChooser repo as a submodule in the source directory: `squad-leader-android\source\aFileChooser\aFileChooser`
-    1. Add/import the aFileChooser Eclipse Android project to the workspace
-    1. Check the properties - right-click the project and choose **Properties > Android**. If any of the project's references are broken (e.g. android-support-v7-appcompat), remove it and re-add the reference.
-1. Add/import the SquadLeader project and check its properties
-    1. Add/import the SquadLeader Eclipse Android project to the workspace from: `squad-leader-android\source\SquadLeader`
-    1. Check the properties - right-click the project and choose **Properties > Android**. If any of the project's references are broken (e.g. android-support-v7-appcompat, aFileChooser), remove it and re-add the reference.
-    1. Ensure that the SquadLeader project is an ArcGIS Android Project. Right-click the project and choose **ArcGIS Tools > Convert to ArcGIS Android Project** if necessary.
-1. If any of the three projects (SquadLeader, android-support-v7-appcompat, aFileChooser) have errors, you may need to try the following:
-    1.  You may need to set the Android API level. Right-click the project and choose **Properties > Android**. Choose an Android API level 14 or higher. If you don't have API 14 or higher, install one in Eclipse by choosing **Window > Android SDK Manager** and selecting **SDK Platform** for API 14 or higher.
-    1.  Right-click the project and choose **Android Tools > Fix Project Properties**
-    1.  Right-click the SquadLeader project and choose **ArcGIS Tools > Fix Project Properties** - If **ArcGIS Tools** does not appear in the context menu, go back to the system requirements above and ensure you haved installed the ArcGIS Runtime SDK 10.2.3 for Android Eclipse Plugin.
-    1.  You may also need to clean and re-build the SquadLeader, aFileChooser, and/or android-support-v7-appcompat projects.
-1. Open `source/SquadLeader/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 3.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.4, which means the license string is optional.
-1. If you previously built Squad Leader and then upgraded your ArcGIS Runtime SDK for Android, right-click the project and choose **ArcGIS Tools > Fix Project Properties**. This will replace the *.so binaries in your previous build with the binaries in the upgraded SDK.
-1. To run directly from Eclipse
-    1. Right-click the SquadLeader project and choose **Run As > Android Application**. 
-    1. If you wish to run in an emulator, see: [Notes on Running with the Android Emulator](#notes-on-running-with-the-android-emulator)
-1. To create an installer (.apk), right-click the project and choose **Export**. Choose **Android > Export Android Application** and step through the wizard.
+    1. If you cloned a previous version of the Squad Leader code, delete the contents of `source/SquadLeader/app/src/main/assets/2525cSymDictionary` except for `.gitignore`.
+    2. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/app/src/main/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
+1. In your clone, open `source/SquadLeader/app/src/main/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 4.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.6, which means the license string is optional. A valid client ID will disable the "Licensed for Developer Use Only" watermark that otherwise appears on the map.
+1. Follow [Building with Android Studio](#building-with-android-studio) or [Building with Gradle](#building-with-gradle) below.
 
-### Building with Ant
+### Building with Android Studio
 
-1. The following steps configure the project for building with ant. 
-1. IMPORTANT NOTE: the ant and Eclipse configurations are not compatible so should *not* be used together (you should choose one or the other but not both).
-1. Configure Android, Java, and Ant to run from the command line
-    1.  It is assumed that users who select this option will be familiar with the steps necessary to configure these tools for command line usage (usually just adding the install directory to the path, e.g. for Android, set PATH=%PATH%;{ADT-Install}\sdk\tools)
-    1.  If not, please consult the documentation for each tool. 
-    1.  To verify that your environment is correctly configured, from a command prompt enter the following and verify each command returns without errors:
-        1.  `> android -h`
-        1.  `> java -version`
-        1.  `> ant -version`
-1.  Perform Steps 1-4 from [Building with Eclipse](#building-with-eclipse) for cloning the projects and installing the support library.
-1.  For each of the following projects:
-    1. `{Android SDK Home}\sdk\extras\android\support\v7\appcompat`
-    1. `squad-leader-android\source\aFileChooser\aFileChooser`
-    1. `squad-leader-android\source\SquadLeader`
-    1. Do the following:
-        1. Check/edit the project.properties file to ensure that it points to the correct folder(s)
-        1. From the command line change to that directory and run the following command: `> android update project --path .` (Note: this will create an ant build.xml file in each project directory)
-1. Edit the file: `squad-leader-android\source\SquadLeader\custom_rules.xml` to point to the correct location of the ArcGIS for Android SDK install (this file is run as part of the build).  
-1. From  `squad-leader-android\source\SquadLeader`, build using the desired ant task e.g. : `>ant release`
-    1. NOTE: if you receive an error during build: "Could not reserve enough space for object heap," you may need to see the following environment variable from the command prompt: `> SET _JAVA_OPTIONS=-Xmx512M`
+1. Start Android Studio and open the Squad Leader project by choosing **Open an existing Android Studio project** on the start screen. In the **Open File or Project** dialog, navigate to your clone, choose `source/SquadLeader`, and click OK.
+    1. Android Studio may present a dialog entitled **Unregistered VCS root detected**. If so, choose **Add root** if you would like Android Studio to work with Git and GitHub.
+1. For convenience, open the project tool window by choosing **View > Tool Windows > Project** if it is not already visible.
+1. In Android Studio, click the **Sync Project with Gradle Files** button, or choose **Tools > Android > Sync Project with Gradle Files**. Wait a few seconds for the Gradle sync to complete.
+1. In Android Studio, click the **Make Project** button, or type Ctrl-F9. Wait a few seconds for the build to complete.
+1. To run the app, connect an Android device by USB, then click the **Run** button, or type Shift-F10.
+1. To generate an Android installer (APK) file, go to **Build > Generate Signed APK**.
 
-## Running unit tests
+### Building with Gradle
+
+1. Open a command prompt and navigate to your clone. Inside your clone, navigate to `source/SquadLeader`.
+1. In the command prompt, set the ANDROID_HOME environment variable to the location of your Android SDK installation. This is likely to be `C:\Users\<username>\AppData\Local\Android\sdk`. (You can set this variable in your system before starting the command prompt if desired.)
+1. On Windows, run `gradlew.bat assemble`. On Linux, run `gradlew assemble`.
+1. When the build successfully completes, `.apk` files are written to `source/SquadLeader/app/build/outputs/apk`.
+
+## Running Unit Tests
 
 ### Running Unit Tests using Eclipse for Android
 
@@ -161,7 +137,7 @@ To build the app from source:
 Squad Leader leverages the following as submodules of the squad-leader-android repository. 
 
 * [military-apps-library-java](https://github.com/Esri/military-apps-library-java) 
-* [aFileChooser](https://github.com/iPaulPro/aFileChooser)
+* [aFileChooser](https://github.com/garys-esri/aFileChooser)
  
 If you should want to update to the latest commit instead of the commit used by the squad-leader-android commit you're using, you can open a GitHub shell in squad-leader-android and run the following:
 
