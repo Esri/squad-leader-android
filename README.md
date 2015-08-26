@@ -108,22 +108,16 @@ To build the app from source:
 
 1. Open a command prompt and navigate to your clone. Inside your clone, navigate to `source/SquadLeader`.
 1. In the command prompt, set the ANDROID_HOME environment variable to the location of your Android SDK installation. This is likely to be `C:\Users\<username>\AppData\Local\Android\sdk`. (You can set this variable in your system before starting the command prompt if desired.)
-1. On Windows, run `gradlew.bat assemble`. On Linux, run `gradlew assemble`.
+1. On Windows, run `gradlew.bat assemble`. On Linux, run `./gradlew assemble`.
 1. When the build successfully completes, `.apk` files are written to `source/SquadLeader/app/build/outputs/apk`.
 
 ## Running Unit Tests
 
-### Running Unit Tests using Eclipse for Android
+### Running Unit Tests using Android Studio
 
-1. Follow the [Building with Eclipse](#building-with-eclipse) steps above.
-1. In the same Eclipse workspace, add/import the project found at `source/SquadLeader/tests`. The project name is SquadLeaderTest.
-1. To run the SquadLeaderTest project, right-click the project and choose **Run As > Android JUnit Test**. 
-1. If you wish to run in an emulator, see: [Note on Running with the Android Emulator](#notes-on-running-with-the-android-emulator)
-
-### Running Unit Tests using Ant
-
-1. Once you have configured the project for [building with ant](#building-with-ant)
-1. `>ant debug install test`
+1. Follow the [Building from Source](#building-from-source) and [Building with Android Studio](#building-with-android-studio) steps above, except that there is no need to run the app or generate an APK file.
+1. In Android Studio, in the Select Debug/Run Configuration dropdown, change from **app** to **All Tests**.
+1. Click the **Run** button, or type Shift-F10.
 
 ## Notes on Running with the Android Emulator
 
