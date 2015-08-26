@@ -76,13 +76,14 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
             //Back it up
             originalMapConfigOnSdCard.renameTo(new File(originalMapConfigOnSdCard.getAbsolutePath() + ".bak"));
         }
-        Utilities.copyAssetToDir(getInstrumentation().getContext().getAssets(),
+        Utilities.copyAssetToDir(getInstrumentation().getTargetContext().getAssets(),
                 activity.getString(com.esri.squadleader.R.string.map_config_filename),
                 activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir));
         
         //Load it
         reloadMapController();
-        runTestsAgainstTestMapConfig();
+        assertEquals(1, mapController.getNonBasemapLayers().size());
+        checkBasemaps(mapController);
     }
     
     @Test
@@ -90,20 +91,22 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         //Delete mapconfig.xml on SD card
         new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
                 activity.getString(com.esri.squadleader.R.string.map_config_filename)).delete();
-        
+
         //Load it from preferences file
         reloadMapController();
-        runTestsAgainstTestMapConfig();
+        assertEquals(1, mapController.getNonBasemapLayers().size());
+        checkBasemaps(mapController);
     }
     
     @Test
     public void test003LoadMapConfigFromAppAsset() {
         clearExistingPreferences(mapController.getContext());
-        
+
         reloadMapController();
-        
+
+        assertEquals(1, mapController.getNonBasemapLayers().size());
         checkBasemaps(mapController);
-        
+
         //Now that tests are done, restore original MapConfig if any
         File originalMapConfigOnSdCard = new File(activity.getString(com.esri.squadleader.R.string.squad_leader_home_dir),
                 activity.getString(com.esri.squadleader.R.string.map_config_filename) + ".bak");
@@ -122,16 +125,15 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
         layerInfo.setName("Test Name");
         layerInfo.setVisible(false);
         mapController.addLayer(layerInfo);
-        assertEquals(4, mapController.getNonBasemapLayers().size());
+        assertEquals(5, mapController.getNonBasemapLayers().size());
         assertEquals(10, mapController.getBasemapLayers().size());
-        
+
         mapController.reset();
-        checkBasemaps(mapController);        
+        assertEquals(2, mapController.getNonBasemapLayers().size());
+        checkBasemaps(mapController);
     }
     
     private static void checkBasemaps(MapController mapController) {
-        //One graphics layer automatically added for messages
-        assertEquals(1, mapController.getNonBasemapLayers().size());
         assertEquals(10, mapController.getBasemapLayers().size());
         checkBasemapLayer(mapController, 0, "Imagery", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");
         checkBasemapLayer(mapController, 1, "Streets", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer");
@@ -164,14 +166,6 @@ public class MapControllerTest extends ActivityInstrumentationTestCase2<SquadLea
     
     private void clearExistingPreferences(Context context) {
         context.deleteFile(context.getString(com.esri.squadleader.R.string.map_config_prefname));
-    }
-    
-    private void runTestsAgainstTestMapConfig() {
-      //One graphics layer automatically added for messages
-        assertEquals(1, mapController.getNonBasemapLayers().size());
-        assertEquals(1, mapController.getBasemapLayers().size());
-        assertEquals("Test Layer", mapController.getBasemapLayers().get(0).getLayer().getName());
-        assertEquals("http://my/fake/URL", mapController.getBasemapLayers().get(0).getLayer().getUrl());
     }
     
     @Override
