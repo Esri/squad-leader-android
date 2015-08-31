@@ -83,8 +83,8 @@ To build the app from source:
 ## Building from Source
 
 1. Clone this repository, or fork it and clone your fork.
-1. Download and install the ArcGIS Runtime SDK for Android.
-    1. Unzip the SDK.
+1. Obtain the libraries required for offline viewshed analysis.
+    1. Download and unzip the ArcGIS Runtime SDK 10.2.6 for Android.
     1. Go to `arcgis-android-sdk/libs` and copy the `armeabi`, `armeabi-v7a`, and `x86` directories to your clone's `source/SquadLeader/app/src/main/jniLibs` directory.
     1. In each of these newly copied directories in your clone's `source/SquadLeader/app/src/main/jniLibs` directory, delete `libruntimecore_java.so`.
     1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the three directories.
