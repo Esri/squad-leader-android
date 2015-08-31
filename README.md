@@ -32,6 +32,7 @@ To build the app from source:
   - Android Support Repository and Android Support Library must be installed, using the Android SDK Manager.
 - [ArcGIS Runtime SDK 10.2.6 for Android](https://developers.arcgis.com/en/downloads/)
   - Even though the repository contains references to the online SDK in Android Studio, you'll need to download the SDK to get the native binary files used for visual analysis (see [build steps](#building-with-android-studio)).
+  - Download the latest 10.2.6 update. For example, right now, the latest update is version 10.2.6-2.
 - One of the following:
   - [Android Studio](http://developer.android.com/sdk/index.html) (**recommended**)
     - Tested with version 1.2.1.1)
