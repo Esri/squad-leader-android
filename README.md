@@ -124,7 +124,8 @@ To build the app from source:
 ### Running Unit Tests using Android Studio
 
 1. Follow the [Building from Source](#building-from-source) and [Building with Android Studio](#building-with-android-studio) steps above, except that there is no need to run the app or generate an APK file.
-1. In Android Studio, in the Select Debug/Run Configuration dropdown, change from **app** to **All Tests**.
+1. In Android Studio, go to **Run > Edit Configurations**. Click the green **+** button in the upper left corner and choose **Android Tests**. Change the **Name** to **All Tests**. On the General tab, change the value of **Module** to **app**. Adjust the **Target Device** as needed; **Show chooser dialog** allows you to choose a specific device or emulator each time you run the tests. Click **OK**. This adds a unit testing configuration to the project.
+1. Select the Debug/Run Configuration dropdown and change from **app** to **All Tests**.
 1. Click the **Run** button, or type Shift-F10.
 
 ## Notes on Running with the Android Emulator
