@@ -27,9 +27,15 @@ To run the app:
 
 To build the app from source:
 
-- Android SDK
-  - Android API 15 or higher
-  - Android Support Repository and Android Support Library must be installed, using the Android SDK Manager.
+- Android SDK (install with Android SDK Manager, available in Android Studio under **Tools > Android > SDK Manager**)
+  - SDK Platform for Android 4.0.3 (API 15) or higher
+    - If you want to compile with a higher API level, modify the value of `compileSdkVersion` in `source\SquadLeader\app\build.gradle`.
+  - Android SDK Tools (tested with version 24.3.4)
+  - Android SDK Platform-tools (tested with version 23)
+  - Android SDK Build-tools version 21.1.2 or higher
+    - If you want to compile with a higher Build-tools version, modify the value of `buildToolsVersion` in `source\SquadLeader\app\build.gradle`.
+  - Android Support Repository (tested with version 17)
+  - Android Support Library (tested with version 23)
 - [ArcGIS Runtime SDK 10.2.6 for Android](https://developers.arcgis.com/en/downloads/)
   - Even though the repository contains references to the online SDK in Android Studio, you'll need to download the SDK to get the native binary files used for visual analysis (see [build steps](#building-with-android-studio)).
   - Download the latest 10.2.6 update. For example, right now, the latest update is version 10.2.6-2.
