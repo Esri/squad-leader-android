@@ -8,7 +8,7 @@ User Guide - squad-leader-android
 
 ### System requirements
 
-Squad Leader runs on Android devices version 4.0.1 and higher. Viewshed analysis works on Android 4.1 and higher.
+Squad Leader runs on Android devices version 4.0.3 and higher. Viewshed analysis works on Android 4.1 and higher.
 
 #### Uncheck "Don't Keep Activities"
 
