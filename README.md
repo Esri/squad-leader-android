@@ -27,7 +27,7 @@ To run the app:
 
 To build the app from source:
 
-- Android SDK (install with Android SDK Manager, available in Android Studio under **Tools > Android > SDK Manager**)
+- Android SDK components (install with Android SDK Manager, available in Android Studio under **Tools > Android > SDK Manager**)
   - SDK Platform for Android 4.0.3 (API 15) or higher
     - If you want to compile with a higher API level, modify the value of `compileSdkVersion` in `source\SquadLeader\app\build.gradle`.
   - Android SDK Tools (tested with version 24.3.4)
