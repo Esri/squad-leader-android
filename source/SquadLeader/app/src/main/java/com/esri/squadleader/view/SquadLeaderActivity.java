@@ -15,15 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.SocketException;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -82,6 +73,15 @@ import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
 import com.esri.squadleader.view.ClearMessagesDialogFragment.ClearMessagesHelper;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
@@ -376,8 +376,8 @@ public class SquadLeaderActivity extends Activity
                     getString(R.string.sym_dict_dirname),
                     getResources().getDrawable(R.drawable.ic_spot_report),
                     messageController);
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't instantiate AdvancedSymbolController", e);
         }
         
         spotReportController = new SpotReportController(mapController, messageController);

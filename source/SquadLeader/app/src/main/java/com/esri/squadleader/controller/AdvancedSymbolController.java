@@ -15,16 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.Locale;
-
-import org.json.JSONObject;
-
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
@@ -48,6 +38,15 @@ import com.esri.militaryapps.controller.MessageController;
 import com.esri.militaryapps.controller.SpotReportController;
 import com.esri.militaryapps.model.Geomessage;
 import com.esri.squadleader.util.Utilities;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.Locale;
 
 /**
  * A controller for ArcGIS Runtime advanced symbology. Use this class when you want to use
@@ -76,22 +75,49 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
      * @param spotReportIcon the Drawable for putting spot reports on the map.
      * @param messageController a MessageController, for sending updates when messages are to be removed,
      *        e.g. in clearLayer or clearAllMessages.
-     * @throws FileNotFoundException if the advanced symbology database is absent or corrupt.
+     * @throws IOException if the advanced symbology database is absent or corrupt or cannot be written
+     *                     to the device.
      */
     public AdvancedSymbolController(
             MapController mapController,
             AssetManager assetManager,
             String symbolDictionaryDirname,
             Drawable spotReportIcon,
-            MessageController messageController) throws FileNotFoundException {
+            MessageController messageController) throws IOException {
         super(mapController);
         this.mapController = mapController;
+        symDictDir = copySymbolDictionaryToDisk(assetManager, symbolDictionaryDirname);
+
+        spotReportLayer = new GraphicsLayer();
+        spotReportLayer.setName(SPOT_REPORT_LAYER_NAME);
+        mapController.addLayer(spotReportLayer);
+        
+        groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
+        mapController.addLayer(groupLayer);
+        
+        spotReportSymbol = new PictureMarkerSymbol(spotReportIcon);
+        
+        this.messageController = messageController;
+    }
+
+    /**
+     * Copies the MIL-STD-2525C symbol dictionary from assets to the device's downloads directory if
+     * it is not already there.
+     * @param assetManager the application's AssetManager, from which the advanced symbology database
+     *                     will be copied.
+     * @param symbolDictionaryDirname the name of the asset directory that contains the advanced symbology
+     *                                database.
+     * @return the symbol dictionary directory. This may be freshly copied or it might have already
+     *         been there.
+     * @throws IOException if the symbol dictionary cannot be copied to disk.
+     */
+    public static File copySymbolDictionaryToDisk(AssetManager assetManager, String symbolDictionaryDirname) throws IOException {
         File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         if (!downloadsDir.exists()) {
             downloadsDir.mkdirs();
         }
-        symDictDir = new File(downloadsDir, symbolDictionaryDirname);
-        
+        File symDictDir = new File(downloadsDir, symbolDictionaryDirname);
+
         boolean copyNeeded = !symDictDir.exists();
         if (!copyNeeded) {
             /**
@@ -113,32 +139,20 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             } catch (Exception e) {
                 copyNeeded = true;
             } finally {
-                try {
-                    in.close();
-                } catch (Throwable t) {
-                    //Swallow
+                if (null != in) {
+                    try {
+                        in.close();
+                    } catch (Throwable t) {
+                        //Swallow
+                    }
                 }
             }
         }
         if (copyNeeded) {
             symDictDir.delete();
-            try {
-                Utilities.copyAssetToDir(assetManager, symbolDictionaryDirname, downloadsDir.getAbsolutePath());
-            } catch (IOException e) {
-                Log.e(TAG, "Could not copy symbol dictionary directory to " + symDictDir.getAbsolutePath(), e);
-            }
+            Utilities.copyAssetToDir(assetManager, symbolDictionaryDirname, downloadsDir.getAbsolutePath());
         }
-        
-        spotReportLayer = new GraphicsLayer();
-        spotReportLayer.setName(SPOT_REPORT_LAYER_NAME);
-        mapController.addLayer(spotReportLayer);
-        
-        groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
-        mapController.addLayer(groupLayer);
-        
-        spotReportSymbol = new PictureMarkerSymbol(spotReportIcon);
-        
-        this.messageController = messageController;
+        return symDictDir;
     }
     
     @Override

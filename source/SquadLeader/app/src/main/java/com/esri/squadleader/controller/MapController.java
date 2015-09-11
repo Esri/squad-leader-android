@@ -15,21 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -65,7 +50,23 @@ import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
 import com.esri.militaryapps.model.MapConfig;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.model.Mil2525CMessageLayer;
 import com.esri.squadleader.util.Utilities;
+
+import org.xml.sax.SAXException;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * A controller for the MapView object used in the application.
@@ -346,7 +347,13 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 break;
             }
             case MIL2525C_MESSAGE: {
-                Log.i(TAG, "MIL-STD-2525C message layers will be supported in a future version of Squad Leader (TODO implement).");
+                try {
+                    layer = Mil2525CMessageLayer.newInstance(
+                            layerInfo.getDatasetPath(), layerInfo.getName(), this,
+                            getContext().getString(R.string.sym_dict_dirname), assetManager);
+                } catch (Exception e) {
+                    Log.e(TAG, "Couldn't create Mil2525CMessageLayer", e);
+                }
                 break;
             }
             case FEATURE_SERVICE: {
