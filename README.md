@@ -42,7 +42,7 @@ To build the app from source:
 - Java Development Kit (JDK) 7 or higher
 - One of the following:
   - [Android Studio](http://developer.android.com/sdk/index.html) (**recommended**)
-    - Tested with version 1.2.1.1)
+    - Tested with version 1.3.1)
     - Includes Gradle
   - [Gradle](http://gradle.org/)
 
@@ -52,6 +52,8 @@ To build the app from source:
 
 #### What's New in Squad Leader 4.0.0
 * Uses ArcGIS Runtime 10.2.6
+* Requires Android 4.0.3 or higher
+* Added Mil2525CMessageLayer layer type for GeoMessage files (see the [User Guide](documentation/UserGuide.md#geomessage-files-and-layers))
 * Migrated from Eclipse to Android Studio
 * Removed dependency on Android Support Library v7 appcompat
 
