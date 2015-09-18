@@ -10,6 +10,10 @@ User Guide - squad-leader-android
 
 Squad Leader runs on Android devices version 4.0.3 and higher. Viewshed analysis works on Android 4.1 and higher.
 
+#### Storage
+
+These setup directions reference the SD card, as in `/mnt/sdcard`. Some Android devices have no slot for an SD card. Others have a slot for an SD card, but sometimes there may be no SD card in the slot. But Android always has a primary external storage directory, even if the "external" storage is actually internal. An SD card is not required to run Squad Leader.
+
 #### Uncheck "Don't Keep Activities"
 
 On the Android device, go to Settings > Developer Options or Settings > General > Developer Options. (Some devices don't have Developer Options available by default. If your device does not have Developer Options, you can skip this step.) If your device has Developer Options available, ensure that **"Don't keep activites"** or **"Do not keep activities"** is **unchecked**. If that option is checked, the map will reset whenever the user leaves it, such as when the spot report form or the settings dialog appears.
@@ -49,16 +53,29 @@ Optional: before running the app for the first time, if you wish to specify whic
 Layer type should be one of the following:
 
 - DynamicMapServiceLayer (dynamic map service)
-- TiledCacheLayer (file:/// URL to a local TPK or compact cache)
-- TiledMapServiceLayer (cached map service)
 - FeatureServiceLayer (feature service; either an entire feature service like ".../FeatureServer" or a single layer like ".../FeatureServer/42")
 - ImageServiceLayer (image service)
+- Mil2525CMessageLayer (GeoMessages file; see below for details on [adding a layer](#add-a-layer))
+- TiledCacheLayer (file:/// URL to a local TPK or compact cache)
+- TiledMapServiceLayer (cached map service)
 
 For best results, be sure that one and only one layer with basemap="true" also has visible="true".
 
 If you do not provide a mapconfig.xml file, a default list of ArcGIS Online basemap layers will be used when the app launches for the first time.
 
 After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
+
+#### GeoMessage files and layers
+
+GeoMessage files contain GeoMessages that can be displayed on a map. GeoMessages are expressed in XML according to the [GeoMessage specification](https://github.com/Esri/geomessage-simulator-qt/blob/master/GeoMessageSpecification/GeoMessageSpecification.md). Squad Leader's built-in map configuration attempts to load the GeoMessage file /mnt/sdcard/data/coa.xml as a layer of type Mil2525CMessageLayer. If you would like that layer to display, do the following:
+
+1. Make a directory called `data` in your device's `/mnt/sdcard` directory (probably your top-level directory when using a file explorer app or USB connection from Windows).
+1. Place a copy of [coa.xml](../data/coa.xml) in the `data` directory.
+1. Run Squad Leader. You may need to go to Squad Leader's Settings menu and choose **Reset map** to make the message layer appear.
+
+If you don't need the coa.xml layer, do nothing. The app will load the other layers and run properly.
+
+You can also [add a layer](#add-a-layer) by navigating to a GeoMessage file on your device.
 
 #### Configuring viewshed analysis
 
@@ -176,7 +193,7 @@ See some [limitations of Squad Leader's viewshed analysis](#limitations-of-views
 
 ### Change settings
 
-To change application settings, tap the menu button and choose Settings. You can change various settings:
+To change application settings, in the menu, choose **Settings**. You can change various settings:
 
 - **Angular units**: choose the units, such as degrees or mils, that the app uses for displaying headings and bearings.
 - **Username**: the username displayed for outgoing reports. For semantic reasons, the username should be unique.
@@ -188,19 +205,21 @@ To change application settings, tap the menu button and choose Settings. You can
 - **Messaging port**: the UDP port on which messages are sent and received. The port number must be between 1024 and 65535. All apps using the same port and connected to the same router will communicate with each other.
 - [**Reset map**](#reset-the-map)
 
-To change the location mode, tap the menu button and choose Set Location Mode. A dialog appears with various location mode choices:
+To change the location mode, in the menu, choose Set Location Mode. A dialog appears with various location mode choices:
 
 - **Hardware (GPS)**: the app uses the device's location capabilities, including GPS if available, to obtain the user's location, speed, and heading.
 - **Simulation (Built-in)**: the app uses GPS points in Monterey, California, to simulate the user's location, speed, and heading.
 - **Simulation (GPX File)**: the app uses points from a GPX file to simulate the user's location, speed, and heading. After choosing this option, select a GPX file on your device.
 
-### Add a layer from the web
+### Add a layer
 
-To add an ArcGIS Server service to the map, tap the menu button and choose Add Layer from Web. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
+Squad Leader allows users to add layers to the map. In the menu, choose **Add Layer**, then follow the following instructions for the type of layer you would like to add:
+- **ArcGIS Server service:** . Select **From Web** if it is not already selected. Type or paste the URL of an ArcGIS Server map service, feature service, or image service. Check the Use as Basemap checkbox if you want the added layer to be one of the app's basemaps, or leave it unchecked to add the layer on top of the current basemap. Tap Add Layer, and the layer appears on the map.
+- **GeoMessage file:** Select **From File** and choose **Choose a file**. Choose the GeoMessage XML file you would like to add. If it is a valid GeoMessage XML file, it appears as a layer on the map.
 
 ### Reset the map
 
-You can clear any layers you have added and go back to the original map configuration. To reset the map, tap the menu button and choose **Reset map**. Tap **OK** if you want to reset the map. This will reload the map configuration from one of two locations:
+You can clear any layers you have added and go back to the original map configuration. To reset the map, in the menu, choose **Settings**, and then choose **Reset map**. Tap **OK** if you want to reset the map. This will reload the map configuration from one of two locations:
 
 1. If /mnt/sdcard/SquadLeader/mapconfig.xml exists on the device, it will be used for resetting the map.
 2. Otherwise, Squad Leader's built-in default map configuration will be used.

@@ -15,15 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.SocketException;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -78,10 +69,19 @@ import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
-import com.esri.squadleader.view.AddLayerFromWebDialogFragment.AddLayerListener;
+import com.esri.squadleader.view.AddLayerDialogFragment.AddLayerListener;
 import com.esri.squadleader.view.ClearMessagesDialogFragment.ClearMessagesHelper;
 import com.esri.squadleader.view.GoToMgrsDialogFragment.GoToMgrsHelper;
 import com.ipaulpro.afilechooser.utils.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
@@ -107,6 +107,11 @@ public class SquadLeaderActivity extends Activity
      * A unique ID for getting a result from the spot report activity.
      */
     private static final int SPOT_REPORT_ACTIVITY = 15504;
+
+    /**
+     * A unique ID for adding a layer from a file.
+     */
+    private static final int ADD_LAYER_FROM_FILE = 31313;
     
     private static final String LAST_WKID_KEY = "lastWkid";
     
@@ -236,7 +241,7 @@ public class SquadLeaderActivity extends Activity
     private AdvancedSymbolController mil2525cController = null;
     private PositionReportController positionReportController;
     private ViewshedController viewshedController = null;
-    private AddLayerFromWebDialogFragment addLayerFromWebDialogFragment = null;
+    private AddLayerDialogFragment addLayerDialogFragment = null;
     private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
@@ -376,8 +381,8 @@ public class SquadLeaderActivity extends Activity
                     getString(R.string.sym_dict_dirname),
                     getResources().getDrawable(R.drawable.ic_spot_report),
                     messageController);
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "Couldn't find file while loading AdvancedSymbolController", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't instantiate AdvancedSymbolController", e);
         }
         
         spotReportController = new SpotReportController(mapController, messageController);
@@ -631,12 +636,13 @@ public class SquadLeaderActivity extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.add_layer_from_web:
+            case R.id.add_layer:
                 //Present Add Layer from Web dialog
-                if (null == addLayerFromWebDialogFragment) {
-                    addLayerFromWebDialogFragment = new AddLayerFromWebDialogFragment();
+                if (null == addLayerDialogFragment) {
+                    addLayerDialogFragment = new AddLayerDialogFragment();
+                    addLayerDialogFragment.setAddLayerFromFileRequestCode(ADD_LAYER_FROM_FILE);
                 }
-                addLayerFromWebDialogFragment.show(getFragmentManager(), getString(R.string.add_layer_from_web_fragment_tag));
+                addLayerDialogFragment.show(getFragmentManager(), getString(R.string.add_layer_fragment_tag));
                 return true;
             case R.id.clear_messages:
                 //Present Clear Messages dialog
@@ -765,6 +771,9 @@ public class SquadLeaderActivity extends Activity
                     }.start();
                 }
             }
+            break;
+        case ADD_LAYER_FROM_FILE:
+            addLayerDialogFragment.onActivityResult(requestCode, resultCode, data);
             break;
         default:
             super.onActivityResult(requestCode, resultCode, data);

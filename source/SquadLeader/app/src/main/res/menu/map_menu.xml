@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/add_layer_from_web"
+    <item android:id="@+id/add_layer"
         android:icon="@drawable/ic_add_content"
-        android:title="@string/add_layer_from_web"
+        android:title="@string/add_layer"
         android:showAsAction="ifRoom" />
     <item android:id="@+id/clear_messages"
         android:icon="@drawable/ic_action_discard"
