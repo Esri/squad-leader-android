@@ -10,6 +10,10 @@ User Guide - squad-leader-android
 
 Squad Leader runs on Android devices version 4.0.3 and higher. Viewshed analysis works on Android 4.1 and higher.
 
+#### Storage
+
+These setup directions reference the SD card, as in `/mnt/sdcard`. Some Android devices have no slot for an SD card. Others have a slot for an SD card, but sometimes there may be no SD card in the slot. But Android always has a primary external storage directory, even if the "external" storage is actually internal. An SD card is not required to run Squad Leader.
+
 #### Uncheck "Don't Keep Activities"
 
 On the Android device, go to Settings > Developer Options or Settings > General > Developer Options. (Some devices don't have Developer Options available by default. If your device does not have Developer Options, you can skip this step.) If your device has Developer Options available, ensure that **"Don't keep activites"** or **"Do not keep activities"** is **unchecked**. If that option is checked, the map will reset whenever the user leaves it, such as when the spot report form or the settings dialog appears.
