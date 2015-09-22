@@ -15,8 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import java.util.Iterator;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -26,11 +24,14 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.util.Log;
 
 import com.esri.core.geometry.AngularUnit;
 import com.esri.squadleader.R;
+
+import java.util.Iterator;
 
 /**
  * An Activity that lets the user modify application settings. This class works
@@ -39,24 +40,57 @@ import com.esri.squadleader.R;
 public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
     
     private static final String TAG = SettingsActivity.class.getSimpleName();
+
+    private PreferenceFragment fragment = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.preferences);
-        updateSummaries();
+        fragment = new PreferenceFragment() {
+
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                addPreferencesFromResource(R.xml.preferences);
+                updateSummaries();
+            }
+
+            @Override
+            public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+                if (getString(R.string.pref_resetApp).equals(preference.getKey())) {
+                    new AlertDialog.Builder(SettingsActivity.this)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setMessage(R.string.reset_map)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    getIntent().putExtra(getString(R.string.pref_resetApp), true);
+                                    setResult(RESULT_OK, getIntent());
+                                }
+
+                            })
+                            .setNegativeButton(R.string.cancel, null)
+                            .show();
+                    return true;
+                } else {
+                    return super.onPreferenceTreeClick(preferenceScreen, preference);
+                }
+            }
+        };
+        getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
     
     @Override
     protected void onResume() {
         super.onResume();
-        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        fragment.getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
     
     @Override
     protected void onPause() {
         super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        fragment.getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
     
     @Override
@@ -64,32 +98,8 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
         updateSummary(key);
     }
     
-    @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-            Preference preference) {
-        if (getString(R.string.pref_resetApp).equals(preference.getKey())) {
-            new AlertDialog.Builder(this)
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .setMessage(R.string.reset_map)
-            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    getIntent().putExtra(getString(R.string.pref_resetApp), true);
-                    setResult(RESULT_OK, getIntent());
-                }
-
-            })
-            .setNegativeButton(R.string.cancel, null)
-            .show();
-            return true;
-        } else {
-            return super.onPreferenceTreeClick(preferenceScreen, preference);
-        }
-    }
-    
     private void updateSummaries() {
-        SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+        SharedPreferences sp = fragment.getPreferenceScreen().getSharedPreferences();
         Iterator<String> keys = sp.getAll().keySet().iterator();
         while (keys.hasNext()) {
             String key = keys.next();
@@ -98,12 +108,12 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
     }
 
     private void updateSummary(String key) {
-        SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+        SharedPreferences sp = fragment.getPreferenceScreen().getSharedPreferences();
         updateSummary(key, sp);
     }
     
     private void updateSummary(String key, SharedPreferences sp) {
-        Preference pref = findPreference(key);
+        Preference pref = fragment.findPreference(key);
         if (key.equals(getString(R.string.pref_angularUnits))) {
             ListPreference listPref = (ListPreference) pref;
             try {
