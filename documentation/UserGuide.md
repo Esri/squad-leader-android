@@ -117,7 +117,7 @@ To change the basemap currently displayed, tap the basemap selector button in th
 
 To display or hide a military grid reference system (MGRS) grid on the map, toggle the grid button:
 
-![Grid button](../source/SquadLeader/res/drawable/ic_grid_normal.png)
+![Grid button](../source/SquadLeader/app/src/main/res/drawable/ic_grid_normal.png)
 
 ### Navigate the map
 
@@ -125,13 +125,13 @@ Drag a finger on the map to pan. To zoom in and out, either pinch open and close
 
 The app displays a **Follow Me** button:
 
-![Menu button](../source/SquadLeader/res/drawable/ic_follow_me_normal.png)
+![Menu button](../source/SquadLeader/app/src/main/res/drawable/ic_follow_me_normal.png)
 
 When Follow Me is selected, the map follows the user's current location. To exit Follow Me mode, unselect the Follow Me button or simply pan the map. You can [change the location mode](#change-settings) if desired.
 
 To rotate the map, touch the map with two fingers and rotate. To reset the rotation so that north is up again, tap the north arrow:
 
-![North arrow](../source/SquadLeader/res/drawable/ic_north_arrow.png)
+![North arrow](../source/SquadLeader/app/src/main/res/drawable/ic_north_arrow.png)
 
 To navigate to an MGRS location, go to **Menu** > **Go to MGRS Location**. Type or paste a valid MGRS string and tap **Go to MGRS Location**. 
 
@@ -147,7 +147,7 @@ The app periodically sends out an automatic position report consisting of the us
 
 Toggle the 911 button to activate or deactivate emergency status:
 
-![911 button](../source/SquadLeader/res/drawable/ic_911_normal.png)
+![911 button](../source/SquadLeader/app/src/main/res/drawable/ic_911_normal.png)
 
 As soon as emergency status is activated or deactivated, the position reports internal timer is reset, and a position report is immediately sent with the appropriate emergency status.
 
@@ -159,7 +159,7 @@ The user can create a spot report for observed hostile activities. Spot reports 
 
 To create a spot report, tap the spot report button:
 
-![Spot report button](../source/SquadLeader/res/drawable/ic_spot_report_normal.png)
+![Spot report button](../source/SquadLeader/app/src/main/res/drawable/ic_spot_report_normal.png)
 
 Then tap the location on the map for the spot report. A spot report form displays with the location field pre-filled with the location you tapped. Change the form's values as needed and tap the Send button in the upper left corner. The spot report is sent to listening clients, including your own device, which displays the spot report on the map.
 
@@ -169,13 +169,13 @@ The user can create a chem light report as a quick way to drop a dot on the map 
 
 To create a chem light, tap one of the colored chem light buttons:
 
-![Red report button](../source/SquadLeader/res/drawable/ic_chemlights_red_normal.png)
+![Red report button](../source/SquadLeader/app/src/main/res/drawable/ic_chemlights_red_normal.png)
 
-![Yellow report button](../source/SquadLeader/res/drawable/ic_chemlights_yellow_normal.png)
+![Yellow report button](../source/SquadLeader/app/src/main/res/drawable/ic_chemlights_yellow_normal.png)
 
-![Green report button](../source/SquadLeader/res/drawable/ic_chemlights_green_normal.png)
+![Green report button](../source/SquadLeader/app/src/main/res/drawable/ic_chemlights_green_normal.png)
 
-![Blue report button](../source/SquadLeader/res/drawable/ic_chemlights_blue_normal.png)
+![Blue report button](../source/SquadLeader/app/src/main/res/drawable/ic_chemlights_blue_normal.png)
 
 Then tap the location on the map for the chem light. The chem light is sent to listening clients, including your own device, which displays the chem light on the map.
 
@@ -183,11 +183,11 @@ Then tap the location on the map for the chem light. The chem light is sent to l
 
 To run viewshed analysis, tap the viewshed button:
 
-![Viewshed button](../source/SquadLeader/res/drawable/ic_viewshed_normal.png)
+![Viewshed button](../source/SquadLeader/app/src/main/res/drawable/ic_viewshed_normal.png)
 
 Then tap the location on the map for the viewshed analysis. If the tapped location is within the extent of the elevation raster configured for viewshed analysis (see [configuration instructions](#configuring-viewshed-analysis)), a viewshed will display on the map. Tap another point to recalculate the viewshed. To remove the viewshed, tap the clear viewshed button:
 
-![Viewshed button](../source/SquadLeader/res/drawable/ic_clear_viewshed_normal.png)
+![Viewshed button](../source/SquadLeader/app/src/main/res/drawable/ic_clear_viewshed_normal.png)
 
 See some [limitations of Squad Leader's viewshed analysis](#limitations-of-viewshed-analysis).
 
