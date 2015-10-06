@@ -36,9 +36,9 @@ To build the app from source:
     - If you want to compile with a higher Build-tools version, modify the value of `buildToolsVersion` in `source\SquadLeader\app\build.gradle`.
   - Android Support Repository (tested with version 17)
   - Android Support Library (tested with version 23)
-- [ArcGIS Runtime SDK 10.2.6 for Android](https://developers.arcgis.com/en/downloads/)
+- [ArcGIS Runtime SDK 10.2.7 for Android](https://developers.arcgis.com/en/downloads/)
   - Even though the repository contains references to the online SDK in Android Studio, you'll need to download the SDK to get the native binary files used for visual analysis (see [build steps](#building-with-android-studio)).
-  - Download the latest 10.2.6 update. For example, right now, the latest update is version 10.2.6-2.
+  - Download the latest 10.2.7 update. Right now, the latest update is version 10.2.7. A future update may be named 10.2.7-1 or similar.
 - Java Development Kit (JDK) 7 or higher
 - One of the following:
   - [Android Studio](http://developer.android.com/sdk/index.html) (**recommended**)
@@ -51,7 +51,7 @@ To build the app from source:
 ### 4.0.0
 
 #### What's New in Squad Leader 4.0.0
-* Uses ArcGIS Runtime 10.2.6
+* Uses ArcGIS Runtime 10.2.7
 * Requires Android 4.0.3 or higher
 * Added Mil2525CMessageLayer layer type for GeoMessage files (see the [User Guide](documentation/UserGuide.md#geomessage-files-and-layers))
 * Migrated from Eclipse to Android Studio
@@ -94,14 +94,14 @@ To build the app from source:
 
 1. Clone this repository, or fork it and clone your fork.
 1. Obtain the libraries required for offline viewshed analysis.
-    1. Download and unzip the ArcGIS Runtime SDK 10.2.6 for Android.
+    1. Download and unzip the ArcGIS Runtime SDK 10.2.7 for Android.
     1. Go to `arcgis-android-sdk/libs` and copy the `armeabi`, `armeabi-v7a`, and `x86` directories to your clone's `source/SquadLeader/app/src/main/jniLibs` directory.
     1. In each of these newly copied directories in your clone's `source/SquadLeader/app/src/main/jniLibs` directory, delete `libruntimecore_java.so`.
     1. NOTE: If app size is an issue and you know you don't need to run Squad Leader on a particular platform, you can omit one or more of the three directories.
 1. Copy the MIL-STD-2525C symbol dictionary into your clone:
     1. If you cloned a previous version of the Squad Leader code, delete the contents of `source/SquadLeader/app/src/main/assets/2525cSymDictionary` except for `.gitignore`.
     2. From the ArcGIS Runtime SDK you unzipped in the previous step, copy the contents of `arcgis-android-sdk/resources/mil2525c` to the `source/SquadLeader/app/src/main/assets/2525cSymDictionary` directory in your Squad Leader clone. In other words, the `messagetypes` directory and the `mil2525c.dat` file go in the `2525cSymDictionary` directory.
-1. In your clone, open `source/SquadLeader/app/src/main/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 4.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.6, which means the license string is optional. A valid client ID will disable the "Licensed for Developer Use Only" watermark that otherwise appears on the map.
+1. In your clone, open `source/SquadLeader/app/src/main/res/values/strings.xml` and adjust the values of `clientId` and `licenseString` as needed. Refer to [the documentation on licensing an ArcGIS Runtime app](https://developers.arcgis.com/android/guide/license-your-app.htm) for details. Note that the 4.0.0 release of Squad Leader uses only Runtime Basic functionality in ArcGIS Runtime 10.2.7, which means the license string is optional. A valid client ID will disable the "Licensed for Developer Use Only" watermark that otherwise appears on the map.
 1. Follow [Building with Android Studio](#building-with-android-studio) or [Building with Gradle](#building-with-gradle) below.
 
 ### Building with Android Studio
