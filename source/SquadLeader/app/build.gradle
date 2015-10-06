@@ -31,7 +31,7 @@ android {
     }
 
     dependencies {
-        compile 'com.esri.arcgis.android:arcgis-android:10.2.6-2'
+        compile 'com.esri.arcgis.android:arcgis-android:10.2.7'
         androidTestCompile 'junit:junit-dep:4.10'
     }
 
