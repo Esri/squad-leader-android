@@ -54,6 +54,10 @@ To build the app from source:
 * Uses ArcGIS Runtime 10.2.7
 * Requires Android 4.0.3 or higher
 * Added Mil2525CMessageLayer layer type for GeoMessage files (see the [User Guide](documentation/UserGuide.md#geomessage-files-and-layers))
+* Refactored the location capabilities
+  * TODO users
+  * TODO IT professionals (i.e. deployers)
+  * Developers can open strings.xml and set the value of gpx_resource_path to a resource path that references a GPX resource in the project.
 * Migrated from Eclipse to Android Studio
 * Removed dependency on Android Support Library v7 appcompat
 
