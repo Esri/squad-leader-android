@@ -15,13 +15,6 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
-import java.io.IOException;
-import java.util.Calendar;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
-
 import android.location.LocationListener;
 import android.os.Bundle;
 
@@ -29,21 +22,49 @@ import com.esri.android.map.LocationDisplayManager;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider;
-import com.esri.squadleader.model.LocationSimulator;
+import com.esri.militaryapps.model.LocationSimulator;
 import com.esri.squadleader.util.Utilities;
+
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
     
     private LocationDisplayManager locationDisplayManager = null;
-    
-    public LocationController(boolean startImmediately)
+
+    /**
+     * Instantiates a LocationController that uses the device's location service.
+     * @param builtInGpxPath the built-in GPX resource path for simulated GPX. You can pass null if
+     *                       you will never use the built-in GPX, or you can call setBuiltInGpxPath
+     *                       later.
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    public LocationController(String builtInGpxPath)
             throws ParserConfigurationException, SAXException, IOException {
-        this(LocationMode.LOCATION_SERVICE, startImmediately);
+        this(builtInGpxPath, LocationMode.LOCATION_SERVICE);
     }
 
-    public LocationController(LocationMode mode, boolean startImmediately)
+    /**
+     * Instantiates a LocationController.
+     * @param mode the location mode.
+     * @param builtInGpxPath the built-in GPX resource path for simulated GPX. You can pass null if
+     *                       you will never use the built-in GPX, or you can call setBuiltInGpxPath
+     *                       later.
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    public LocationController(String builtInGpxPath, LocationMode mode)
             throws ParserConfigurationException, SAXException, IOException {
-        super(mode, startImmediately);
+        super(mode);
+        setBuiltInGpxPath(builtInGpxPath);
     }
     
     public void setLocationService(LocationDisplayManager locationService) {
@@ -127,21 +148,17 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             
         };
     }
-    
+
     @Override
-    protected LocationSimulator createLocationSimulator()
+    protected LocationSimulator createLocationSimulator(InputStream gpxInputStream)
             throws ParserConfigurationException, SAXException, IOException {
-        if (null == getGpxFile()) {
-            return new LocationSimulator();
-        } else {
-            return new LocationSimulator(getGpxFile());
-        }
+        return new LocationSimulator(gpxInputStream);
     }
-    
+
     /**
      * Creates a String representing the given heading, converted to the given AngularUnit.
      * For example headingToString(180, AngularUnit.create(AngularUnit.Code.RADIAN), 5) returns
-     * "3.14159°".
+     * "3.14159Â°".
      * @param headingInDegrees the heading in degrees.
      * @param toAngularUnit the AngularUnit to which the heading should be converted.
      * @param decimalPlaces the number of decimal places the output should have.

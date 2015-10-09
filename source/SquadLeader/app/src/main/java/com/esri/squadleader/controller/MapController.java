@@ -139,6 +139,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *                      or default listener.
      */
     public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
+        super(mapView.getContext().getString(R.string.gpx_resource_path));
         this.layerListener = layerListener;
         ((LocationController) getLocationController()).setLocationService(mapView.getLocationDisplayManager());
         this.mapView = mapView;
@@ -743,9 +744,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     @Override
-    protected LocationController createLocationController() {
+    protected LocationController createLocationController(String builtInGpxPath) {
         try {
-            return new LocationController(LocationMode.SIMULATOR, true);
+            LocationController locationController = new LocationController(builtInGpxPath, LocationMode.SIMULATOR);
+            locationController.start();
+            return locationController;
         } catch (Exception e) {
             Log.e(TAG, "Couldn't instantiate LocationController", e);
             return null;

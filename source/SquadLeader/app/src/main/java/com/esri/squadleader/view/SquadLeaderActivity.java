@@ -683,8 +683,8 @@ public class SquadLeaderActivity extends Activity
                                     } else {
                                         mapController.getLocationController().setGpxFile(null);
                                         mapController.getLocationController().setMode(
-                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
-                                                true);
+                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR);
+                                        mapController.getLocationController().start();
                                     }
                                 } catch (Exception e) {
                                     Log.d(TAG, "Couldn't set location mode", e);
@@ -727,7 +727,8 @@ public class SquadLeaderActivity extends Activity
                 File file = new File(FileUtils.getPath(this, uri));
                 mapController.getLocationController().setGpxFile(file);
                 try {
-                    mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
+                    mapController.getLocationController().setMode(LocationMode.SIMULATOR);
+                    mapController.getLocationController().start();
                 } catch (Exception e) {
                     Log.d(TAG, "Could not start simulator", e);
                 }
