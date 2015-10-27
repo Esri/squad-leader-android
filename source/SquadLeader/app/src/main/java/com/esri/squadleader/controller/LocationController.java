@@ -28,6 +28,7 @@ import com.esri.squadleader.util.Utilities;
 
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
@@ -37,6 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
 
     private static final String PREF_LOCATION_MODE = "pref_locationMode";
+    private static final String PREF_GPX_FILE = "pref_gpxFile";
 
     /**
      * The name of the preferences file used to store LocationController preferences. This file will
@@ -68,6 +70,10 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
      */
     public void setSharedPreferences(SharedPreferences prefs) {
         this.prefs = prefs;
+        if (null != prefs) {
+            String gpxFilePath = prefs.getString(PREF_GPX_FILE, null);
+            setGpxFile(null == gpxFilePath ? null : new File(gpxFilePath));
+        }
     }
 
     /**
@@ -98,6 +104,20 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         super.setMode(mode);
         if (null != prefs) {
             prefs.edit().putString(PREF_LOCATION_MODE, mode.name()).apply();
+        }
+    }
+
+    @Override
+    public void setGpxFile(File gpxFile) {
+        super.setGpxFile(gpxFile);
+        if (null != prefs) {
+            SharedPreferences.Editor editor = prefs.edit();
+            if (null == gpxFile) {
+                editor.remove(PREF_GPX_FILE);
+            } else {
+                editor.putString(PREF_GPX_FILE, gpxFile.getAbsolutePath());
+            }
+            editor.apply();
         }
     }
 
