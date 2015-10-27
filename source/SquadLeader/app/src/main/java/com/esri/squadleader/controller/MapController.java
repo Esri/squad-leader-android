@@ -139,9 +139,20 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *                      or default listener.
      */
     public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
-        super(mapView.getContext().getString(R.string.gpx_resource_path));
+        super(LocationController.getLocationModeFromPreferences(
+                        mapView.getContext().getSharedPreferences(
+                                LocationController.PREFS_NAME,
+                                Context.MODE_PRIVATE)),
+                mapView.getContext().getString(R.string.gpx_resource_path));
         this.layerListener = layerListener;
-        ((LocationController) getLocationController()).setLocationService(mapView.getLocationDisplayManager());
+        LocationController locationController = (LocationController) getLocationController();
+        locationController.setSharedPreferences(mapView.getContext().getSharedPreferences(LocationController.PREFS_NAME, Context.MODE_PRIVATE));
+        locationController.setLocationService(mapView.getLocationDisplayManager());
+        try {
+            locationController.start();
+        } catch (Throwable t) {
+            Log.w(TAG, "Couldn't start LocationController", t);
+        }
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
@@ -744,9 +755,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     @Override
-    protected LocationController createLocationController(String builtInGpxPath) {
+    protected LocationController createLocationController(String builtInGpxPath, LocationMode locationMode) {
         try {
-            LocationController locationController = new LocationController(builtInGpxPath, LocationMode.SIMULATOR);
+            LocationController locationController = new LocationController(builtInGpxPath, locationMode);
             locationController.start();
             return locationController;
         } catch (Exception e) {

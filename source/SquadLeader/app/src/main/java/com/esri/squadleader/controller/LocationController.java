@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
+import android.content.SharedPreferences;
 import android.location.LocationListener;
 import android.os.Bundle;
 
@@ -34,22 +35,17 @@ import java.util.Calendar;
 import javax.xml.parsers.ParserConfigurationException;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
-    
-    private LocationDisplayManager locationDisplayManager = null;
+
+    private static final String PREF_LOCATION_MODE = "pref_locationMode";
 
     /**
-     * Instantiates a LocationController that uses the device's location service.
-     * @param builtInGpxPath the built-in GPX resource path for simulated GPX. You can pass null if
-     *                       you will never use the built-in GPX, or you can call setBuiltInGpxPath
-     *                       later.
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
+     * The name of the preferences file used to store LocationController preferences. This file will
+     * be stored in the application's private space for the current user.
      */
-    public LocationController(String builtInGpxPath)
-            throws ParserConfigurationException, SAXException, IOException {
-        this(builtInGpxPath, LocationMode.LOCATION_SERVICE);
-    }
+    public static final String PREFS_NAME = "LocationControllerPrefs";
+
+    private SharedPreferences prefs = null;
+    private LocationDisplayManager locationDisplayManager = null;
 
     /**
      * Instantiates a LocationController.
@@ -66,9 +62,43 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         super(mode);
         setBuiltInGpxPath(builtInGpxPath);
     }
+
+    /**
+     * @param prefs a preferences object that contains or will contain the user's location settings.
+     */
+    public void setSharedPreferences(SharedPreferences prefs) {
+        this.prefs = prefs;
+    }
+
+    /**
+     * Returns the LocationMode stored in the specified preferences, or LOCATION_SERVICE if a preference
+     * has not been stored.
+     * @param prefs the SharedPreferences where the location mode may be stored.
+     * @return the LocationMode stored in the specified preferences, or LOCATION_SERVICE if a preference
+     *         has not been stored.
+     */
+    public static LocationMode getLocationModeFromPreferences(SharedPreferences prefs) {
+        return LocationMode.valueOf(prefs.getString(PREF_LOCATION_MODE, LocationMode.LOCATION_SERVICE.name()));
+    }
     
     public void setLocationService(LocationDisplayManager locationService) {
         this.locationDisplayManager = locationService;
+    }
+
+    /**
+     * Sets the location mode. If setSharedPreferences has been called with a non-null SharedPreferences
+     * object, then this method will also store the mode in that object.
+     * @param mode the location mode to use.
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    @Override
+    public void setMode(LocationMode mode) throws ParserConfigurationException, SAXException, IOException {
+        super.setMode(mode);
+        if (null != prefs) {
+            prefs.edit().putString(PREF_LOCATION_MODE, mode.name()).apply();
+        }
     }
 
     @Override
