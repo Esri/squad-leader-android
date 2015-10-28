@@ -211,6 +211,8 @@ To change the location mode, in the menu, choose Set Location Mode. A dialog app
 - **Simulation (Built-in)**: the app uses GPS points in Monterey, California, to simulate the user's location, speed, and heading.
 - **Simulation (GPX File)**: the app uses points from a GPX file to simulate the user's location, speed, and heading. After choosing this option, select a GPX file on your device.
 
+Squad Leader remembers the location mode and GPX choices and uses them on the next run of the app. If **Simulation (GPX File)** is the stored preference and the GPX file is not found, Squad Leader changes the preference to **Simulation (Built-in)**.
+
 ### Add a layer
 
 Squad Leader allows users to add layers to the map. In the menu, choose **Add Layer**, then follow the following instructions for the type of layer you would like to add:

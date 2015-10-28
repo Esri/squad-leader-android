@@ -683,7 +683,8 @@ public class SquadLeaderActivity extends Activity
                                     } else {
                                         mapController.getLocationController().setGpxFile(null);
                                         mapController.getLocationController().setMode(
-                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR);
+                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
+                                                true);
                                         mapController.getLocationController().start();
                                     }
                                 } catch (Exception e) {

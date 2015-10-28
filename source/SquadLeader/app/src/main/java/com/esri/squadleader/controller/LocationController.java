@@ -92,8 +92,8 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     }
 
     /**
-     * Sets the location mode. If setSharedPreferences has been called with a non-null SharedPreferences
-     * object, then this method will also store the mode in that object.
+     * Sets the location mode but does not store it as a preference. To set the location mode and store
+     * as a preference, call setMode(mode, true).
      * @param mode the location mode to use.
      * @throws ParserConfigurationException
      * @throws SAXException
@@ -101,8 +101,19 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
      */
     @Override
     public void setMode(LocationMode mode) throws ParserConfigurationException, SAXException, IOException {
+        setMode(mode, false);
+    }
+
+    /**
+     * Sets the location mode. If storePreferences is true and setSharedPreferences has been called
+     * with a non-null SharedPreferences object, then this method will also store the mode in that object.
+     * @param mode the location mode to use.
+     * @param storePreference true if the mode should be stored as a preference.
+     */
+    @Override
+    public void setMode(LocationMode mode, boolean storePreference) throws IOException, SAXException, ParserConfigurationException {
         super.setMode(mode);
-        if (null != prefs) {
+        if (storePreference && null != prefs) {
             prefs.edit().putString(PREF_LOCATION_MODE, mode.name()).apply();
         }
     }
