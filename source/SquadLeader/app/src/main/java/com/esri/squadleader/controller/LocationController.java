@@ -106,9 +106,9 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     }
 
     @Override
-    public void setGpxFile(File gpxFile) {
-        super.setGpxFile(gpxFile);
-        if (null != prefs) {
+    public void setGpxFile(File gpxFile, boolean storePreference) {
+        super.setGpxFile(gpxFile, storePreference);
+        if (storePreference && null != prefs) {
             SharedPreferences.Editor editor = prefs.edit();
             if (null == gpxFile) {
                 editor.remove(PREF_GPX_FILE);
