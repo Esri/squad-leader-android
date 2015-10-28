@@ -71,20 +71,28 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     public void setSharedPreferences(SharedPreferences prefs) {
         this.prefs = prefs;
         if (null != prefs) {
-            String gpxFilePath = prefs.getString(PREF_GPX_FILE, null);
-            setGpxFile(null == gpxFilePath ? null : new File(gpxFilePath));
+            String locationPref = prefs.getString(PREF_LOCATION_MODE, null);
+            if (null != locationPref) {
+                String gpxFilePath = prefs.getString(PREF_GPX_FILE, null);
+                setGpxFile(null == gpxFilePath ? null : new File(gpxFilePath));
+            }
         }
     }
 
     /**
-     * Returns the LocationMode stored in the specified preferences, or LOCATION_SERVICE if a preference
+     * Returns the LocationMode stored in the specified preferences, or null if a preference
      * has not been stored.
      * @param prefs the SharedPreferences where the location mode may be stored.
-     * @return the LocationMode stored in the specified preferences, or LOCATION_SERVICE if a preference
+     * @return the LocationMode stored in the specified preferences, or null if a preference
      *         has not been stored.
      */
     public static LocationMode getLocationModeFromPreferences(SharedPreferences prefs) {
-        return LocationMode.valueOf(prefs.getString(PREF_LOCATION_MODE, LocationMode.LOCATION_SERVICE.name()));
+        String locationModePrefString = prefs.getString(PREF_LOCATION_MODE, null);
+        if (null == locationModePrefString) {
+            return null;
+        } else {
+            return LocationMode.valueOf(locationModePrefString);
+        }
     }
     
     public void setLocationService(LocationDisplayManager locationService) {
