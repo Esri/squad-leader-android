@@ -18,6 +18,7 @@ package com.esri.squadleader.controller;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -55,6 +56,7 @@ import com.esri.squadleader.util.Utilities;
 
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -139,8 +141,21 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *                      or default listener.
      */
     public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
+        super(LocationController.getLocationModeFromPreferences(
+                        mapView.getContext().getSharedPreferences(
+                                LocationController.PREFS_NAME,
+                                Context.MODE_PRIVATE)),
+                mapView.getContext().getString(R.string.gpx_resource_path),
+                new File(Environment.getExternalStorageDirectory(), mapView.getContext().getString(R.string.gpx_deployment_path)).getAbsolutePath());
         this.layerListener = layerListener;
-        ((LocationController) getLocationController()).setLocationService(mapView.getLocationDisplayManager());
+        LocationController locationController = (LocationController) getLocationController();
+        locationController.setSharedPreferences(mapView.getContext().getSharedPreferences(LocationController.PREFS_NAME, Context.MODE_PRIVATE));
+        locationController.setLocationService(mapView.getLocationDisplayManager());
+        try {
+            locationController.start();
+        } catch (Throwable t) {
+            Log.w(TAG, "Couldn't start LocationController", t);
+        }
         this.mapView = mapView;
         mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
@@ -743,9 +758,24 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     @Override
-    protected LocationController createLocationController() {
+    protected LocationController createLocationController(String builtInGpxPath, LocationMode locationMode,
+                                                          String gpxDeploymentPath) {
+        File file = null;
+        if (null == locationMode) {
+            file = new File(gpxDeploymentPath);
+            if (file.exists()) {
+                locationMode = LocationMode.SIMULATOR;
+            } else {
+                locationMode = LocationMode.LOCATION_SERVICE;
+                file = null;
+            }
+        }
         try {
-            return new LocationController(LocationMode.SIMULATOR, true);
+            LocationController locationController = new LocationController(builtInGpxPath, locationMode);
+            if (null != file) {
+                locationController.setGpxFile(file, false);
+            }
+            return locationController;
         } catch (Exception e) {
             Log.e(TAG, "Couldn't instantiate LocationController", e);
             return null;

@@ -681,10 +681,11 @@ public class SquadLeaderActivity extends Activity
                                         Intent intent = Intent.createChooser(getContentIntent, "Select a file");
                                         startActivityForResult(intent, REQUEST_CHOOSER);
                                     } else {
-                                        mapController.getLocationController().setGpxFile(null);
+                                        mapController.getLocationController().setGpxFile(null, true);
                                         mapController.getLocationController().setMode(
                                                 0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
                                                 true);
+                                        mapController.getLocationController().start();
                                     }
                                 } catch (Exception e) {
                                     Log.d(TAG, "Couldn't set location mode", e);
@@ -725,9 +726,10 @@ public class SquadLeaderActivity extends Activity
             if (resultCode == RESULT_OK) {  
                 final Uri uri = data.getData();
                 File file = new File(FileUtils.getPath(this, uri));
-                mapController.getLocationController().setGpxFile(file);
+                mapController.getLocationController().setGpxFile(file, true);
                 try {
                     mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
+                    mapController.getLocationController().start();
                 } catch (Exception e) {
                     Log.d(TAG, "Could not start simulator", e);
                 }

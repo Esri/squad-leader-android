@@ -65,6 +65,12 @@ If you do not provide a mapconfig.xml file, a default list of ArcGIS Online base
 
 After the first launch, the app uses the bsaemap layers that it loaded previously. If you want to reset and re-read mapconfig.xml, you can [reset the map](#reset-the-map). Alternatively, you can manually go to the Android application settings, choose Squad Leader, and choose Clear Data. Then run the app and it will read mapconfig.xml again.
 
+#### GPS simulation
+
+By default, Squad Leader uses the device's location capabilities to display the user's current location on the map. This is the appropriate setting for real-world deployments, so most likely you don't need to do anything to change location settings. Read on if you are interesting in using simulated GPS.
+
+Squad Leader can use a user-specified GPX file or a built-in GPX file of track points in Monterey, California. An IT professional who wants to deploy Squad Leader with a simulation based on a GPX file can create a file named simulation.gpx, create a directory called SquadLeader on the device's main storage (not an SD card), and put simulation.gpx in the SquadLeader directory. Then Squad Leader will use simulation.gpx to simulate the user's location until the user chooses a location setting in the Squad Leader UI. After a user has chosen a location setting, simulation.gpx will not be used again unless the Squad Leader app's data is cleared in Android settings.
+
 #### GeoMessage files and layers
 
 GeoMessage files contain GeoMessages that can be displayed on a map. GeoMessages are expressed in XML according to the [GeoMessage specification](https://github.com/Esri/geomessage-simulator-qt/blob/master/GeoMessageSpecification/GeoMessageSpecification.md). Squad Leader's built-in map configuration attempts to load the GeoMessage file /mnt/sdcard/data/coa.xml as a layer of type Mil2525CMessageLayer. If you would like that layer to display, do the following:
@@ -210,6 +216,8 @@ To change the location mode, in the menu, choose Set Location Mode. A dialog app
 - **Hardware (GPS)**: the app uses the device's location capabilities, including GPS if available, to obtain the user's location, speed, and heading.
 - **Simulation (Built-in)**: the app uses GPS points in Monterey, California, to simulate the user's location, speed, and heading.
 - **Simulation (GPX File)**: the app uses points from a GPX file to simulate the user's location, speed, and heading. After choosing this option, select a GPX file on your device.
+
+Squad Leader remembers the location mode and GPX choices and uses them on the next run of the app. If **Simulation (GPX File)** is the stored preference and the GPX file is not found, Squad Leader changes the preference to **Simulation (Built-in)**.
 
 ### Add a layer
 

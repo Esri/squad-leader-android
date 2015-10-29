@@ -54,6 +54,10 @@ To build the app from source:
 * Uses ArcGIS Runtime 10.2.7
 * Requires Android 4.0.3 or higher
 * Added Mil2525CMessageLayer layer type for GeoMessage files (see the [User Guide](documentation/UserGuide.md#geomessage-files-and-layers))
+* Refactored the location capabilities
+  * When users choose a location mode and optionally a GPX file, Squad Leader saves those choices and uses them next time the app runs (see the [User Guide](documentation/UserGuide.md#change-settings)).
+  * An IT professional deploying the app can place a simulation.gpx file in the SquadLeader directory that will be used if the user has not specified location preferences (see the [User Guide](documentation/UserGuide.md#gps-simulation)).
+  * Developers can open strings.xml and set the value of gpx_resource_path to a resource path that references a GPX resource in the project.
 * Migrated from Eclipse to Android Studio
 * Removed dependency on Android Support Library v7 appcompat
 
