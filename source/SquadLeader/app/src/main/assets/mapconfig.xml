@@ -15,6 +15,7 @@
     - DynamicMapServiceLayer: URL of a dynamic map service
     - FeatureServiceLayer: URL of a feature service, or the URL of an individual layer in a feature service
     - ImageServiceLayer: URL of an image service
+    - GeoPackage: file:/// URL to an OGC GeoPackage
 
     Each layer element has a basemap property that can be set to true or false. If absent, the
     default is false. Basemap layers display only one at a time, so set only one basemap layer
@@ -65,6 +66,18 @@
         </layer> -->
         <layer name="COA Sketch" visible="true" type="Mil2525CMessageLayer" basemap="false">
             <datasetpath>/mnt/sdcard/data/coa.xml</datasetpath>
+        </layer>
+        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG05.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
         </layer>
     </layers>
     <initialextent>

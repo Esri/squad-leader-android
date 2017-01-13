@@ -17,6 +17,7 @@ package com.esri.squadleader.controller;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.util.Log;
 import com.esri.android.map.Callout;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
+import com.esri.android.map.GroupLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.LocationDisplayManager;
 import com.esri.android.map.LocationDisplayManager.AutoPanMode;
@@ -44,6 +46,11 @@ import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
+import com.esri.core.renderer.RGBRenderer;
+import com.esri.core.renderer.SimpleRenderer;
+import com.esri.core.symbol.SimpleFillSymbol;
+import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
@@ -51,6 +58,7 @@ import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
 import com.esri.militaryapps.model.MapConfig;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.model.GeoPackageReader;
 import com.esri.squadleader.model.Mil2525CMessageLayer;
 import com.esri.squadleader.util.Utilities;
 
@@ -118,6 +126,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     private static final String TAG = MapController.class.getSimpleName();
 
+    private static final RGBRenderer GEOPACKAGE_RGB_RENDERER = new RGBRenderer();
+    private static final SimpleRenderer GEOPACKAGE_FILL_RENDERER = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
+    private static final SimpleRenderer GEOPACKAGE_LINE_RENDERER = new SimpleRenderer(new SimpleLineSymbol(Color.CYAN, 5f));
+    private static final SimpleRenderer GEOPACKAGE_MARKER_RENDERER = new SimpleRenderer(new SimpleMarkerSymbol(Color.BLUE, 10, SimpleMarkerSymbol.STYLE.CIRCLE));
+
     private final MapView mapView;
     private final AssetManager assetManager;
     private final OnStatusChangedListener layerListener;
@@ -125,7 +138,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
     private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
-    private final Object lastLocationLock = new Object(); 
+    private final Object lastLocationLock = new Object();
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
@@ -378,6 +391,23 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             case IMAGE_SERVICE: {
                 layer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
                 break;
+            }
+            case GEOPACKAGE: {
+                try {
+                    final String path = layerInfo.getDatasetPath();
+                    List<Layer> gpkgLayers = GeoPackageReader.getInstance().readGeoPackageToLayerList(
+                            path,
+                            mapView.getSpatialReference(),
+                            GEOPACKAGE_RGB_RENDERER,
+                            GEOPACKAGE_MARKER_RENDERER,
+                            GEOPACKAGE_LINE_RENDERER,
+                            GEOPACKAGE_FILL_RENDERER);
+                    GroupLayer groupLayer = new GroupLayer();
+                    groupLayer.addLayers(gpkgLayers.toArray(new Layer[gpkgLayers.size()]));
+                    layer = groupLayer;
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "Couldn't find GeoPackage file " + layerInfo.getDatasetPath(), e);
+                }
             }
             default: {
                 Log.i(TAG, "Layer " + layerInfo.getName() + " is of a type not yet implemented in ArcGIS Runtime for Android.");
