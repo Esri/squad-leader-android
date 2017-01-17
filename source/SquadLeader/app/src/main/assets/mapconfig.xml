@@ -67,25 +67,40 @@
         <layer name="COA Sketch" visible="true" type="Mil2525CMessageLayer" basemap="false">
             <datasetpath>/mnt/sdcard/data/coa.xml</datasetpath>
         </layer>
-        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false">
+        <!--<layer name="GeoPackage Layer" visible="true" type="GeoPackage" basemap="false" showvectors="true" showrasters="true">-->
+            <!--<datasetpath>/mnt/sdcard/data/my_geopackage.gpkg</datasetpath>-->
+        <!--</layer>-->
+        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showrasters="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
         </layer>
-        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false">
+        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false" showrasters="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG05.gpkg</datasetpath>
         </layer>
-        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false">
+        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false" showrasters="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
         </layer>
-        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false">
+        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false" showrasters="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showvectors="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false" showvectors="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG05.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false" showvectors="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false" showvectors="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
         </layer>
     </layers>
     <initialextent>
         <anchor>
-            <x>-13570000</x>
-            <y>4383000</y>
+            <x>-9080000</x>
+            <y>2820000</y>
         </anchor>
-        <scale>72224</scale>
+        <scale>288896</scale>
         <rotation>0</rotation>
     </initialextent>
     <viewshed>

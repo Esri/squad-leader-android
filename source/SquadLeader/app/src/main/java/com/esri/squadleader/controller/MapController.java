@@ -259,15 +259,15 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             lastMapConfig = mapConfig;
             //Load map layers from mapConfig
             for (BasemapLayerInfo layerInfo : mapConfig.getBasemapLayers()) {
-                Layer layer = createLayer(layerInfo);
-                if (null != layer) {
+                List<Layer> layers = createLayers(layerInfo);
+                for (Layer layer : layers) {
                     addBasemapLayer(new BasemapLayer(layer, layerInfo.getThumbnailUrl()));
                 }
             }
             
             for (LayerInfo layerInfo : mapConfig.getNonBasemapLayers()) {
-                Layer layer = createLayer(layerInfo);
-                if (null != layer) {
+                List<Layer> layers = createLayers(layerInfo);
+                for (Layer layer : layers) {
                     addLayer(layer);
                 }
             }
@@ -359,24 +359,25 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         return mapView.getContext();
     }
     
-    private Layer createLayer(LayerInfo layerInfo) {
-        Layer layer = null;
+    private List<Layer> createLayers(LayerInfo layerInfo) {
+        List<Layer> layerList = null;
+        Layer singleLayer = null;
         switch (layerInfo.getLayerType()) {
             case TILED_MAP_SERVICE: {
-                layer = new ArcGISTiledMapServiceLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISTiledMapServiceLayer(layerInfo.getDatasetPath());
                 break;
             }
             case DYNAMIC_MAP_SERVICE: {
-                layer = new ArcGISDynamicMapServiceLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISDynamicMapServiceLayer(layerInfo.getDatasetPath());
                 break;
             }
             case TILED_CACHE: {
-                layer = new ArcGISLocalTiledLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISLocalTiledLayer(layerInfo.getDatasetPath());
                 break;
             }
             case MIL2525C_MESSAGE: {
                 try {
-                    layer = Mil2525CMessageLayer.newInstance(
+                    singleLayer = Mil2525CMessageLayer.newInstance(
                             layerInfo.getDatasetPath(), layerInfo.getName(), this,
                             getContext().getString(R.string.sym_dict_dirname), assetManager);
                 } catch (Exception e) {
@@ -385,39 +386,48 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 break;
             }
             case FEATURE_SERVICE: {
-                layer = new ArcGISFeatureLayer(layerInfo.getDatasetPath(), MODE.ONDEMAND);
+                singleLayer = new ArcGISFeatureLayer(layerInfo.getDatasetPath(), MODE.ONDEMAND);
                 break;
             }
             case IMAGE_SERVICE: {
-                layer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
+                singleLayer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
                 break;
             }
             case GEOPACKAGE: {
                 try {
                     final String path = layerInfo.getDatasetPath();
-                    List<Layer> gpkgLayers = GeoPackageReader.getInstance().readGeoPackageToLayerList(
+                    layerList = GeoPackageReader.getInstance().readGeoPackageToLayerList(
                             path,
                             mapView.getSpatialReference(),
+                            layerInfo.isShowVectors(),
+                            layerInfo.isShowRasters(),
                             GEOPACKAGE_RGB_RENDERER,
                             GEOPACKAGE_MARKER_RENDERER,
                             GEOPACKAGE_LINE_RENDERER,
                             GEOPACKAGE_FILL_RENDERER);
-                    GroupLayer groupLayer = new GroupLayer();
-                    groupLayer.addLayers(gpkgLayers.toArray(new Layer[gpkgLayers.size()]));
-                    layer = groupLayer;
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "Couldn't find GeoPackage file " + layerInfo.getDatasetPath(), e);
                 }
+                break;
             }
             default: {
                 Log.i(TAG, "Layer " + layerInfo.getName() + " is of a type not yet implemented in ArcGIS Runtime for Android.");
             }
         }
-        if (null != layer) {
-            layer.setName(layerInfo.getName());
-            layer.setVisible(layerInfo.isVisible());
+        if (null != layerList) {
+            for (Layer layer : layerList) {
+                layer.setName(layerInfo.getName() + " : " + layer.getName());
+                layer.setVisible(layerInfo.isVisible());
+            }
+        } else if (null != singleLayer) {
+            singleLayer.setName(layerInfo.getName());
+            singleLayer.setVisible(layerInfo.isVisible());
+            layerList = new ArrayList<Layer>(1);
+            layerList.add(singleLayer);
+        } else {
+            layerList = new ArrayList<Layer>();
         }
-        return layer;
+        return layerList;
     }
 
     /**
@@ -494,8 +504,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     private void addLayer(LayerInfo layerInfo, boolean isOverlay) {
         //TODO do something with isOverlay (i.e. implement overlay layers)
-        Layer layer = createLayer(layerInfo);
-        if (null != layer) {
+        List<Layer> layers = createLayers(layerInfo);
+        for (Layer layer : layers) {
             if (layerInfo instanceof BasemapLayerInfo) {
                 BasemapLayer basemapLayer = new BasemapLayer(layer, ((BasemapLayerInfo) layerInfo).getThumbnailUrl());
                 addBasemapLayer(basemapLayer, isOverlay);

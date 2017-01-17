@@ -16,7 +16,6 @@
 package com.esri.squadleader.model;
 
 import com.esri.android.map.FeatureLayer;
-import com.esri.android.map.GroupLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.RasterLayer;
 import com.esri.core.geodatabase.Geopackage;
@@ -75,6 +74,8 @@ public class GeoPackageReader {
      * @param gpkgPath the full path to the .gpkg file.
      * @param sr the spatial reference to which any raster layers should be projected, typically the
      *           spatial reference of your map.
+     * @param showVectors if true, this method will include the GeoPackage's vector layers.
+     * @param showRasters if true, this method will include the GeoPackage's raster layer.
      * @param rasterRenderer the renderer to be used for raster layers. One simple option is an RGBRenderer.
      * @param markerRenderer the renderer to be used for point layers.
      * @param lineRenderer the renderer to be used for polyline layers.
@@ -85,46 +86,50 @@ public class GeoPackageReader {
      */
     public List<Layer> readGeoPackageToLayerList(String gpkgPath,
                                                  SpatialReference sr,
+                                                 boolean showVectors,
+                                                 boolean showRasters,
                                                  RasterRenderer rasterRenderer,
                                                  Renderer markerRenderer,
                                                  Renderer lineRenderer,
                                                  Renderer fillRenderer) throws FileNotFoundException {
         List<Layer> layers = new ArrayList<Layer>();
 
-        // Raster layers
-        FileRasterSource src = new FileRasterSource(gpkgPath);
-        rasterSources.add(src);
-        if (null != sr) {
-            src.project(sr);
+        if (showRasters) {
+            FileRasterSource src = new FileRasterSource(gpkgPath);
+            rasterSources.add(src);
+            if (null != sr) {
+                src.project(sr);
+            }
+            RasterLayer rasterLayer = new RasterLayer(src);
+            rasterLayer.setRenderer(RGB_RENDERER);
+            rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
+            layers.add(rasterLayer);
         }
-        RasterLayer rasterLayer = new RasterLayer(src);
-        rasterLayer.setRenderer(RGB_RENDERER);
-        rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
-        layers.add(rasterLayer);
 
-        // Vector layers
-        Geopackage gpkg = new Geopackage(gpkgPath);
-        geopackages.add(gpkg);
-        List<GeopackageFeatureTable> tables = gpkg.getGeopackageFeatureTables();
+        if (showVectors) {
+            Geopackage gpkg = new Geopackage(gpkgPath);
+            geopackages.add(gpkg);
+            List<GeopackageFeatureTable> tables = gpkg.getGeopackageFeatureTables();
 
-        //First pass: polygons and unknowns
-        HashSet<Geometry.Type> types = new HashSet<Geometry.Type>();
-        types.add(Geometry.Type.ENVELOPE);
-        types.add(Geometry.Type.POLYGON);
-        types.add(Geometry.Type.UNKNOWN);
-        layers.addAll(getTablesAsLayers(tables, types, fillRenderer));
+            //First pass: polygons and unknowns
+            HashSet<Geometry.Type> types = new HashSet<Geometry.Type>();
+            types.add(Geometry.Type.ENVELOPE);
+            types.add(Geometry.Type.POLYGON);
+            types.add(Geometry.Type.UNKNOWN);
+            layers.addAll(getTablesAsLayers(tables, types, fillRenderer));
 
-        //Second pass: lines
-        types.clear();
-        types.add(Geometry.Type.LINE);
-        types.add(Geometry.Type.POLYLINE);
-        layers.addAll(getTablesAsLayers(tables, types, lineRenderer));
+            //Second pass: lines
+            types.clear();
+            types.add(Geometry.Type.LINE);
+            types.add(Geometry.Type.POLYLINE);
+            layers.addAll(getTablesAsLayers(tables, types, lineRenderer));
 
-        //Third pass: points
-        types.clear();
-        types.add(Geometry.Type.MULTIPOINT);
-        types.add(Geometry.Type.POINT);
-        layers.addAll(getTablesAsLayers(tables, types, markerRenderer));
+            //Third pass: points
+            types.clear();
+            types.add(Geometry.Type.MULTIPOINT);
+            types.add(Geometry.Type.POINT);
+            layers.addAll(getTablesAsLayers(tables, types, markerRenderer));
+        }
 
         return layers;
     }
