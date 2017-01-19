@@ -15,6 +15,8 @@
     - DynamicMapServiceLayer: URL of a dynamic map service
     - FeatureServiceLayer: URL of a feature service, or the URL of an individual layer in a feature service
     - ImageServiceLayer: URL of an image service
+    - Shapefile: file:/// URL to a shapefile. Make sure the .shp, .shx, and .dbf files (at least) are
+                       on the device.
 
     Each layer element has a basemap property that can be set to true or false. If absent, the
     default is false. Basemap layers display only one at a time, so set only one basemap layer
