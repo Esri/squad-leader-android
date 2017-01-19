@@ -17,6 +17,7 @@ package com.esri.squadleader.controller;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.esri.android.map.Callout;
+import com.esri.android.map.FeatureLayer;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Grid.GridType;
 import com.esri.android.map.Layer;
@@ -38,12 +40,19 @@ import com.esri.android.map.ags.ArcGISLocalTiledLayer;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.core.geodatabase.ShapefileFeatureTable;
 import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.CoordinateConversion.MGRSConversionMode;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
+import com.esri.core.renderer.RGBRenderer;
+import com.esri.core.renderer.Renderer;
+import com.esri.core.renderer.SimpleRenderer;
+import com.esri.core.symbol.SimpleFillSymbol;
+import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
@@ -117,6 +126,11 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     private static final String TAG = MapController.class.getSimpleName();
+
+    private static final RGBRenderer RGB_RENDERER = new RGBRenderer();
+    private static final SimpleRenderer FILL_RENDERER = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
+    private static final SimpleRenderer LINE_RENDERER = new SimpleRenderer(new SimpleLineSymbol(Color.CYAN, 5f));
+    private static final SimpleRenderer MARKER_RENDERER = new SimpleRenderer(new SimpleMarkerSymbol(Color.BLUE, 10, SimpleMarkerSymbol.STYLE.CIRCLE));
 
     private final MapView mapView;
     private final AssetManager assetManager;
@@ -377,6 +391,33 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
             case IMAGE_SERVICE: {
                 layer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
+                break;
+            }
+            case SHAPEFILE: {
+                try {
+                    final ShapefileFeatureTable table = new ShapefileFeatureTable(layerInfo.getDatasetPath());
+                    FeatureLayer featureLayer = new FeatureLayer(table);
+                    Renderer renderer = null;
+                    switch (table.getGeometryType()) {
+                        case ENVELOPE:
+                        case POLYGON:
+                            renderer = FILL_RENDERER;
+                            break;
+
+                        case LINE:
+                        case POLYLINE:
+                            renderer = LINE_RENDERER;
+                            break;
+
+                        case MULTIPOINT:
+                        case POINT:
+                            renderer = MARKER_RENDERER;
+                    }
+                    featureLayer.setRenderer(renderer);
+                    layer = featureLayer;
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), e);
+                }
                 break;
             }
             default: {
