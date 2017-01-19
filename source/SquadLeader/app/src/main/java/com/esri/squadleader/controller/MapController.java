@@ -53,7 +53,6 @@ import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
-import com.esri.core.table.FeatureTable;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
