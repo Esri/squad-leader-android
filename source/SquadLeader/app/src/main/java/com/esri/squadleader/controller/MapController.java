@@ -210,6 +210,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * Releases certain resources. Be sure to call this method when you're done with a MapController.
      */
     public void dispose() {
+        for (Layer layer : mapView.getLayers()) {
+            layer.recycle();
+        }
         mapView.removeAll();
         for (ShapefileFeatureTable table : shapefileFeatureTables) {
             table.dispose();
