@@ -63,9 +63,6 @@
         <layer name="National Geographic" visible="false" type="TiledMapServiceLayer" basemap="true">
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
         </layer>
-        <!--<layer name="Continents" visible="false" type="Shapefile" basemap="false">-->
-            <!--<datasetpath>/mnt/sdcard/data/continent_3857.shp</datasetpath>-->
-        <!--</layer>-->
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>
         </layer> -->
@@ -75,17 +72,8 @@
         <!--<layer name="GeoPackage Layer" visible="true" type="GeoPackage" basemap="false" showvectors="true" showrasters="true">-->
             <!--<datasetpath>/mnt/sdcard/data/my_geopackage.gpkg</datasetpath>-->
         <!--</layer>-->
-        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showrasters="true">
-            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
-        </layer>
-        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false" showrasters="true">
-            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG05.gpkg</datasetpath>
-        </layer>
-        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false" showrasters="true">
-            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
-        </layer>
-        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false" showrasters="true">
-            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
+        <layer name="Blank Shapefile for GPKG" visible="false" type="Shapefile" basemap="false">
+            <datasetpath>/mnt/sdcard/data/blank_point_3857.shp</datasetpath>
         </layer>
         <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showvectors="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
@@ -97,6 +85,18 @@
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
         </layer>
         <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false" showvectors="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showrasters="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG05" visible="true" type="GeoPackage" basemap="false" showrasters="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG05.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG06" visible="true" type="GeoPackage" basemap="false" showrasters="true">
+            <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG06.gpkg</datasetpath>
+        </layer>
+        <layer name="GPKG07" visible="true" type="GeoPackage" basemap="false" showrasters="true">
             <datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG07.gpkg</datasetpath>
         </layer>
     </layers>
