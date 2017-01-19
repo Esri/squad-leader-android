@@ -513,8 +513,8 @@ public class SquadLeaderActivity extends Activity
             viewshedController = new ViewshedController(elevationPath);
             mapController.addLayer(viewshedController.getLayer());
             findViewById(R.id.toggleButton_viewshed).setVisibility(View.VISIBLE);
-        } catch (Exception e) {
-            Log.d(TAG, "Couldn't set up ViewshedController", e);
+        } catch (Throwable t) {
+            Log.d(TAG, "Couldn't set up ViewshedController", t);
             findViewById(R.id.toggleButton_viewshed).setVisibility(View.INVISIBLE);
         }
     }
