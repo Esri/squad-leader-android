@@ -17,6 +17,7 @@
     - ImageServiceLayer: URL of an image service
     - Shapefile: file:/// URL to a shapefile. Make sure the .shp, .shx, and .dbf files (at least) are
                        on the device.
+    - GeoPackage: file:/// URL to an OGC GeoPackage
 
     Each layer element has a basemap property that can be set to true or false. If absent, the
     default is false. Basemap layers display only one at a time, so set only one basemap layer
@@ -62,15 +63,24 @@
         <layer name="National Geographic" visible="false" type="TiledMapServiceLayer" basemap="true">
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
         </layer>
-        <!--<layer name="Continents" visible="true" type="Shapefile" basemap="true">-->
-            <!--<datasetpath>/mnt/sdcard/data/continent_3857.shp</datasetpath>-->
-        <!--</layer>-->
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>
         </layer> -->
         <layer name="COA Sketch" visible="true" type="Mil2525CMessageLayer" basemap="false">
             <datasetpath>/mnt/sdcard/data/coa.xml</datasetpath>
         </layer>
+        <!--<layer name="GeoPackage Layer" visible="true" type="GeoPackage" basemap="false" showvectors="true" showrasters="true">-->
+            <!--<datasetpath>/mnt/sdcard/data/my_geopackage.gpkg</datasetpath>-->
+        <!--</layer>-->
+        <!--<layer name="Blank Shapefile for GPKG" visible="false" type="Shapefile" basemap="false">-->
+            <!--<datasetpath>/mnt/sdcard/data/blank_point_3857.shp</datasetpath>-->
+        <!--</layer>-->
+        <!--<layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showvectors="true">-->
+            <!--<datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>-->
+        <!--</layer>-->
+        <!--<layer name="GPKG01" visible="true" type="GeoPackage" basemap="false" showrasters="true">-->
+            <!--<datasetpath>/mnt/sdcard/data/Example GPKGs/GPKG01.gpkg</datasetpath>-->
+        <!--</layer>-->
     </layers>
     <initialextent>
         <anchor>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2015 Esri
+ * Copyright 2013-2017 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -591,6 +591,9 @@ public class SquadLeaderActivity extends Activity
                 .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
         if (null != viewshedController) {
             viewshedController.dispose();
+        }
+        if (null != mapController) {
+            mapController.dispose();
         }
     }
     

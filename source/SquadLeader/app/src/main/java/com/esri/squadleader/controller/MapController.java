@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2015 Esri
+ * Copyright 2013-2017 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import com.esri.militaryapps.model.LocationProvider.LocationProviderState;
 import com.esri.militaryapps.model.MapConfig;
 import com.esri.squadleader.R;
 import com.esri.squadleader.model.BasemapLayer;
+import com.esri.squadleader.model.GeoPackageReader;
 import com.esri.squadleader.model.Mil2525CMessageLayer;
 import com.esri.squadleader.util.Utilities;
 
@@ -75,6 +76,7 @@ import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -139,7 +141,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
     private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
-    private final Object lastLocationLock = new Object(); 
+    private final Object lastLocationLock = new Object();
+    private final HashSet<ShapefileFeatureTable> shapefileFeatureTables = new HashSet<ShapefileFeatureTable>();
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
@@ -147,7 +150,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private SpatialReference lastSpatialReference = null;
 
     /**
-     * Creates a new MapController.
+     * Creates a new MapController. <b>Call dispose() on each MapController you create when you are done!</b>
      * @param mapView the MapView being controlled by the new MapController.
      * @param assetManager the application's AssetManager.
      * @param layerListener an OnStatusChangedListener that will be set for each layer that is added to
@@ -195,6 +198,24 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         mapView.getGrid().setVisibility(false);
         this.assetManager = assetManager;
         reloadMapConfig();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
+
+    /**
+     * Releases certain resources. Be sure to call this method when you're done with a MapController.
+     */
+    public void dispose() {
+        mapView.removeAll();
+        for (ShapefileFeatureTable table : shapefileFeatureTables) {
+            table.dispose();
+        }
+        shapefileFeatureTables.clear();
+        GeoPackageReader.getInstance().dispose();
     }
     
     /**
@@ -260,15 +281,15 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             lastMapConfig = mapConfig;
             //Load map layers from mapConfig
             for (BasemapLayerInfo layerInfo : mapConfig.getBasemapLayers()) {
-                Layer layer = createLayer(layerInfo);
-                if (null != layer) {
+                List<Layer> layers = createLayers(layerInfo);
+                for (Layer layer : layers) {
                     addBasemapLayer(new BasemapLayer(layer, layerInfo.getThumbnailUrl()));
                 }
             }
             
             for (LayerInfo layerInfo : mapConfig.getNonBasemapLayers()) {
-                Layer layer = createLayer(layerInfo);
-                if (null != layer) {
+                List<Layer> layers = createLayers(layerInfo);
+                for (Layer layer : layers) {
                     addLayer(layer);
                 }
             }
@@ -360,24 +381,25 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         return mapView.getContext();
     }
     
-    private Layer createLayer(LayerInfo layerInfo) {
-        Layer layer = null;
+    private List<Layer> createLayers(LayerInfo layerInfo) {
+        List<Layer> layerList = null;
+        Layer singleLayer = null;
         switch (layerInfo.getLayerType()) {
             case TILED_MAP_SERVICE: {
-                layer = new ArcGISTiledMapServiceLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISTiledMapServiceLayer(layerInfo.getDatasetPath());
                 break;
             }
             case DYNAMIC_MAP_SERVICE: {
-                layer = new ArcGISDynamicMapServiceLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISDynamicMapServiceLayer(layerInfo.getDatasetPath());
                 break;
             }
             case TILED_CACHE: {
-                layer = new ArcGISLocalTiledLayer(layerInfo.getDatasetPath());
+                singleLayer = new ArcGISLocalTiledLayer(layerInfo.getDatasetPath());
                 break;
             }
             case MIL2525C_MESSAGE: {
                 try {
-                    layer = Mil2525CMessageLayer.newInstance(
+                    singleLayer = Mil2525CMessageLayer.newInstance(
                             layerInfo.getDatasetPath(), layerInfo.getName(), this,
                             getContext().getString(R.string.sym_dict_dirname), assetManager);
                 } catch (Exception e) {
@@ -386,16 +408,34 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 break;
             }
             case FEATURE_SERVICE: {
-                layer = new ArcGISFeatureLayer(layerInfo.getDatasetPath(), MODE.ONDEMAND);
+                singleLayer = new ArcGISFeatureLayer(layerInfo.getDatasetPath(), MODE.ONDEMAND);
                 break;
             }
             case IMAGE_SERVICE: {
-                layer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
+                singleLayer = new ArcGISImageServiceLayer(layerInfo.getDatasetPath(), null);
+                break;
+            }
+            case GEOPACKAGE: {
+                try {
+                    final String path = layerInfo.getDatasetPath();
+                    layerList = GeoPackageReader.getInstance().readGeoPackageToLayerList(
+                            path,
+                            mapView.getSpatialReference(),
+                            layerInfo.isShowVectors(),
+                            layerInfo.isShowRasters(),
+                            RGB_RENDERER,
+                            MARKER_RENDERER,
+                            LINE_RENDERER,
+                            FILL_RENDERER);
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "Couldn't find GeoPackage file " + layerInfo.getDatasetPath(), e);
+                }
                 break;
             }
             case SHAPEFILE: {
                 try {
                     final ShapefileFeatureTable table = new ShapefileFeatureTable(layerInfo.getDatasetPath());
+                    shapefileFeatureTables.add(table);
                     FeatureLayer featureLayer = new FeatureLayer(table);
                     Renderer renderer = null;
                     switch (table.getGeometryType()) {
@@ -414,7 +454,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                             renderer = MARKER_RENDERER;
                     }
                     featureLayer.setRenderer(renderer);
-                    layer = featureLayer;
+                    singleLayer = featureLayer;
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), e);
                 }
@@ -424,11 +464,20 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 Log.i(TAG, "Layer " + layerInfo.getName() + " is of a type not yet implemented in ArcGIS Runtime for Android.");
             }
         }
-        if (null != layer) {
-            layer.setName(layerInfo.getName());
-            layer.setVisible(layerInfo.isVisible());
+        if (null != layerList) {
+            for (Layer layer : layerList) {
+                layer.setName(layerInfo.getName() + " : " + layer.getName());
+                layer.setVisible(layerInfo.isVisible());
+            }
+        } else if (null != singleLayer) {
+            singleLayer.setName(layerInfo.getName());
+            singleLayer.setVisible(layerInfo.isVisible());
+            layerList = new ArrayList<Layer>(1);
+            layerList.add(singleLayer);
+        } else {
+            layerList = new ArrayList<Layer>();
         }
-        return layer;
+        return layerList;
     }
 
     /**
@@ -505,8 +554,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      */
     private void addLayer(LayerInfo layerInfo, boolean isOverlay) {
         //TODO do something with isOverlay (i.e. implement overlay layers)
-        Layer layer = createLayer(layerInfo);
-        if (null != layer) {
+        List<Layer> layers = createLayers(layerInfo);
+        for (Layer layer : layers) {
             if (layerInfo instanceof BasemapLayerInfo) {
                 BasemapLayer basemapLayer = new BasemapLayer(layer, ((BasemapLayerInfo) layerInfo).getThumbnailUrl());
                 addBasemapLayer(basemapLayer, isOverlay);
