@@ -592,6 +592,9 @@ public class SquadLeaderActivity extends Activity
         if (null != viewshedController) {
             viewshedController.dispose();
         }
+        if (null != mapController) {
+            mapController.dispose();
+        }
     }
     
     @Override

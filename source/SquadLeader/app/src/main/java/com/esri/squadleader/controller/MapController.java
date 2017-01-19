@@ -75,6 +75,7 @@ import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -139,7 +140,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
     private final LocationChangeHandler locationChangeHandler = new LocationChangeHandler(this);
-    private final Object lastLocationLock = new Object(); 
+    private final Object lastLocationLock = new Object();
+    private final HashSet<ShapefileFeatureTable> shapefileFeatureTables = new HashSet<ShapefileFeatureTable>();
     private boolean autoPan = false;
     private int locationGraphicId = -1;
     private Point lastLocation = null;
@@ -147,7 +149,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private SpatialReference lastSpatialReference = null;
 
     /**
-     * Creates a new MapController.
+     * Creates a new MapController. <b>Call dispose() on each MapController you create when you are done!</b>
      * @param mapView the MapView being controlled by the new MapController.
      * @param assetManager the application's AssetManager.
      * @param layerListener an OnStatusChangedListener that will be set for each layer that is added to
@@ -195,6 +197,26 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         mapView.getGrid().setVisibility(false);
         this.assetManager = assetManager;
         reloadMapConfig();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
+
+    /**
+     * Releases certain resources. Be sure to call this method when you're done with a MapController.
+     */
+    public void dispose() {
+        for (Layer layer : mapView.getLayers()) {
+            layer.recycle();
+        }
+        mapView.removeAll();
+        for (ShapefileFeatureTable table : shapefileFeatureTables) {
+            table.dispose();
+        }
+        shapefileFeatureTables.clear();
     }
     
     /**
@@ -396,6 +418,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             case SHAPEFILE: {
                 try {
                     final ShapefileFeatureTable table = new ShapefileFeatureTable(layerInfo.getDatasetPath());
+                    shapefileFeatureTables.add(table);
                     FeatureLayer featureLayer = new FeatureLayer(table);
                     Renderer renderer = null;
                     switch (table.getGeometryType()) {
