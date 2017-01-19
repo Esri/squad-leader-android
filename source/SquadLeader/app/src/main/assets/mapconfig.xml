@@ -64,7 +64,7 @@
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
         </layer>
         <!--<layer name="Continents" visible="false" type="Shapefile" basemap="false">-->
-            <!--<datasetpath>/mnt/sdcard/data/continent.shp</datasetpath>-->
+            <!--<datasetpath>/mnt/sdcard/data/continent_3857.shp</datasetpath>-->
         <!--</layer>-->
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>
