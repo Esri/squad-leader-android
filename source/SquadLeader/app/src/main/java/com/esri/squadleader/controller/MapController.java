@@ -216,6 +216,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             table.dispose();
         }
         shapefileFeatureTables.clear();
+        GeoPackageReader.getInstance().dispose();
     }
     
     /**

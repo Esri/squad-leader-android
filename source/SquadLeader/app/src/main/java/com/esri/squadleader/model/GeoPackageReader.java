@@ -43,6 +43,11 @@ public class GeoPackageReader {
 
     private static GeoPackageReader instance = new GeoPackageReader();
 
+    /**
+     * <b>Be sure to call dispose() if you get and use the GeoPackageReader instance when you're done
+     * with the GeoPackages it opened for you!</b>
+     * @return
+     */
     public static GeoPackageReader getInstance() {
         return instance;
     }
@@ -56,6 +61,15 @@ public class GeoPackageReader {
 
     @Override
     protected void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
+
+    /**
+     * Disposes any resources created by opening GeoPackages. You must call dispose() when you're done
+     * with any resources that GeoPackageReader created for you!
+     */
+    public void dispose() {
         for (Geopackage gpkg : geopackages) {
             gpkg.dispose();
         }
@@ -64,8 +78,6 @@ public class GeoPackageReader {
             src.dispose();
         }
         rasterSources.clear();
-
-        super.finalize();
     }
 
     /**
