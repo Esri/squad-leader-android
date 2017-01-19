@@ -15,6 +15,8 @@
     - DynamicMapServiceLayer: URL of a dynamic map service
     - FeatureServiceLayer: URL of a feature service, or the URL of an individual layer in a feature service
     - ImageServiceLayer: URL of an image service
+    - Shapefile: file:/// URL to a shapefile. Make sure the .shp, .shx, and .dbf files (at least) are
+                       on the device.
     - GeoPackage: file:/// URL to an OGC GeoPackage
 
     Each layer element has a basemap property that can be set to true or false. If absent, the
@@ -61,6 +63,9 @@
         <layer name="National Geographic" visible="false" type="TiledMapServiceLayer" basemap="true">
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
         </layer>
+        <!--<layer name="Continents" visible="false" type="Shapefile" basemap="false">-->
+            <!--<datasetpath>/mnt/sdcard/data/continent.shp</datasetpath>-->
+        <!--</layer>-->
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>
         </layer> -->
