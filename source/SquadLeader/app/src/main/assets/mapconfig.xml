@@ -60,6 +60,9 @@
         <layer name="National Geographic" visible="false" type="TiledMapServiceLayer" basemap="true">
             <url>http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer</url>
         </layer>
+        <!--<layer name="Continents" visible="true" type="Shapefile" basemap="true">-->
+            <!--<datasetpath>/mnt/sdcard/data/continent_3857.shp</datasetpath>-->
+        <!--</layer>-->
         <!--layer name="Bihsud Bridge and Environs" visible="true" type="LocalDynamicMapLayer" basemap="false">
             <datasetpath>/mnt/sdcard/MapPackage.mpk</datasetpath>
         </layer> -->
