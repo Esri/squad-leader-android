@@ -211,36 +211,4 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
         return new LocationSimulator(gpxInputStream);
     }
 
-    /**
-     * Creates a String representing the given heading, converted to the given AngularUnit.
-     * For example headingToString(180, AngularUnit.create(AngularUnit.Code.RADIAN), 5) returns
-     * "3.14159°".
-     *
-     * @deprecated Use string formatting instead!
-     *
-     * @param headingInDegrees the heading in degrees.
-     * @param toAngularUnit the AngularUnit to which the heading should be converted.
-     * @param decimalPlaces the number of decimal places the output should have.
-     * @return a String with the converted heading and its unit abbreviation.
-     */
-    public static String headingToString(double headingInDegrees, AngularUnit toAngularUnit, int decimalPlaces) {
-        double convertedRoundedHeading = headingInDegrees;
-        if (null != toAngularUnit && !Utilities.DEGREES.equals(toAngularUnit)) {
-             convertedRoundedHeading = toAngularUnit.convertFromRadians(Utilities.DEGREES.convertToRadians(headingInDegrees));
-        }
-        double multiplier = Math.pow(10, decimalPlaces);
-        convertedRoundedHeading = Math.round(convertedRoundedHeading * multiplier) / multiplier;
-        String headingString = (0 == decimalPlaces) ? Integer.toString((int) convertedRoundedHeading) : Double.toString(convertedRoundedHeading);
-        //Pad with zeroes if necessary
-        int pointIndex = headingString.indexOf('.');
-        if (-1 < pointIndex) {
-            String decimals = headingString.substring(pointIndex + 1);
-            for (int i = 0; i < decimalPlaces - decimals.length(); i++) {
-                headingString += '0';
-            }
-        }
-        return headingString +
-                (null == toAngularUnit ? "" : Utilities.getAngularUnitAbbreviation(toAngularUnit.getID(), toAngularUnit.getAbbreviation()));
-    }
-
 }
