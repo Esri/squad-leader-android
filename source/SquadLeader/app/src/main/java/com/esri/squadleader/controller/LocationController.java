@@ -215,6 +215,9 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
      * Creates a String representing the given heading, converted to the given AngularUnit.
      * For example headingToString(180, AngularUnit.create(AngularUnit.Code.RADIAN), 5) returns
      * "3.14159°".
+     *
+     * @deprecated Use string formatting instead!
+     *
      * @param headingInDegrees the heading in degrees.
      * @param toAngularUnit the AngularUnit to which the heading should be converted.
      * @param decimalPlaces the number of decimal places the output should have.

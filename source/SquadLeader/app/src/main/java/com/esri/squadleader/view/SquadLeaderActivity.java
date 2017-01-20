@@ -128,7 +128,7 @@ public class SquadLeaderActivity extends Activity
                 try {
                     TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
                     String mgrs = mapController.pointToMgrs(new Point(location.getLongitude(), location.getLatitude()), SR);
-                    locationView.setText(getString(R.string.display_location) + mgrs);
+                    locationView.setText(String.format(getString(R.string.display_location), mgrs));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set location text", t);
                 }
@@ -143,13 +143,15 @@ public class SquadLeaderActivity extends Activity
                         speedMph = distanceInMiles / timeInHours;
                     }
                     ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
-                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speedMph) / 10.0) + " mph");
+                            String.format(getString(R.string.display_speed), speedMph));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set speed text", t);
                 }
                 try {
-                    String headingString = LocationController.headingToString(location.getHeading(), angularUnitPreference, 0);
-                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(getString(R.string.display_heading) + headingString);
+                    double headingInPreferredUnits = angularUnitPreference.convertFromRadians(
+                            Utilities.DEGREES.convertToRadians(location.getHeading()));
+                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(String.format(
+                            getString(R.string.display_heading), headingInPreferredUnits, Utilities.getAngularUnitAbbreviation(angularUnitPreference)));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set heading text", t);
                 }
@@ -242,6 +244,7 @@ public class SquadLeaderActivity extends Activity
     private PositionReportController positionReportController;
     private ViewshedController viewshedController = null;
     private AddLayerDialogFragment addLayerDialogFragment = null;
+    private AddFeatureDialogFragment addFeatureDialogFragment = null;
     private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
@@ -455,7 +458,8 @@ public class SquadLeaderActivity extends Activity
                 public void handleMessage(Message msg) {
                     try {
                         if (null != msg.obj) {
-                            ((TextView) findViewById(R.id.textView_displayTime)).setText(getString(R.string.display_time) + msg.obj);
+                            ((TextView) findViewById(R.id.textView_displayTime)).setText(
+                                    String.format(getString(R.string.display_time), msg.obj));
                         }
                     } catch (Throwable t) {
                         Log.i(TAG, "Couldn't update time", t);
@@ -646,6 +650,13 @@ public class SquadLeaderActivity extends Activity
                     addLayerDialogFragment.setAddLayerFromFileRequestCode(ADD_LAYER_FROM_FILE);
                 }
                 addLayerDialogFragment.show(getFragmentManager(), getString(R.string.add_layer_fragment_tag));
+                return true;
+            case R.id.add_feature:
+                // Present Add Feature dialog
+                if (null == addFeatureDialogFragment) {
+                    addFeatureDialogFragment = new AddFeatureDialogFragment();
+                }
+                addFeatureDialogFragment.show(getFragmentManager(), getString(R.string.add_feature_fragment_tag));
                 return true;
             case R.id.clear_messages:
                 //Present Clear Messages dialog

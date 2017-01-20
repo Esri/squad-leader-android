@@ -185,4 +185,16 @@ public class Utilities extends com.esri.militaryapps.util.Utilities {
         }
     }
 
+    /**
+     * Returns the abbreviation for the specified angular unit. Sometimes getAbbreviation doesn't
+     * return the abbreviation you might expect. For example, it might return "deg" for degrees
+     * instead of returning the degrees symbol. This method offers better abbreviations for some
+     * angular units by calling com.esri.militaryapps.util.Utilities.getAngularUnitAbbreviation(int, String).
+     * @param angularUnit the angular unit
+     * @return the angular unit's preferred abbreviation.
+     */
+    public static String getAngularUnitAbbreviation(AngularUnit angularUnit) {
+        return getAngularUnitAbbreviation(angularUnit.getID(), angularUnit.getAbbreviation());
+    }
+
 }

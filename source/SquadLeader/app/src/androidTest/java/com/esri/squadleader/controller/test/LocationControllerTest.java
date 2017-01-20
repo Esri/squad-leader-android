@@ -23,22 +23,5 @@ import com.esri.core.geometry.AngularUnit;
 import com.esri.squadleader.controller.LocationController;
 
 public class LocationControllerTest extends AndroidTestCase {
-    
-    @Test
-    public void test001HeadingToString() {
-        final AngularUnit degreeUnit = (AngularUnit) AngularUnit.create(AngularUnit.Code.DEGREE);
-        
-        String expected = "180°";
-        String actual = LocationController.headingToString(180.0, degreeUnit, 0);
-        assertEquals(expected, actual);
-        
-        expected = "180.0°";
-        actual = LocationController.headingToString(180.0, degreeUnit, 1);
-        assertEquals(expected, actual);
-        
-        expected = "180.00°";
-        actual = LocationController.headingToString(180.0, degreeUnit, 2);
-        assertEquals(expected, actual);
-    }
 
 }
