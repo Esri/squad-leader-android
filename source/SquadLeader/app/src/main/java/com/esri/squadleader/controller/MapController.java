@@ -23,6 +23,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.esri.android.map.Callout;
 import com.esri.android.map.FeatureLayer;
@@ -458,8 +459,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                     }
                     featureLayer.setRenderer(renderer);
                     singleLayer = featureLayer;
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), e);
+                } catch (Throwable t) {
+                    Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), t);
+                    Toast.makeText(getContext(), "Could not add shapefile: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 break;
             }
