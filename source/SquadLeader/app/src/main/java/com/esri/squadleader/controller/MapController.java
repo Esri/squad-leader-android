@@ -692,6 +692,12 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     @Override
+    public double[] toScreenPoint(double mapX, double mapY) {
+        final Point screenPoint = mapView.toScreenPoint(new Point(mapX, mapY));
+        return null == screenPoint ? null : new double[] { screenPoint.getX(), screenPoint.getY() };
+    }
+
+    @Override
     public void setGridVisible(boolean visible) {
         mapView.getGrid().setVisibility(visible);
     }

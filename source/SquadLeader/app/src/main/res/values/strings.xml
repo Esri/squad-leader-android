@@ -93,4 +93,8 @@
     <string name="choose_file">Choose file</string>
     <string name="add_feature_fragment_tag">AddFeatureDialogFragment</string>
     <string name="add_feature">Add feature</string>
+    <string name="save">Save</string>
+    <string name="discard">Discard</string>
+    <string name="undo">Undo</string>
+    <string name="delete_point">Delete point</string>
 </resources>

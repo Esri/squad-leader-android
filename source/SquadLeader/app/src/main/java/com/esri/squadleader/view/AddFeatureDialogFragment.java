@@ -18,16 +18,33 @@ package com.esri.squadleader.view;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.esri.android.map.FeatureLayer;
+import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Layer;
+import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.core.geometry.MultiPath;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.Polygon;
+import com.esri.core.geometry.Polyline;
+import com.esri.core.map.Graphic;
+import com.esri.core.symbol.SimpleFillSymbol;
+import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.MapController;
 
@@ -36,9 +53,16 @@ import java.util.List;
 
 /**
  * A dialog for adding a feature to a feature table. An Activity that creates this dialog must implement
- * AddFeatureDialogFragment.MapControllerReturner in order to work properly.
+ * AddFeatureDialogFragment.MapControllerReturner in order to work properly.<br/>
+ * <br/>
+ * A lot of this code comes from the GeometryEditorActivity editor class in the ArcGIS Runtime SDK
+ * for Android samples.
  */
-public class AddFeatureDialogFragment extends DialogFragment implements View.OnClickListener {
+public class AddFeatureDialogFragment extends DialogFragment {
+
+    private enum EditMode {
+        NONE, POINT, POLYLINE, POLYGON, SAVING
+    }
 
     /**
      * A listener for this class to get a MapController for manipulating layers.
@@ -49,106 +73,95 @@ public class AddFeatureDialogFragment extends DialogFragment implements View.OnC
 
     }
 
+    private class EditingStates {
+        ArrayList<Point> points = new ArrayList<Point>();
+
+        boolean midPointSelected = false;
+
+        boolean vertexSelected = false;
+
+        int insertingIndex;
+
+        public EditingStates(ArrayList<Point> points, boolean midpointselected, boolean vertexselected, int insertingindex) {
+            this.points.addAll(points);
+            this.midPointSelected = midpointselected;
+            this.vertexSelected = vertexselected;
+            this.insertingIndex = insertingindex;
+        }
+    }
+
     public static final String ARG_FEATURE_LAYERS = "feature layers";
 
     private static final String TAG = AddFeatureDialogFragment.class.getSimpleName();
+    private static final SimpleMarkerSymbol redMarkerSymbol = new SimpleMarkerSymbol(Color.RED, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
+    private static final SimpleMarkerSymbol blackMarkerSymbol = new SimpleMarkerSymbol(Color.BLACK, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
+    private static final SimpleMarkerSymbol greenMarkerSymbol = new SimpleMarkerSymbol(Color.GREEN, 15, SimpleMarkerSymbol.STYLE.CIRCLE);
+
+    private final ArrayList<Point> points = new ArrayList<Point>();
+    private final ArrayList<EditingStates> editingStates = new ArrayList<EditingStates>();
+    private ArrayList<Point> midPoints = new ArrayList<Point>();
+    private final OnSingleTapListener editingListener = new OnSingleTapListener() {
+        @Override
+        public void onSingleTap(final float x, final float y) {
+            Point point = mapController.toMapPointObject(Math.round(x), Math.round(y));
+            if (editMode == EditMode.POINT) {
+                points.clear();
+            }
+            if (midPointSelected || vertexSelected) {
+                movePoint(point);
+            } else {
+                // If tap coincides with a mid-point, select that mid-point
+                int idx1 = getSelectedIndex(x, y, midPoints, mapController);
+                if (idx1 != -1) {
+                    midPointSelected = true;
+                    insertingIndex = idx1;
+                } else {
+                    // If tap coincides with a vertex, select that vertex
+                    int idx2 = getSelectedIndex(x, y, points, mapController);
+                    if (idx2 != -1) {
+                        vertexSelected = true;
+                        insertingIndex = idx2;
+                    } else {
+                        // No matching point above, add new vertex at tap point
+                        points.add(point);
+                        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
+                    }
+                }
+            }
+            refresh();
+        }
+    };
 
     private View fragmentView = null;
     private MapController mapController = null;
-
-//    /**
-//     * Sets the request code for adding a layer from a file.
-//     * @param requestCode
-//     */
-//    public void setAddLayerFromFileRequestCode(int requestCode) {
-//        this.addLayerFromFileRequestCode = requestCode;
-//    }
-
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-////        if (activity instanceof AddLayerListener) {
-////            listener = (AddLayerListener) activity;
-////        }
-//    }
-
-//    private void addLayerFromWeb(final boolean useAsBasemap, final String urlString) {
-//        new AsyncTask<Void, Void, LayerInfo[]>() {
-//
-//            @Override
-//            protected LayerInfo[] doInBackground(Void... params) {
-//                try {
-//                    return RestServiceReader.readService(new URL(urlString), useAsBasemap);
-//                } catch (final Exception e) {
-//                    Log.e(TAG, "Couldn't read and parse " + urlString, e);
-//                    if (e instanceof SSLHandshakeException) {
-//                        activity.runOnUiThread(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-//                                boolean foundCpve = false;
-//                                Throwable cause = e;
-//                                while (null != cause && !foundCpve) {
-//                                    if (cause instanceof CertPathValidatorException) {
-//                                        foundCpve = true;
-//                                    } else {
-//                                        cause = cause.getCause();
-//                                    }
-//                                }
-//                                if (!foundCpve) {
-//                                    Toast.makeText(activity, "Couldn't add layer from web: " + e.getClass().getName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
-//                                } else {
-//                                    Toast.makeText(activity, "Couldn't add layer: Untrusted certificate for " + urlString, Toast.LENGTH_LONG).show();
-//                                }
-//                            }
-//                        });
-//                        return null;
-//                    } else {
-//                        activity.runOnUiThread(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-//                                Toast.makeText(activity, "Couldn't add layer from web: " + e.getClass().getName() + ": " + e.getMessage(), Toast.LENGTH_LONG).show();
-//                            }
-//                        });
-//                        return null;
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            protected void onPostExecute(LayerInfo[] layerInfos) {
-//                if (null != layerInfos) {
-//                    listener.onValidLayerInfos(layerInfos);
-//                }
-//            };
-//
-//        }.execute((Void[]) null);
-//    }
+    private Menu editingMenu = null;
+    private EditMode editMode = EditMode.NONE;
+    private boolean midPointSelected = false;
+    private boolean vertexSelected = false;
+    private int insertingIndex;
+    private GraphicsLayer graphicsLayerEditing = null;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        if (null != listener) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final View inflatedView = inflater.inflate(R.layout.add_feature, null);
         fragmentView = inflatedView;
 
-//            inflatedView.findViewById(R.id.radioButton_fromFile).setOnClickListener(this);
-//            inflatedView.findViewById(R.id.radioButton_fromWeb).setOnClickListener(this);
-
         builder.setView(inflatedView);
         builder.setTitle(getString(R.string.add_feature));
 
-        ArrayList<String> list = new ArrayList<String>();
+        final ArrayList<String> layerNames = new ArrayList<String>();
+        final ArrayList<FeatureLayer> featureLayers = new ArrayList<FeatureLayer>();
         if (getActivity() instanceof MapControllerReturner) {
             mapController = ((MapControllerReturner) getActivity()).getMapController();
             if (null != mapController) {
-                final List<Layer> layers = mapController.getNonBasemapLayers();
+                List<Layer> layers = mapController.getNonBasemapLayers();
                 for (Layer layer : layers) {
                     if (layer instanceof FeatureLayer) {
                         FeatureLayer featureLayer = (FeatureLayer) layer;
-                        list.add(featureLayer.getName());
+                        layerNames.add(featureLayer.getName());
+                        featureLayers.add(featureLayer);
                     }
                 }
             }
@@ -156,77 +169,322 @@ public class AddFeatureDialogFragment extends DialogFragment implements View.OnC
             Log.w(TAG, "Activity must implement this dialog class's MapControllerReturner interface, but " + getActivity().getClass().getName() + " does not");
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.layer_list_item, list);
-        ((ListView) inflatedView.findViewById(R.id.listView_layersToEdit)).setAdapter(adapter);
-//            builder.setNegativeButton(R.string.cancel, null);
-//            builder.setPositiveButton(R.string.add_feature, new DialogInterface.OnClickListener() {
-//
-//                public void onClick(DialogInterface dialog, int which) {
-////                    if (((RadioButton) inflatedView.findViewById(R.id.radioButton_fromFile)).isChecked()) {
-////                        //Add from file
-////                        Intent getContentIntent = FileUtils.createGetContentIntent();
-////                        Intent intent = Intent.createChooser(getContentIntent, "Select a file");
-////                        getActivity().startActivityForResult(intent, addLayerFromFileRequestCode);
-////                    } else {
-////                        //Add from web
-////                        boolean useAsBasemap = false;
-////                        View checkboxView = inflatedView.findViewById(R.id.checkBox_basemap);
-////                        if (null != checkboxView && checkboxView instanceof CheckBox) {
-////                            useAsBasemap = ((CheckBox) checkboxView).isChecked();
-////                        }
-////
-////                        View serviceUrlView = inflatedView.findViewById(R.id.editText_serviceUrl);
-////                        if (null != serviceUrlView && serviceUrlView instanceof EditText) {
-////                            final String urlString = ((EditText) serviceUrlView).getText().toString();
-////                            addLayerFromWeb(useAsBasemap, urlString);
-////                        }
-////                    }
-//                }
-//            });
-            return builder.create();
-//        } else {
-//            return null;
-//        }
+        ArrayAdapter<FeatureLayer> adapter = new ArrayAdapter<FeatureLayer>(getActivity(), R.layout.layer_list_item, featureLayers) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView dropDownView = (TextView) getDropDownView(position, convertView, parent);
+                dropDownView.setText(getItem(position).getName());
+                return dropDownView;
+            }
+        };
+        ListView listView_layersToEdit = (ListView) inflatedView.findViewById(R.id.listView_layersToEdit);
+        listView_layersToEdit.setAdapter(adapter);
+        listView_layersToEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                getActivity().startActionMode(new ActionMode.Callback() {
+                    private final FeatureLayer layerToEdit = featureLayers.get(position);
+
+                    @Override
+                    public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                        actionMode.getMenuInflater().inflate(R.menu.add_feature_context_menu, menu);
+                        actionMode.setTitle(layerNames.get(position));
+                        editingMenu = menu;
+
+                        switch (layerToEdit.getGeometryType()) {
+                            case MULTIPOINT:
+                            case POINT:
+                                editMode = EditMode.POINT;
+                                break;
+                            case LINE:
+                            case POLYLINE:
+                                editMode = EditMode.POLYLINE;
+                                break;
+                            case ENVELOPE:
+                            case POLYGON:
+                                editMode = EditMode.POLYGON;
+                                break;
+                            default:
+                                editMode = EditMode.NONE;
+                                discard();
+                                dismiss();
+                        }
+                        updateActionBar();
+
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                        editingMenu = menu;
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                        boolean returnValue = false;
+                        switch (menuItem.getItemId()) {
+                            case R.id.save:
+                                Log.i(TAG, "TODO save");
+                                actionMode.finish();
+                                returnValue = true;
+                                break;
+
+                            case R.id.delete_point:
+                                Log.i(TAG, "TODO delete point");
+                                returnValue = true;
+                                break;
+
+                            case R.id.undo:
+                                actionUndo();
+                                returnValue = true;
+                                break;
+                        }
+                        updateActionBar();
+                        return returnValue;
+                    }
+
+                    @Override
+                    public void onDestroyActionMode(ActionMode actionMode) {
+                        discard();
+                    }
+                });
+                dismiss();
+            }
+        });
+
+        return builder.create();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (requestCode == addLayerFromFileRequestCode) {
-//            if (resultCode == Activity.RESULT_OK) {
-//                final Uri uri = data.getData();
-//                File file = new File(FileUtils.getPath(activity.getApplicationContext(), uri));
-//                LayerInfo[] layerInfos = new LayerInfo[1];
-//                layerInfos[0] = new LayerInfo();
-//                layerInfos[0].setDatasetPath(file.getAbsolutePath());
-//                final LayerType layerType = file.getAbsolutePath().toLowerCase().endsWith(".gpkg") ? LayerType.GEOPACKAGE
-//                        : file.getAbsolutePath().toLowerCase().endsWith(".shp") ? LayerType.SHAPEFILE
-//                        : LayerType.MIL2525C_MESSAGE;
-//                if (LayerType.GEOPACKAGE == layerType) {
-//                    layerInfos[0].setShowVectors(true);
-//                    layerInfos[0].setShowRasters(true);
-//                }
-//                layerInfos[0].setLayerType(layerType);
-//                layerInfos[0].setName(file.getName());
-//                layerInfos[0].setVisible(true);
-//                listener.onValidLayerInfos(layerInfos);
-//            }
-//        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-//        }
+    private void discard() {
+        points.clear();
+        editingStates.clear();
+        editMode = EditMode.NONE;
+        midPointSelected = false;
+        mapController.removeLayer(graphicsLayerEditing);
+        graphicsLayerEditing = null;
+        mapController.setOnSingleTapListener(null);
     }
 
-    @Override
-    public void onClick(View view) {
-//        switch (view.getId()) {
-//            case R.id.radioButton_fromFile:
-//                fragmentView.findViewById(R.id.layout_fromWeb).setVisibility(View.GONE);
-//                ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_POSITIVE).setText(getText(R.string.choose_file));
-//                break;
-//
-//            case R.id.radioButton_fromWeb:
-//                fragmentView.findViewById(R.id.layout_fromWeb).setVisibility(View.VISIBLE);
-//                ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_POSITIVE).setText(getText(R.string.add_layer));
-//                break;
-//        }
+    private void updateActionBar() {
+        if (editMode == EditMode.NONE || editMode == EditMode.SAVING) {
+            // We are not editing
+            discard();
+        } else {
+            // We are editing
+            showAction(R.id.save, isSaveValid());
+            showAction(R.id.delete_point, editMode != EditMode.POINT && points.size() > 0 && !midPointSelected);
+            showAction(R.id.undo, editingStates.size() > 0);
+            mapController.setOnSingleTapListener(editingListener);
+        }
     }
+
+    private void refresh() {
+        if (graphicsLayerEditing != null) {
+            graphicsLayerEditing.removeAll();
+        }
+        drawPolylineOrPolygon();
+        drawMidPoints();
+        drawVertices();
+
+        updateActionBar();
+    }
+
+    private boolean isSaveValid() {
+        int minPoints;
+        switch (editMode) {
+            case POINT:
+                minPoints = 1;
+                break;
+            case POLYGON:
+                minPoints = 3;
+                break;
+            case POLYLINE:
+                minPoints = 2;
+                break;
+            default:
+                return false;
+        }
+        return points.size() >= minPoints;
+    }
+
+    private void drawPolylineOrPolygon() {
+        Graphic graphic;
+        MultiPath multipath;
+
+        // Create and add graphics layer if it doesn't already exist
+        if (graphicsLayerEditing == null) {
+            graphicsLayerEditing = new GraphicsLayer();
+            mapController.addLayer(graphicsLayerEditing);
+        }
+
+        if (points.size() > 1) {
+
+            // Build a MultiPath containing the vertices
+            if (editMode == EditMode.POLYLINE) {
+                multipath = new Polyline();
+            } else {
+                multipath = new Polygon();
+            }
+            multipath.startPath(points.get(0));
+            for (int i = 1; i < points.size(); i++) {
+                multipath.lineTo(points.get(i));
+            }
+
+            // Draw it using a line or fill symbol
+            if (editMode == EditMode.POLYLINE) {
+                graphic = new Graphic(multipath, new SimpleLineSymbol(Color.BLACK, 4));
+            } else {
+                SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol(Color.YELLOW);
+                simpleFillSymbol.setAlpha(100);
+                simpleFillSymbol.setOutline(new SimpleLineSymbol(Color.BLACK, 4));
+                graphic = new Graphic(multipath, (simpleFillSymbol));
+            }
+            graphicsLayerEditing.addGraphic(graphic);
+        }
+    }
+
+    private void drawMidPoints() {
+        int index;
+        Graphic graphic;
+
+        midPoints.clear();
+        if (points.size() > 1) {
+
+            // Build new list of mid-points
+            for (int i = 1; i < points.size(); i++) {
+                Point p1 = points.get(i - 1);
+                Point p2 = points.get(i);
+                midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+            }
+            if (editMode == EditMode.POLYGON && points.size() > 2) {
+                // Complete the circle
+                Point p1 = points.get(0);
+                Point p2 = points.get(points.size() - 1);
+                midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+            }
+
+            // Draw the mid-points
+            index = 0;
+            for (Point pt : midPoints) {
+                if (midPointSelected && insertingIndex == index) {
+                    graphic = new Graphic(pt, redMarkerSymbol);
+                } else {
+                    graphic = new Graphic(pt, greenMarkerSymbol);
+                }
+                graphicsLayerEditing.addGraphic(graphic);
+                index++;
+            }
+        }
+    }
+
+    private void drawVertices() {
+        int index = 0;
+        SimpleMarkerSymbol symbol;
+
+        for (Point pt : points) {
+            if (vertexSelected && index == insertingIndex) {
+                // This vertex is currently selected so make it red
+                symbol = redMarkerSymbol;
+            } else if (index == points.size() - 1 && !midPointSelected && !vertexSelected) {
+                // Last vertex and none currently selected so make it red
+                symbol = redMarkerSymbol;
+            } else {
+                // Otherwise make it black
+                symbol = blackMarkerSymbol;
+            }
+            Graphic graphic = new Graphic(pt, symbol);
+            graphicsLayerEditing.addGraphic(graphic);
+            index++;
+        }
+    }
+
+    private void showAction(int resId, boolean show) {
+        if (null != editingMenu) {
+            MenuItem item = editingMenu.findItem(resId);
+            item.setVisible(show);
+        }
+    }
+
+    private void movePoint(Point point) {
+        if (midPointSelected) {
+            // Move mid-point to the new location and make it a vertex
+            points.add(insertingIndex + 1, point);
+        } else {
+            // Must be a vertex: move it to the new location
+            ArrayList<Point> temp = new ArrayList<Point>();
+            for (int i = 0; i < points.size(); i++) {
+                if (i == insertingIndex) {
+                    temp.add(point);
+                } else {
+                    temp.add(points.get(i));
+                }
+            }
+            points.clear();
+            points.addAll(temp);
+        }
+        // Go back to the normal drawing mode and save the new editing state
+        midPointSelected = false;
+        vertexSelected = false;
+        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
+    }
+
+    /**
+     * Checks if a given location coincides (within a tolerance) with a point in a given array.
+     *
+     * @param x Screen coordinate of location to check.
+     * @param y Screen coordinate of location to check.
+     * @param points Array of points to check.
+     * @param mapController the MapController for the editing app.
+     * @return Index within points of matching point, or -1 if none.
+     */
+    private int getSelectedIndex(double x, double y, ArrayList<Point> points, MapController mapController) {
+        final int TOLERANCE = 40; // Tolerance in pixels
+
+        if (points == null || points.size() == 0) {
+            return -1;
+        }
+
+        // Find closest point
+        int index = -1;
+        double distSQ_Small = Double.MAX_VALUE;
+        for (int i = 0; i < points.size(); i++) {
+            Point mapPoint = points.get(i);
+            double[] screenCoords = mapController.toScreenPoint(mapPoint.getX(), mapPoint.getY());
+            Point p = new Point(screenCoords[0], screenCoords[1]);
+            double diffx = p.getX() - x;
+            double diffy = p.getY() - y;
+            double distSQ = diffx * diffx + diffy * diffy;
+            if (distSQ < distSQ_Small) {
+                index = i;
+                distSQ_Small = distSQ;
+            }
+        }
+
+        // Check if it's close enough
+        if (distSQ_Small < (TOLERANCE * TOLERANCE)) {
+            return index;
+        }
+        return -1;
+    }
+
+    private void actionUndo() {
+        editingStates.remove(editingStates.size() - 1);
+        points.clear();
+        if (editingStates.size() == 0) {
+            midPointSelected = false;
+            vertexSelected = false;
+            insertingIndex = 0;
+        } else {
+            EditingStates state = editingStates.get(editingStates.size() - 1);
+            points.addAll(state.points);
+            Log.d(TAG, "# of points = " + points.size());
+            midPointSelected = state.midPointSelected;
+            vertexSelected = state.vertexSelected;
+            insertingIndex = state.insertingIndex;
+        }
+        refresh();
+    }
+
 }
