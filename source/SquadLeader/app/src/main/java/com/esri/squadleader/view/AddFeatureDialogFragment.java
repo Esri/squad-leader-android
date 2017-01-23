@@ -232,7 +232,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                                 break;
 
                             case R.id.delete_point:
-                                Log.i(TAG, "TODO delete point");
+                                actionDeletePoint();
                                 returnValue = true;
                                 break;
 
@@ -484,6 +484,18 @@ public class AddFeatureDialogFragment extends DialogFragment {
             vertexSelected = state.vertexSelected;
             insertingIndex = state.insertingIndex;
         }
+        refresh();
+    }
+
+    private void actionDeletePoint() {
+        if (!vertexSelected) {
+            points.remove(points.size() - 1); // remove last vertex
+        } else {
+            points.remove(insertingIndex); // remove currently selected vertex
+        }
+        midPointSelected = false;
+        vertexSelected = false;
+        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
         refresh();
     }
 
