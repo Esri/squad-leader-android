@@ -4,6 +4,8 @@ This project uses military-apps-library-java and aFileChooser. Use of these libr
 
 This project uses the JSON Java library available at http://www.json.org/java/index.html. Use of the JSON library is governed by the JSON License.
 
+- Some icons come from Google's [Material Design](https://material.io/icons/), and use of those icons is governed by the Apache License 2.0.
+
 The details of these licenses are provided below.
 
 ***************************
