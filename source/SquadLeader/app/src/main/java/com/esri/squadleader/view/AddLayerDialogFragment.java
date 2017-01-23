@@ -204,8 +204,10 @@ public class AddLayerDialogFragment extends DialogFragment implements View.OnCli
                         : file.getAbsolutePath().toLowerCase().endsWith(".shp") ? LayerType.SHAPEFILE
                         : LayerType.MIL2525C_MESSAGE;
                 if (LayerType.GEOPACKAGE == layerType) {
+                    // TODO ask the user if they want vectors, rasters, and/or editable.
                     layerInfos[0].setShowVectors(true);
                     layerInfos[0].setShowRasters(true);
+                    layerInfos[0].setEditable(true);
                 }
                 layerInfos[0].setLayerType(layerType);
                 layerInfos[0].setName(file.getName());
