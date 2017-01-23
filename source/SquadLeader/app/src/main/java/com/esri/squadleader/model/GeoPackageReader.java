@@ -113,7 +113,7 @@ public class GeoPackageReader {
                 src.project(sr);
             }
             RasterLayer rasterLayer = new RasterLayer(src);
-            rasterLayer.setRenderer(RGB_RENDERER);
+            rasterLayer.setRenderer(rasterRenderer);
             rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
             layers.add(rasterLayer);
         }
