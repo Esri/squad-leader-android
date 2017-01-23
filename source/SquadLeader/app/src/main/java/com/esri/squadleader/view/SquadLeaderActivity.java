@@ -63,7 +63,6 @@ import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
-import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
@@ -88,7 +87,7 @@ import java.util.UUID;
  * controls.
  */
 public class SquadLeaderActivity extends Activity
-        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper {
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -570,7 +569,8 @@ public class SquadLeaderActivity extends Activity
             }
         }
     }
-    
+
+    @Override
     public MapController getMapController() {
         return mapController;
     }
