@@ -48,6 +48,14 @@ To build the app from source:
 
 ## Release Notes
 
+### 5.0.0
+
+#### What's New in Squad Leader 5.0.0
+* Uses ArcGIS Runtime 10.2.8-1
+* Added GeoPackage layer type
+* Added feature editing for any FeatureLayer that has an editable FeatureTable, such as GeoPackages and feature services
+* Various minor improvements and refactoring
+
 ### 4.0.0
 
 #### What's New in Squad Leader 4.0.0
