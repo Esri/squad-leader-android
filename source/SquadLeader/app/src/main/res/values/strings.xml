@@ -94,6 +94,8 @@
     <string name="add_feature_fragment_tag">AddFeatureDialogFragment</string>
     <string name="add_feature">Add feature</string>
     <string name="save">Save</string>
+    <string name="saved">Saved</string>
+    <string name="save_failed">Save failed</string>
     <string name="discard">Discard</string>
     <string name="undo">Undo</string>
     <string name="delete_point">Delete point</string>
