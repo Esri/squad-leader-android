@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2015 Esri
+ * Copyright 2013-2017 Esri
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import android.util.Log;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.squadleader.R;
 
-import java.util.Iterator;
-
 /**
  * An Activity that lets the user modify application settings. This class works
  * with res/xml/preferences.xml.
@@ -41,43 +39,83 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
     
     private static final String TAG = SettingsActivity.class.getSimpleName();
 
-    private PreferenceFragment fragment = null;
+    public static class SettingsPreferenceFragment extends PreferenceFragment {
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.preferences);
+            updateSummaries();
+        }
+
+        private void updateSummaries() {
+            SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+            for (String key : sp.getAll().keySet()) {
+                updateSummary(key, sp);
+            }
+        }
+
+        private void updateSummary(String key) {
+            SharedPreferences sp = getPreferenceScreen().getSharedPreferences();
+            updateSummary(key, sp);
+        }
+
+        private void updateSummary(String key, SharedPreferences sp) {
+            Preference pref = findPreference(key);
+            if (key.equals(getString(R.string.pref_angularUnits))) {
+                ListPreference listPref = (ListPreference) pref;
+                try {
+                    AngularUnit unit = (AngularUnit) AngularUnit.create(Integer.parseInt(listPref.getValue()));
+                    pref.setSummary(unit.getDisplayName());
+                } catch (Throwable t) {
+                    Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
+                }
+            } else if (key.equals(getString(R.string.pref_messagePort))
+                    || key.equals(getString(R.string.pref_username))
+                    || key.equals(getString(R.string.pref_vehicleType))
+                    || key.equals(getString(R.string.pref_sic))
+                    || key.equals(getString(R.string.pref_uniqueId))) {
+                EditTextPreference editTextPref = (EditTextPreference) pref;
+                pref.setSummary(editTextPref.getText());
+            } else if (key.equals(getString(R.string.pref_positionReportPeriod))) {
+                EditTextPreference editTextPref = (EditTextPreference) pref;
+                pref.setSummary(editTextPref.getText() + getString(R.string.pref_positionReportPeriod_summary));
+            } else if (key.equals(getString(R.string.pref_viewshedObserverHeight))) {
+                EditTextPreference editTextPref = (EditTextPreference) pref;
+                pref.setSummary(editTextPref.getText() + getString(R.string.pref_viewshedObserverHeight_summary));
+            }
+        }
+
+        @Override
+        public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+            if (getString(R.string.pref_resetApp).equals(preference.getKey())) {
+                new AlertDialog.Builder(getActivity())
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setMessage(R.string.reset_map)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                getActivity().getIntent().putExtra(getString(R.string.pref_resetApp), true);
+                                getActivity().setResult(RESULT_OK, getActivity().getIntent());
+                            }
+
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+                return true;
+            } else {
+                return super.onPreferenceTreeClick(preferenceScreen, preference);
+            }
+        }
+    }
+
+    private SettingsPreferenceFragment fragment = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fragment = new PreferenceFragment() {
-
-            @Override
-            public void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                addPreferencesFromResource(R.xml.preferences);
-                updateSummaries();
-            }
-
-            @Override
-            public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-                if (getString(R.string.pref_resetApp).equals(preference.getKey())) {
-                    new AlertDialog.Builder(SettingsActivity.this)
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setMessage(R.string.reset_map)
-                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    getIntent().putExtra(getString(R.string.pref_resetApp), true);
-                                    setResult(RESULT_OK, getIntent());
-                                }
-
-                            })
-                            .setNegativeButton(R.string.cancel, null)
-                            .show();
-                    return true;
-                } else {
-                    return super.onPreferenceTreeClick(preferenceScreen, preference);
-                }
-            }
-        };
+        fragment = new SettingsPreferenceFragment();
         getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
     }
     
@@ -95,47 +133,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
     
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        updateSummary(key);
-    }
-    
-    private void updateSummaries() {
-        SharedPreferences sp = fragment.getPreferenceScreen().getSharedPreferences();
-        Iterator<String> keys = sp.getAll().keySet().iterator();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            updateSummary(key, sp);
-        }
-    }
-
-    private void updateSummary(String key) {
-        SharedPreferences sp = fragment.getPreferenceScreen().getSharedPreferences();
-        updateSummary(key, sp);
-    }
-    
-    private void updateSummary(String key, SharedPreferences sp) {
-        Preference pref = fragment.findPreference(key);
-        if (key.equals(getString(R.string.pref_angularUnits))) {
-            ListPreference listPref = (ListPreference) pref;
-            try {
-                AngularUnit unit = (AngularUnit) AngularUnit.create(Integer.parseInt(listPref.getValue()));
-                pref.setSummary(unit.getDisplayName());
-            } catch (Throwable t) {
-                Log.i(TAG, "Couldn't get " + getString(R.string.pref_angularUnits) + " value", t);
-            }
-        } else if (key.equals(getString(R.string.pref_messagePort))
-                || key.equals(getString(R.string.pref_username))
-                || key.equals(getString(R.string.pref_vehicleType))
-                || key.equals(getString(R.string.pref_sic))
-                || key.equals(getString(R.string.pref_uniqueId))) {
-            EditTextPreference editTextPref = (EditTextPreference) pref;
-            pref.setSummary(editTextPref.getText());
-        } else if (key.equals(getString(R.string.pref_positionReportPeriod))) {
-            EditTextPreference editTextPref = (EditTextPreference) pref;
-            pref.setSummary(editTextPref.getText() + getString(R.string.pref_positionReportPeriod_summary));
-        } else if (key.equals(getString(R.string.pref_viewshedObserverHeight))) {
-            EditTextPreference editTextPref = (EditTextPreference) pref;
-            pref.setSummary(editTextPref.getText() + getString(R.string.pref_viewshedObserverHeight_summary));
-        }
+        fragment.updateSummary(key);
     }
     
 }

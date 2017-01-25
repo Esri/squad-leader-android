@@ -54,6 +54,7 @@ Layer type should be one of the following:
 
 - DynamicMapServiceLayer (dynamic map service)
 - FeatureServiceLayer (feature service; either an entire feature service like ".../FeatureServer" or a single layer like ".../FeatureServer/42")
+- GeoPackage (OGC GeoPackage)
 - ImageServiceLayer (image service)
 - Mil2525CMessageLayer (GeoMessages file; see below for details on [adding a layer](#add-a-layer))
 - TiledCacheLayer (file:/// URL to a local TPK or compact cache)

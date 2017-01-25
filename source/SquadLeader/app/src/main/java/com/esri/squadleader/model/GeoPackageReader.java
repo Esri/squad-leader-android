@@ -39,8 +39,6 @@ import java.util.Set;
  */
 public class GeoPackageReader {
 
-    private static final RGBRenderer RGB_RENDERER = new RGBRenderer();
-
     private static GeoPackageReader instance = new GeoPackageReader();
 
     /**
@@ -113,7 +111,7 @@ public class GeoPackageReader {
                 src.project(sr);
             }
             RasterLayer rasterLayer = new RasterLayer(src);
-            rasterLayer.setRenderer(RGB_RENDERER);
+            rasterLayer.setRenderer(rasterRenderer);
             rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
             layers.add(rasterLayer);
         }

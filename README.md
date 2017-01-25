@@ -48,6 +48,14 @@ To build the app from source:
 
 ## Release Notes
 
+### 5.0.0
+
+#### What's New in Squad Leader 5.0.0
+* Uses ArcGIS Runtime 10.2.8-1
+* Added GeoPackage layer type
+* Added feature editing for any FeatureLayer that has an editable FeatureTable, such as GeoPackages and feature services
+* Various minor improvements and refactoring
+
 ### 4.0.0
 
 #### What's New in Squad Leader 4.0.0
@@ -175,7 +183,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 ## Licensing
 
-Copyright 2013-2015 Esri
+Copyright 2013-2017 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
@@ -189,9 +197,10 @@ Portions of this code use other Esri libraries, also governed by the Apache Lice
 
 - military-apps-library-java
 
-Portions of this code use third-party libraries:
+Portions of this code use third-party libraries and other materials:
 
 - Use of aFileChooser is governed by the Apache License.
+- Some icons come from Google's [Material Design](https://material.io/icons/), and use of those icons is governed by the Apache License.
 - Use of the JSON Java library available at http://www.json.org/java/index.html is governed by the JSON License.
 
 See [license-ThirdParty.txt](license-ThirdParty.txt) for the details of these licenses.

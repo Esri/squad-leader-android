@@ -23,6 +23,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.esri.android.map.Callout;
 import com.esri.android.map.FeatureLayer;
@@ -85,7 +86,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * A controller for the MapView object used in the application.
  */
 public class MapController extends com.esri.militaryapps.controller.MapController {
-    
+
     private static class LocationChangeHandler extends Handler {
         
         public static final String KEY_MAPX = "mapx";
@@ -210,6 +211,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      * Releases certain resources. Be sure to call this method when you're done with a MapController.
      */
     public void dispose() {
+        for (Layer layer : mapView.getLayers()) {
+            layer.recycle();
+        }
         mapView.removeAll();
         for (ShapefileFeatureTable table : shapefileFeatureTables) {
             table.dispose();
@@ -455,8 +459,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                     }
                     featureLayer.setRenderer(renderer);
                     singleLayer = featureLayer;
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), e);
+                } catch (Throwable t) {
+                    Log.e(TAG, "Could not add shapefile " + layerInfo.getDatasetPath(), t);
+                    Toast.makeText(getContext(), "Could not add shapefile: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 break;
             }
@@ -687,6 +692,12 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     }
 
     @Override
+    public double[] toScreenPoint(double mapX, double mapY) {
+        final Point screenPoint = mapView.toScreenPoint(new Point(mapX, mapY));
+        return null == screenPoint ? null : new double[] { screenPoint.getX(), screenPoint.getY() };
+    }
+
+    @Override
     public void setGridVisible(boolean visible) {
         mapView.getGrid().setVisibility(visible);
     }
@@ -912,6 +923,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     
     public Callout getCallout() {
         return mapView.getCallout();
+    }
+
+    public void setShowMagnifierOnLongPress(boolean showMagnifier) {
+        mapView.setShowMagnifierOnLongPress(showMagnifier);
     }
 
 }

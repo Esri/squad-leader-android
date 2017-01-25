@@ -63,7 +63,6 @@ import com.esri.militaryapps.model.MapConfig;
 import com.esri.militaryapps.model.SpotReport;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.AdvancedSymbolController;
-import com.esri.squadleader.controller.LocationController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
@@ -88,7 +87,7 @@ import java.util.UUID;
  * controls.
  */
 public class SquadLeaderActivity extends Activity
-        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper {
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
     
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -128,7 +127,7 @@ public class SquadLeaderActivity extends Activity
                 try {
                     TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
                     String mgrs = mapController.pointToMgrs(new Point(location.getLongitude(), location.getLatitude()), SR);
-                    locationView.setText(getString(R.string.display_location) + mgrs);
+                    locationView.setText(String.format(getString(R.string.display_location), mgrs));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set location text", t);
                 }
@@ -143,13 +142,15 @@ public class SquadLeaderActivity extends Activity
                         speedMph = distanceInMiles / timeInHours;
                     }
                     ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
-                            getString(R.string.display_speed) + Double.toString(Math.round(10.0 * speedMph) / 10.0) + " mph");
+                            String.format(getString(R.string.display_speed), speedMph));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set speed text", t);
                 }
                 try {
-                    String headingString = LocationController.headingToString(location.getHeading(), angularUnitPreference, 0);
-                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(getString(R.string.display_heading) + headingString);
+                    double headingInPreferredUnits = angularUnitPreference.convertFromRadians(
+                            Utilities.DEGREES.convertToRadians(location.getHeading()));
+                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(String.format(
+                            getString(R.string.display_heading), headingInPreferredUnits, Utilities.getAngularUnitAbbreviation(angularUnitPreference)));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set heading text", t);
                 }
@@ -242,6 +243,7 @@ public class SquadLeaderActivity extends Activity
     private PositionReportController positionReportController;
     private ViewshedController viewshedController = null;
     private AddLayerDialogFragment addLayerDialogFragment = null;
+    private AddFeatureDialogFragment addFeatureDialogFragment = null;
     private ClearMessagesDialogFragment clearMessagesDialogFragment = null;
     private GoToMgrsDialogFragment goToMgrsDialogFragment = null;
     private boolean wasFollowMeBeforeMgrs = false;
@@ -277,8 +279,12 @@ public class SquadLeaderActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        ArcGISRuntime.setClientId(getString(R.string.clientId));
+
+        try {
+            ArcGISRuntime.setClientId(getString(R.string.clientId));
+        } catch (Throwable t) {
+            Log.w(TAG, null, t);
+        }
         ArcGISRuntime.License.setLicense(getString(R.string.licenseString));
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
@@ -455,7 +461,8 @@ public class SquadLeaderActivity extends Activity
                 public void handleMessage(Message msg) {
                     try {
                         if (null != msg.obj) {
-                            ((TextView) findViewById(R.id.textView_displayTime)).setText(getString(R.string.display_time) + msg.obj);
+                            ((TextView) findViewById(R.id.textView_displayTime)).setText(
+                                    String.format(getString(R.string.display_time), msg.obj));
                         }
                     } catch (Throwable t) {
                         Log.i(TAG, "Couldn't update time", t);
@@ -566,7 +573,8 @@ public class SquadLeaderActivity extends Activity
             }
         }
     }
-    
+
+    @Override
     public MapController getMapController() {
         return mapController;
     }
@@ -646,6 +654,13 @@ public class SquadLeaderActivity extends Activity
                     addLayerDialogFragment.setAddLayerFromFileRequestCode(ADD_LAYER_FROM_FILE);
                 }
                 addLayerDialogFragment.show(getFragmentManager(), getString(R.string.add_layer_fragment_tag));
+                return true;
+            case R.id.add_feature:
+                // Present Add Feature dialog
+                if (null == addFeatureDialogFragment) {
+                    addFeatureDialogFragment = new AddFeatureDialogFragment();
+                }
+                addFeatureDialogFragment.show(getFragmentManager(), getString(R.string.add_feature_fragment_tag));
                 return true;
             case R.id.clear_messages:
                 //Present Clear Messages dialog

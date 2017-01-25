@@ -4,6 +4,10 @@
         android:icon="@drawable/ic_add_content"
         android:title="@string/add_layer"
         android:showAsAction="ifRoom" />
+    <item android:id="@+id/add_feature"
+        android:icon="@drawable/ic_action_new"
+        android:title="@string/add_feature"
+        android:showAsAction="ifRoom" />
     <item android:id="@+id/clear_messages"
         android:icon="@drawable/ic_action_discard"
         android:title="@string/clear_messages"
