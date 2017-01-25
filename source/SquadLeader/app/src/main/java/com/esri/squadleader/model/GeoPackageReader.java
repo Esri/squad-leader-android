@@ -39,8 +39,6 @@ import java.util.Set;
  */
 public class GeoPackageReader {
 
-    private static final RGBRenderer RGB_RENDERER = new RGBRenderer();
-
     private static GeoPackageReader instance = new GeoPackageReader();
 
     /**
