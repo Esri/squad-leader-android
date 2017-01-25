@@ -86,7 +86,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * A controller for the MapView object used in the application.
  */
 public class MapController extends com.esri.militaryapps.controller.MapController {
-    
+
     private static class LocationChangeHandler extends Handler {
         
         public static final String KEY_MAPX = "mapx";
@@ -923,6 +923,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     
     public Callout getCallout() {
         return mapView.getCallout();
+    }
+
+    public void setShowMagnifierOnLongPress(boolean showMagnifier) {
+        mapView.setShowMagnifierOnLongPress(showMagnifier);
     }
 
 }

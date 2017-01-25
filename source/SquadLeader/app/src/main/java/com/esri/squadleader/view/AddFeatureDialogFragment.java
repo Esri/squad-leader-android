@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -32,19 +33,27 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.esri.android.map.FeatureLayer;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.core.geodatabase.GeodatabaseFeatureTable;
+import com.esri.core.geodatabase.GeopackageFeatureTable;
+import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.MultiPath;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polygon;
 import com.esri.core.geometry.Polyline;
+import com.esri.core.map.Feature;
+import com.esri.core.map.FeatureEditResult;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.table.FeatureTable;
+import com.esri.core.table.TableException;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.MapController;
 
@@ -96,6 +105,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private static final SimpleMarkerSymbol redMarkerSymbol = new SimpleMarkerSymbol(Color.RED, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
     private static final SimpleMarkerSymbol blackMarkerSymbol = new SimpleMarkerSymbol(Color.BLACK, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
     private static final SimpleMarkerSymbol greenMarkerSymbol = new SimpleMarkerSymbol(Color.GREEN, 15, SimpleMarkerSymbol.STYLE.CIRCLE);
+    private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
     private final ArrayList<Point> points = new ArrayList<Point>();
     private final ArrayList<EditingStates> editingStates = new ArrayList<EditingStates>();
@@ -132,7 +142,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
     };
 
-    private View fragmentView = null;
+    private Activity activity = null;
     private MapController mapController = null;
     private Menu editingMenu = null;
     private EditMode editMode = EditMode.NONE;
@@ -143,33 +153,35 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        activity = getActivity();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         final View inflatedView = inflater.inflate(R.layout.add_feature, null);
-        fragmentView = inflatedView;
 
         builder.setView(inflatedView);
         builder.setTitle(getString(R.string.add_feature));
 
         final ArrayList<String> layerNames = new ArrayList<String>();
         final ArrayList<FeatureLayer> featureLayers = new ArrayList<FeatureLayer>();
-        if (getActivity() instanceof MapControllerReturner) {
-            mapController = ((MapControllerReturner) getActivity()).getMapController();
+        if (activity instanceof MapControllerReturner) {
+            mapController = ((MapControllerReturner) activity).getMapController();
             if (null != mapController) {
                 List<Layer> layers = mapController.getNonBasemapLayers();
                 for (Layer layer : layers) {
                     if (layer instanceof FeatureLayer) {
                         FeatureLayer featureLayer = (FeatureLayer) layer;
-                        layerNames.add(featureLayer.getName());
-                        featureLayers.add(featureLayer);
+                        if (featureLayer.getFeatureTable().isEditable()) {
+                            layerNames.add(featureLayer.getName());
+                            featureLayers.add(featureLayer);
+                        }
                     }
                 }
             }
         } else {
-            Log.w(TAG, "Activity must implement this dialog class's MapControllerReturner interface, but " + getActivity().getClass().getName() + " does not");
+            Log.w(TAG, "Activity must implement this dialog class's MapControllerReturner interface, but " + activity.getClass().getName() + " does not");
         }
 
-        ArrayAdapter<FeatureLayer> adapter = new ArrayAdapter<FeatureLayer>(getActivity(), R.layout.layer_list_item, featureLayers) {
+        ArrayAdapter<FeatureLayer> adapter = new ArrayAdapter<FeatureLayer>(activity, R.layout.layer_list_item, featureLayers) {
             @NonNull
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -183,7 +195,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         listView_layersToEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                getActivity().startActionMode(new ActionMode.Callback() {
+                activity.startActionMode(new ActionMode.Callback() {
                     private final FeatureLayer layerToEdit = featureLayers.get(position);
 
                     @Override
@@ -212,6 +224,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
                         }
                         updateActionBar();
 
+                        mapController.setShowMagnifierOnLongPress(true);
+
                         return true;
                     }
 
@@ -226,7 +240,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
                         boolean returnValue = false;
                         switch (menuItem.getItemId()) {
                             case R.id.save:
-                                Log.i(TAG, "TODO save");
+                                try {
+                                    actionSave(layerToEdit);
+                                } catch (TableException e) {
+                                    Log.e(TAG, "Couldn't save edits", e);
+                                }
                                 actionMode.finish();
                                 returnValue = true;
                                 break;
@@ -497,6 +515,92 @@ public class AddFeatureDialogFragment extends DialogFragment {
         vertexSelected = false;
         editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
         refresh();
+    }
+
+    private void actionSave(FeatureLayer layerToEdit) throws TableException {
+        final FeatureTable featureTable = layerToEdit.getFeatureTable();
+        final boolean editable = featureTable.isEditable();
+        Log.i(TAG, "Can we save that edit? " + editable);
+
+        Geometry geom = null;
+        switch (editMode) {
+            case POINT:
+                geom = points.get(0);
+                break;
+
+            case POLYLINE:
+            case POLYGON:
+                MultiPath multiPath = EditMode.POLYLINE == editMode ? new Polyline() : new Polygon();
+                multiPath.startPath(points.get(0));
+                for (int i = 0; i < points.size(); i++) {
+                    multiPath.lineTo(points.get(i));
+                }
+                geom = multiPath;
+        }
+
+        if (null != geom) {
+            Feature newFeature = null;
+            if (featureTable instanceof GeopackageFeatureTable) {
+                newFeature = ((GeopackageFeatureTable) featureTable).createNewFeature(null, geom);
+            } else if (featureTable instanceof GeodatabaseFeatureTable) {
+                newFeature = ((GeodatabaseFeatureTable) featureTable).createNewFeature(null, geom);
+            }
+
+            if (null != newFeature) {
+                try {
+                    final long id = featureTable.addFeature(newFeature);
+                } catch (Throwable t) {
+                    Log.e(TAG, "Could not add feature", t);
+                    Toast.makeText(activity, "Could not add feature: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            completeSaveAction(null);
+        }
+    }
+
+    private void completeSaveAction(final FeatureEditResult[][] results) {
+        if (null != activity) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (results != null) {
+                        if (results[0][0].isSuccess()) {
+                            String msg = getString(R.string.saved);
+                            Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                        } else {
+                            EditFailedDialogFragment frag = new EditFailedDialogFragment();
+                            frag.setMessage(results[0][0].getError().getDescription());
+                            frag.show(getFragmentManager(), TAG_DIALOG_FRAGMENTS);
+                        }
+                    }
+                    activity.setProgressBarIndeterminateVisibility(false);
+                    exitEditMode();
+                }
+            });
+        }
+    }
+
+    private void exitEditMode() {
+        editMode = EditMode.NONE;
+        clear();
+        mapController.setShowMagnifierOnLongPress(false);
+    }
+
+    private void clear() {
+        // Clear feature editing data
+        points.clear();
+        midPoints.clear();
+        editingStates.clear();
+
+        midPointSelected = false;
+        vertexSelected = false;
+        insertingIndex = 0;
+
+        if (graphicsLayerEditing != null) {
+            graphicsLayerEditing.removeAll();
+        }
+
+        updateActionBar();
     }
 
 }

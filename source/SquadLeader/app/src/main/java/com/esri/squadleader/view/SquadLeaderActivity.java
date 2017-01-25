@@ -279,8 +279,12 @@ public class SquadLeaderActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        ArcGISRuntime.setClientId(getString(R.string.clientId));
+
+        try {
+            ArcGISRuntime.setClientId(getString(R.string.clientId));
+        } catch (Throwable t) {
+            Log.w(TAG, null, t);
+        }
         ArcGISRuntime.License.setLicense(getString(R.string.licenseString));
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(SquadLeaderActivity.this);
