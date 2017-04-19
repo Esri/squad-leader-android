@@ -28,7 +28,6 @@ import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.raster.FileRasterSource;
 import com.esri.core.raster.RasterSource;
-import com.esri.core.renderer.RGBRenderer;
 import com.esri.core.renderer.RasterRenderer;
 import com.esri.core.renderer.Renderer;
 
@@ -50,6 +49,7 @@ public class GeoPackageReader {
     /**
      * <b>Be sure to call dispose() if you get and use the GeoPackageReader instance when you're done
      * with the GeoPackages it opened for you!</b>
+     *
      * @return
      */
     public static GeoPackageReader getInstance() {
@@ -87,15 +87,16 @@ public class GeoPackageReader {
     /**
      * Reads the tables in a GeoPackage, makes a layer from each table, and returns a list containing
      * those layers.
-     * @param gpkgPath the full path to the .gpkg file.
-     * @param sr the spatial reference to which any raster layers should be projected, typically the
-     *           spatial reference of your map.
-     * @param showVectors if true, this method will include the GeoPackage's vector layers.
-     * @param showRasters if true, this method will include the GeoPackage's raster layer.
+     *
+     * @param gpkgPath       the full path to the .gpkg file.
+     * @param sr             the spatial reference to which any raster layers should be projected, typically the
+     *                       spatial reference of your map.
+     * @param showVectors    if true, this method will include the GeoPackage's vector layers.
+     * @param showRasters    if true, this method will include the GeoPackage's raster layer.
      * @param rasterRenderer the renderer to be used for raster layers. One simple option is an RGBRenderer.
      * @param markerRenderer the renderer to be used for point layers.
-     * @param lineRenderer the renderer to be used for polyline layers.
-     * @param fillRenderer the renderer to be used for polygon layers.
+     * @param lineRenderer   the renderer to be used for polyline layers.
+     * @param fillRenderer   the renderer to be used for polygon layers.
      * @return a list of the layers created for all tables in the GeoPackage.
      * @throws IOException if gpkgPath cannot be read. Possible reasons include the file not
      *                     existing, failure to request READ_EXTERNAL_STORAGE or

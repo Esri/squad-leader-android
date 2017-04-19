@@ -40,13 +40,17 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
+import com.esri.android.map.FeatureLayer;
+import com.esri.android.map.Layer;
 import com.esri.android.map.MapView;
+import com.esri.android.map.ags.ArcGISPopupInfo;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Feature;
 import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
@@ -259,7 +263,7 @@ public class SquadLeaderActivity extends Activity
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
     private SpatialReference lastSpatialReference = null;
-    
+
     public SquadLeaderActivity() throws SocketException {
         super();
         chemLightCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
@@ -377,6 +381,7 @@ public class SquadLeaderActivity extends Activity
         });
 
         mapController = new MapController(mapView, getAssets(), new LayerErrorListener(this));
+        mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         northArrowView = (NorthArrowView) findViewById(R.id.northArrowView);
         northArrowView.setMapController(mapController);
         northArrowView.startRotation();
@@ -978,6 +983,9 @@ public class SquadLeaderActivity extends Activity
                     callout.animatedShow((Point) poppedUpChemLight.getGeometry(), calloutView);
                 } else {
                     callout.animatedHide();
+
+                    // Identify a feature from a layer
+                    mapController.identifyFeatureLayers(x, y);
                 }
             }
         };
