@@ -206,6 +206,3 @@ Portions of this code use third-party libraries and other materials:
 See [license-ThirdParty.txt](license-ThirdParty.txt) for the details of these licenses.
 
 This repository contains elevation data from the Shuttle Radar Topography Mission (SRTM). See [license-ThirdParty.txt](license-ThirdParty.txt) for dataset citation details.
-
-[](Esri Tags: ArcGIS Defense and Intelligence Military Defense Portal Android ArcGISSolutions)
-[](Esri Language: Java)
