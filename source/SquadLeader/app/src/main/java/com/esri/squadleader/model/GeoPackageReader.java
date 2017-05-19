@@ -15,6 +15,10 @@
  ******************************************************************************/
 package com.esri.squadleader.model;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
 import com.esri.android.map.FeatureLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.RasterLayer;
@@ -28,7 +32,7 @@ import com.esri.core.renderer.RGBRenderer;
 import com.esri.core.renderer.RasterRenderer;
 import com.esri.core.renderer.Renderer;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +42,8 @@ import java.util.Set;
  * Opens OGC GeoPackages and gets their data and layers.
  */
 public class GeoPackageReader {
+
+    private static final String TAG = GeoPackageReader.class.getSimpleName();
 
     private static GeoPackageReader instance = new GeoPackageReader();
 
@@ -91,8 +97,10 @@ public class GeoPackageReader {
      * @param lineRenderer the renderer to be used for polyline layers.
      * @param fillRenderer the renderer to be used for polygon layers.
      * @return a list of the layers created for all tables in the GeoPackage.
-     * @throws FileNotFoundException if gpkgPath points to a file that does not exist <b>or cannot be
-     * seen because the app has not requested READ_EXTERNAL_STORAGE or WRITE_EXTERNAL_STORAGE permission</b>.
+     * @throws IOException if gpkgPath cannot be read. Possible reasons include the file not
+     *                     existing, failure to request READ_EXTERNAL_STORAGE or
+     *                     WRITE_EXTERNAL_STORAGE permission, or the GeoPackage containing an
+     *                     invalid spatial reference.
      */
     public List<Layer> readGeoPackageToLayerList(String gpkgPath,
                                                  SpatialReference sr,
@@ -101,44 +109,76 @@ public class GeoPackageReader {
                                                  RasterRenderer rasterRenderer,
                                                  Renderer markerRenderer,
                                                  Renderer lineRenderer,
-                                                 Renderer fillRenderer) throws FileNotFoundException {
+                                                 Renderer fillRenderer) throws IOException {
         List<Layer> layers = new ArrayList<Layer>();
 
         if (showRasters) {
-            FileRasterSource src = new FileRasterSource(gpkgPath);
-            rasterSources.add(src);
-            if (null != sr) {
-                src.project(sr);
+            // Check to see if there are any rasters before loading them
+            SQLiteDatabase sqliteDb = null;
+            Cursor cursor = null;
+            try {
+                sqliteDb = SQLiteDatabase.openDatabase(gpkgPath, null, SQLiteDatabase.OPEN_READONLY);
+                cursor = sqliteDb.rawQuery("SELECT COUNT(*) FROM gpkg_contents WHERE data_type = ?", new String[]{"tiles"});
+                if (cursor.moveToNext()) {
+                    if (0 < cursor.getInt(0)) {
+                        cursor.close();
+                        sqliteDb.close();
+                        FileRasterSource src = new FileRasterSource(gpkgPath);
+                        rasterSources.add(src);
+                        if (null != sr) {
+                            src.project(sr);
+                        }
+                        RasterLayer rasterLayer = new RasterLayer(src);
+                        rasterLayer.setRenderer(rasterRenderer);
+                        rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
+                        layers.add(rasterLayer);
+                    }
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Could not read raster(s) from GeoPackage", t);
+            } finally {
+                if (null != cursor) {
+                    cursor.close();
+                }
+                if (null != sqliteDb) {
+                    sqliteDb.close();
+                }
             }
-            RasterLayer rasterLayer = new RasterLayer(src);
-            rasterLayer.setRenderer(rasterRenderer);
-            rasterLayer.setName((gpkgPath.contains("/") ? gpkgPath.substring(gpkgPath.lastIndexOf("/") + 1) : gpkgPath) + " (raster)");
-            layers.add(rasterLayer);
         }
 
         if (showVectors) {
-            Geopackage gpkg = new Geopackage(gpkgPath);
+            Geopackage gpkg;
+            try {
+                gpkg = new Geopackage(gpkgPath);
+            } catch (RuntimeException ex) {
+                throw new IOException(
+                        null != ex.getMessage() && ex.getMessage().contains("unknown wkt") ?
+                                "Geopackage " + gpkgPath + " contains an invalid spatial reference." :
+                                null,
+                        ex);
+            }
             geopackages.add(gpkg);
             List<GeopackageFeatureTable> tables = gpkg.getGeopackageFeatureTables();
+            if (0 < tables.size()) {
+                //First pass: polygons and unknowns
+                HashSet<Geometry.Type> types = new HashSet<Geometry.Type>();
+                types.add(Geometry.Type.ENVELOPE);
+                types.add(Geometry.Type.POLYGON);
+                types.add(Geometry.Type.UNKNOWN);
+                layers.addAll(getTablesAsLayers(tables, types, fillRenderer));
 
-            //First pass: polygons and unknowns
-            HashSet<Geometry.Type> types = new HashSet<Geometry.Type>();
-            types.add(Geometry.Type.ENVELOPE);
-            types.add(Geometry.Type.POLYGON);
-            types.add(Geometry.Type.UNKNOWN);
-            layers.addAll(getTablesAsLayers(tables, types, fillRenderer));
+                //Second pass: lines
+                types.clear();
+                types.add(Geometry.Type.LINE);
+                types.add(Geometry.Type.POLYLINE);
+                layers.addAll(getTablesAsLayers(tables, types, lineRenderer));
 
-            //Second pass: lines
-            types.clear();
-            types.add(Geometry.Type.LINE);
-            types.add(Geometry.Type.POLYLINE);
-            layers.addAll(getTablesAsLayers(tables, types, lineRenderer));
-
-            //Third pass: points
-            types.clear();
-            types.add(Geometry.Type.MULTIPOINT);
-            types.add(Geometry.Type.POINT);
-            layers.addAll(getTablesAsLayers(tables, types, markerRenderer));
+                //Third pass: points
+                types.clear();
+                types.add(Geometry.Type.MULTIPOINT);
+                types.add(Geometry.Type.POINT);
+                layers.addAll(getTablesAsLayers(tables, types, markerRenderer));
+            }
         }
 
         return layers;

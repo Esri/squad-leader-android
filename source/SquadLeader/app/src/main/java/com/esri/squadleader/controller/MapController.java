@@ -431,8 +431,13 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                             MARKER_RENDERER,
                             LINE_RENDERER,
                             FILL_RENDERER);
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Couldn't find GeoPackage file " + layerInfo.getDatasetPath(), e);
+                } catch (IOException e) {
+                    Log.e(TAG, "Couldn't read GeoPackage file " + layerInfo.getDatasetPath(), e);
+                    Toast.makeText(
+                            getContext(),
+                            "Couldn't read GeoPackage file " + layerInfo.getDatasetPath() + ": " + e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
                 break;
             }
