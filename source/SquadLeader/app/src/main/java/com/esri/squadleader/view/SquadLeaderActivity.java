@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2013-2017 Esri
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -22,13 +23,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,21 +42,16 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
-import com.esri.android.map.FeatureLayer;
-import com.esri.android.map.Layer;
 import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISPopupInfo;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
-import com.esri.core.map.Feature;
 import com.esri.core.map.Graphic;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
@@ -70,6 +71,7 @@ import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
+import com.esri.squadleader.databinding.MainBinding;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
 import com.esri.squadleader.view.AddLayerDialogFragment.AddLayerListener;
@@ -80,6 +82,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -92,20 +95,26 @@ import java.util.UUID;
  */
 public class SquadLeaderActivity extends Activity
         implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
-    
+
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
-    
+
+    /**
+     * These request codes need to be bitwise (1, 2, 4, 8, 16, etc.).
+     */
+    private static final int PERM_REQ_CREATE_ADVANCED_SYMBOL_CONTROLLER = 1;
+    private static final int PERM_REQ_LOCATION_CONTROLLER_LOCATION = 2;
+
     /**
      * A unique ID for the GPX file chooser.
      */
     private static final int REQUEST_CHOOSER = 30046;
-    
+
     /**
      * A unique ID for getting a result from the settings activity.
      */
     private static final int SETTINGS_ACTIVITY = 5862;
-    
+
     /**
      * A unique ID for getting a result from the spot report activity.
      */
@@ -115,23 +124,22 @@ public class SquadLeaderActivity extends Activity
      * A unique ID for adding a layer from a file.
      */
     private static final int ADD_LAYER_FROM_FILE = 31313;
-    
+
     private static final String LAST_WKID_KEY = "lastWkid";
-    
+
     private final Handler locationChangeHandler = new Handler() {
-        
+
         private final SpatialReference SR = SpatialReference.create(4326);
-        
+
         private Location previousLocation = null;
-        
+
         @Override
         public void handleMessage(Message msg) {
             if (null != msg) {
                 Location location = (Location) msg.obj;
                 try {
-                    TextView locationView = (TextView) findViewById(R.id.textView_displayLocation);
                     String mgrs = mapController.pointToMgrs(new Point(location.getLongitude(), location.getLatitude()), SR);
-                    locationView.setText(String.format(getString(R.string.display_location), mgrs));
+                    mainBinding.setDisplayLocation(String.format(getString(R.string.display_location), mgrs));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set location text", t);
                 }
@@ -142,10 +150,10 @@ public class SquadLeaderActivity extends Activity
                             && !mapController.getLocationController().getMode().equals(LocationMode.LOCATION_SERVICE)) {
                         //Calculate speed
                         double distanceInMiles = Utilities.calculateDistanceInMeters(previousLocation, location) / Utilities.METERS_PER_MILE;
-                        double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) /  MILLISECONDS_PER_HOUR;
+                        double timeInHours = (location.getTimestamp().getTimeInMillis() - previousLocation.getTimestamp().getTimeInMillis()) / MILLISECONDS_PER_HOUR;
                         speedMph = distanceInMiles / timeInHours;
                     }
-                    ((TextView) findViewById(R.id.textView_displaySpeed)).setText(
+                    mainBinding.setDisplaySpeed(
                             String.format(getString(R.string.display_speed), speedMph));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set speed text", t);
@@ -153,18 +161,20 @@ public class SquadLeaderActivity extends Activity
                 try {
                     double headingInPreferredUnits = angularUnitPreference.convertFromRadians(
                             Utilities.DEGREES.convertToRadians(location.getHeading()));
-                    ((TextView) findViewById(R.id.textView_displayHeading)).setText(String.format(
+                    mainBinding.setDisplayHeading(String.format(
                             getString(R.string.display_heading), headingInPreferredUnits, Utilities.getAngularUnitAbbreviation(angularUnitPreference)));
                 } catch (Throwable t) {
                     Log.i(TAG, "Couldn't set heading text", t);
                 }
                 previousLocation = location;
             }
-        };
+        }
+
+        ;
     };
-    
+
     private final OnSharedPreferenceChangeListener preferenceChangeListener = new OnSharedPreferenceChangeListener() {
-        
+
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             if (key.equals(getString(R.string.pref_angularUnits))) {
@@ -234,10 +244,10 @@ public class SquadLeaderActivity extends Activity
             }
         }
     };
-    
+
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     private final OnSingleTapListener defaultOnSingleTapListener;
-    
+
     private MapController mapController = null;
     private MessageController messageController;
     private ChemLightController chemLightController;
@@ -263,11 +273,12 @@ public class SquadLeaderActivity extends Activity
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
     private SpatialReference lastSpatialReference = null;
+    private MainBinding mainBinding = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
         chemLightCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
-            
+
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 for (int j = 0; j < group.getChildCount(); j++) {
@@ -276,7 +287,7 @@ public class SquadLeaderActivity extends Activity
                 }
             }
         };
-        
+
         defaultOnSingleTapListener = createDefaultOnSingleTapListener();
     }
 
@@ -284,6 +295,40 @@ public class SquadLeaderActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        requestPermissions();
+    }
+
+    private void requestPermissions() {
+        ArrayList<String> permsToRequest = new ArrayList<>();
+        // Bit field for request codes
+        int requestCode = 0;
+
+        /**
+         * Check all permissions that are needed at activity startup. For any that are not already
+         * granted, add them to the list, and add a bitwise request code.
+         */
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            permsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            requestCode |= PERM_REQ_CREATE_ADVANCED_SYMBOL_CONTROLLER;
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            permsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            requestCode |= PERM_REQ_LOCATION_CONTROLLER_LOCATION;
+        }
+
+        if (0 < requestCode) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    permsToRequest.toArray(new String[permsToRequest.size()]),
+                    requestCode);
+        } else {
+            setupActivity();
+        }
+    }
+
+    private void setupActivity() {
         try {
             ArcGISRuntime.setClientId(getString(R.string.clientId));
         } catch (Throwable t) {
@@ -348,56 +393,60 @@ public class SquadLeaderActivity extends Activity
 
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
-        
+
 //        //TODO implement Geo URIs
 //        Uri intentData = getIntent().getData();
 //        if (null != intentData) {
 //            //intentData should be a Geo URI with a location to which we should navigate
 //        }
-        
-        setContentView(R.layout.main);
+
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.main);
+        clearDisplayStrings();
+
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 
         final MapView mapView = (MapView) findViewById(R.id.map);
-        
+
         mapView.setOnPanListener(new OnPanListener() {
-            
+
             private static final long serialVersionUID = 0x58d30af8d168f63aL;
 
             @Override
-            public void prePointerUp(float fromx, float fromy, float tox, float toy) {}
-            
+            public void prePointerUp(float fromx, float fromy, float tox, float toy) {
+            }
+
             @Override
             public void prePointerMove(float fromx, float fromy, float tox, float toy) {
                 setFollowMe(false);
             }
-            
+
             @Override
-            public void postPointerUp(float fromx, float fromy, float tox, float toy) {}
-            
+            public void postPointerUp(float fromx, float fromy, float tox, float toy) {
+            }
+
             @Override
-            public void postPointerMove(float fromx, float fromy, float tox, float toy) {}
-            
+            public void postPointerMove(float fromx, float fromy, float tox, float toy) {
+            }
+
         });
 
-        mapController = new MapController(mapView, getAssets(), new LayerErrorListener(this));
+        mapController = new MapController(mapView, getAssets(), new LayerErrorListener(this), this);
         mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         northArrowView = (NorthArrowView) findViewById(R.id.northArrowView);
         northArrowView.setMapController(mapController);
         northArrowView.startRotation();
-        try {
-            mil2525cController = new AdvancedSymbolController(
-                    mapController,
-                    getAssets(),
-                    getString(R.string.sym_dict_dirname),
-                    getResources().getDrawable(R.drawable.ic_spot_report),
-                    messageController);
-        } catch (IOException e) {
-            Log.e(TAG, "Couldn't instantiate AdvancedSymbolController", e);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            try {
+                instantiateMil2525CController();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not instantiate advanced symbol controller", e);
+            }
         }
-        
+
         spotReportController = new SpotReportController(mapController, messageController);
-        
+
         positionReportController = new PositionReportController(
                 mapController.getLocationController(),
                 messageController,
@@ -409,7 +458,7 @@ public class SquadLeaderActivity extends Activity
         positionReportController.setEnabled(positionReportsPreference);
 
         mapController.getLocationController().addListener(new LocationListener() {
-            
+
             @Override
             public void onLocationChanged(final Location location) {
                 if (null != location) {
@@ -423,14 +472,12 @@ public class SquadLeaderActivity extends Activity
                     }.start();
                 }
             }
-            
+
             @Override
             public void onStateChanged(LocationProviderState state) {
-                
+
             }
         });
-        
-        messageController.addListener(new MessageListener(mil2525cController));        
 
         if (null != mapController.getLastMapConfig()) {
             String viewshedElevationPath = mapController.getLastMapConfig().getViewshedElevationPath();
@@ -444,7 +491,7 @@ public class SquadLeaderActivity extends Activity
             createViewshedController(viewshedElevationPath);
         }
         mapController.addMapConfigListener(new MapConfigListener() {
-            
+
             @Override
             public void mapConfigRead(MapConfig mapConfig) {
                 String viewshedElevationPath = mapConfig.getViewshedElevationPath();
@@ -460,13 +507,13 @@ public class SquadLeaderActivity extends Activity
         });
 
         clockTimerTask = new TimerTask() {
-            
+
             private final Handler handler = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     try {
                         if (null != msg.obj) {
-                            ((TextView) findViewById(R.id.textView_displayTime)).setText(
+                            mainBinding.setDisplayTime(
                                     String.format(getString(R.string.display_time), msg.obj));
                         }
                     } catch (Throwable t) {
@@ -474,41 +521,56 @@ public class SquadLeaderActivity extends Activity
                     }
                 }
             };
-            
+
             @Override
-            public void run() {                
+            public void run() {
                 if (null != mapController) {
                     Message msg = new Message();
                     msg.obj = Utilities.DATE_FORMAT_MILITARY_ZULU.format(new Date());
                     handler.sendMessage(msg);
                 }
             }
-            
+
         };
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
-        
+
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
     }
-    
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        setupActivity();
+    }
+
+    private void instantiateMil2525CController() throws IOException {
+        mil2525cController = new AdvancedSymbolController(
+                mapController,
+                getAssets(),
+                getString(R.string.sym_dict_dirname),
+                ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_spot_report),
+                messageController);
+        messageController.addListener(new MessageListener(mil2525cController));
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        
+
         if (null != getSpatialReference()) {
             outState.putInt(LAST_WKID_KEY, getSpatialReference().getID());
         }
     }
-    
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        
+
         int wkid = savedInstanceState.getInt(LAST_WKID_KEY);
         if (0 != wkid) {
             lastSpatialReference = SpatialReference.create(wkid);
         }
     }
-    
+
     private SpatialReference getSpatialReference() {
         if (null != mapController && null != mapController.getSpatialReference()) {
             return mapController.getSpatialReference();
@@ -516,7 +578,7 @@ public class SquadLeaderActivity extends Activity
             return lastSpatialReference;
         }
     }
-    
+
     private void createViewshedController(String elevationPath) {
         if (null != viewshedController && null != viewshedController.getLayer()) {
             mapController.removeLayer(viewshedController.getLayer());
@@ -530,13 +592,13 @@ public class SquadLeaderActivity extends Activity
             findViewById(R.id.toggleButton_viewshed).setVisibility(View.INVISIBLE);
         }
     }
-    
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         adjustLayoutForOrientation(newConfig.orientation);
     }
-    
+
     private void adjustLayoutForOrientation(int orientation) {
         View displayView = findViewById(R.id.tableLayout_display);
         if (displayView.getLayoutParams() instanceof RelativeLayout.LayoutParams) {
@@ -560,7 +622,7 @@ public class SquadLeaderActivity extends Activity
             displayView.setLayoutParams(params);
         }
     }
-    
+
     private boolean isFollowMe() {
         ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
         if (null != followMeButton) {
@@ -569,7 +631,7 @@ public class SquadLeaderActivity extends Activity
             return false;
         }
     }
-    
+
     private void setFollowMe(boolean isFollowMe) {
         ToggleButton followMeButton = (ToggleButton) findViewById(R.id.toggleButton_followMe);
         if (null != followMeButton) {
@@ -609,31 +671,47 @@ public class SquadLeaderActivity extends Activity
             mapController.dispose();
         }
     }
-    
+
     @Override
     protected void onPause() {
         super.onPause();
-        mapController.pause();
-        northArrowView.stopRotation();
-        messageController.stopReceiving();
-        positionReportController.setEnabled(false);
+        if (null != mapController) {
+            mapController.pause();
+        }
+        if (null != northArrowView) {
+            northArrowView.stopRotation();
+        }
+        if (null != messageController) {
+            messageController.stopReceiving();
+        }
+        if (null != positionReportController) {
+            positionReportController.setEnabled(false);
+        }
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
-        mapController.unpause();
-        northArrowView.startRotation();
-        messageController.startReceiving();
-        positionReportController.setEnabled(true);
+        if (null != mapController) {
+            mapController.unpause();
+        }
+        if (null != northArrowView) {
+            northArrowView.startRotation();
+        }
+        if (null != messageController) {
+            messageController.startReceiving();
+        }
+        if (null != positionReportController) {
+            positionReportController.setEnabled(true);
+        }
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.map_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
-    
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
@@ -642,13 +720,21 @@ public class SquadLeaderActivity extends Activity
             prefs.edit().putBoolean(key, true).commit();
         }
         boolean labelsOn = prefs.getBoolean(key, true);
-        mil2525cController.setShowLabels(labelsOn);
+        if (null != mil2525cController) {
+            mil2525cController.setShowLabels(labelsOn);
+        }
         MenuItem menuItem_toggleLabels = menu.findItem(R.id.toggle_labels);
         menuItem_toggleLabels.setIcon(labelsOn ? R.drawable.ic_action_labels : R.drawable.ic_action_labels_off);
         menuItem_toggleLabels.setChecked(labelsOn);
         return super.onPrepareOptionsMenu(menu);
     }
-    
+
+    private void clearDisplayStrings() {
+        mainBinding.setDisplaySpeed(String.format(getString(R.string.display_speed), Float.NaN));
+        mainBinding.setDisplayLocation(String.format(getString(R.string.display_location), ""));
+        mainBinding.setDisplayHeading(String.format(getString(R.string.display_heading), Float.NaN, ""));
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -687,37 +773,38 @@ public class SquadLeaderActivity extends Activity
                 builder.setTitle(R.string.set_location_mode)
                         .setNegativeButton(R.string.cancel, null)
                         .setSingleChoiceItems(
-                                new String[] {
+                                new String[]{
                                         getString(R.string.option_location_service),
                                         getString(R.string.option_simulation_builtin),
                                         getString(R.string.option_simulation_file)},
-                                mapController.getLocationController().getMode() == LocationMode.LOCATION_SERVICE ? 0 : 
-                                    null == mapController.getLocationController().getGpxFile() ? 1 : 2,
+                                mapController.getLocationController().getMode() == LocationMode.LOCATION_SERVICE ? 0 :
+                                        null == mapController.getLocationController().getGpxFile() ? 1 : 2,
                                 new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                try {
-                                    if (2 == which) {
-                                        //Present file chooser
-                                        Intent getContentIntent = FileUtils.createGetContentIntent();
-                                        Intent intent = Intent.createChooser(getContentIntent, "Select a file");
-                                        startActivityForResult(intent, REQUEST_CHOOSER);
-                                    } else {
-                                        mapController.getLocationController().setGpxFile(null, true);
-                                        mapController.getLocationController().setMode(
-                                                0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
-                                                true);
-                                        mapController.getLocationController().start();
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        clearDisplayStrings();
+                                        try {
+                                            if (2 == which) {
+                                                //Present file chooser
+                                                Intent getContentIntent = FileUtils.createGetContentIntent();
+                                                Intent intent = Intent.createChooser(getContentIntent, "Select a file");
+                                                startActivityForResult(intent, REQUEST_CHOOSER);
+                                            } else {
+                                                mapController.getLocationController().setGpxFile(null, true);
+                                                mapController.getLocationController().setMode(
+                                                        0 == which ? LocationMode.LOCATION_SERVICE : LocationMode.SIMULATOR,
+                                                        true);
+                                                mapController.getLocationController().start();
+                                            }
+                                        } catch (Exception e) {
+                                            Log.d(TAG, "Couldn't set location mode", e);
+                                        } finally {
+                                            dialog.dismiss();
+                                        }
                                     }
-                                } catch (Exception e) {
-                                    Log.d(TAG, "Couldn't set location mode", e);
-                                } finally {
-                                    dialog.dismiss();
-                                }
-                            }
-                            
-                        });
+
+                                });
                 AlertDialog dialog = builder.create();
                 dialog.show();
                 return true;
@@ -731,13 +818,15 @@ public class SquadLeaderActivity extends Activity
                 SharedPreferences prefs = getPreferences(MODE_PRIVATE);
                 String key = getString(R.string.pref_labels);
                 prefs.edit().putBoolean(key, item.isChecked()).commit();
-                mil2525cController.setShowLabels(item.isChecked());
+                if (null != mil2525cController) {
+                    mil2525cController.setShowLabels(item.isChecked());
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-    
+
     /**
      * Called when an activity called by this activity returns a result. This method was initially
      * added to handle the result of choosing a GPX file for the LocationSimulator.
@@ -745,74 +834,74 @@ public class SquadLeaderActivity extends Activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         switch (requestCode) {
-        case REQUEST_CHOOSER:
-            if (resultCode == RESULT_OK) {  
-                final Uri uri = data.getData();
-                File file = new File(FileUtils.getPath(this, uri));
-                mapController.getLocationController().setGpxFile(file, true);
-                try {
-                    mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
-                    mapController.getLocationController().start();
-                } catch (Exception e) {
-                    Log.d(TAG, "Could not start simulator", e);
+            case REQUEST_CHOOSER:
+                if (resultCode == RESULT_OK) {
+                    final Uri uri = data.getData();
+                    File file = new File(FileUtils.getPath(this, uri));
+                    mapController.getLocationController().setGpxFile(file, true);
+                    try {
+                        mapController.getLocationController().setMode(LocationMode.SIMULATOR, true);
+                        mapController.getLocationController().start();
+                    } catch (Exception e) {
+                        Log.d(TAG, "Could not start simulator", e);
+                    }
                 }
-            }
-            break;
-        case SETTINGS_ACTIVITY:
-            if (null != data && data.getBooleanExtra(getString(R.string.pref_resetApp), false)) {
-                try {
-                    mapController.reset();
-                } catch (Throwable t) {
-                    Log.e(TAG, "Could not reset map", t);
+                break;
+            case SETTINGS_ACTIVITY:
+                if (null != data && data.getBooleanExtra(getString(R.string.pref_resetApp), false)) {
+                    try {
+                        mapController.reset();
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Could not reset map", t);
+                    }
                 }
-            }
-            break;
-        case SPOT_REPORT_ACTIVITY:
-            if (null != data && null != data.getExtras()) {
-                final SpotReport spotReport = (SpotReport) data.getExtras().get(getPackageName() + "." + SpotReportActivity.SPOT_REPORT_EXTRA_NAME);
-                if (null != spotReport) {
-                    new Thread() {
-                        
-                        @Override
-                        public void run() {
-                            String mgrs = (String) data.getExtras().get(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME);
-                            if (null != mgrs) {
-                                Point pt = mapController.mgrsToPoint(mgrs);
-                                if (null != pt) {
-                                    spotReport.setLocationX(pt.getX());
-                                    spotReport.setLocationY(pt.getY());
-                                    if (null != getSpatialReference()) {
-                                        spotReport.setLocationWkid(getSpatialReference().getID());
+                break;
+            case SPOT_REPORT_ACTIVITY:
+                if (null != data && null != data.getExtras()) {
+                    final SpotReport spotReport = (SpotReport) data.getExtras().get(getPackageName() + "." + SpotReportActivity.SPOT_REPORT_EXTRA_NAME);
+                    if (null != spotReport) {
+                        new Thread() {
+
+                            @Override
+                            public void run() {
+                                String mgrs = (String) data.getExtras().get(getPackageName() + "." + SpotReportActivity.MGRS_EXTRA_NAME);
+                                if (null != mgrs) {
+                                    Point pt = mapController.mgrsToPoint(mgrs);
+                                    if (null != pt) {
+                                        spotReport.setLocationX(pt.getX());
+                                        spotReport.setLocationY(pt.getY());
+                                        if (null != getSpatialReference()) {
+                                            spotReport.setLocationWkid(getSpatialReference().getID());
+                                        }
                                     }
                                 }
-                            }                
-                            try {
-                                spotReportController.sendSpotReport(spotReport, usernamePreference);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Could not send spot report", e);
-                                //TODO notify user?
+                                try {
+                                    spotReportController.sendSpotReport(spotReport, usernamePreference);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Could not send spot report", e);
+                                    //TODO notify user?
+                                }
                             }
-                        }
-                    }.start();
+                        }.start();
+                    }
                 }
-            }
-            break;
-        case ADD_LAYER_FROM_FILE:
-            addLayerDialogFragment.onActivityResult(requestCode, resultCode, data);
-            break;
-        default:
-            super.onActivityResult(requestCode, resultCode, data);
+                break;
+            case ADD_LAYER_FROM_FILE:
+                addLayerDialogFragment.onActivityResult(requestCode, resultCode, data);
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
         }
     }
-    
+
     public void imageButton_zoomIn_clicked(View view) {
-	mapController.zoomIn();
+        mapController.zoomIn();
     }
-    
+
     public void imageButton_zoomOut_clicked(View view) {
-	mapController.zoomOut();
+        mapController.zoomOut();
     }
-    
+
     public void imageButton_openBasemapPanel_clicked(final View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.choose_basemap)
@@ -826,17 +915,17 @@ public class SquadLeaderActivity extends Activity
                 basemapLayerNames,
                 mapController.getVisibleBasemapLayerIndex(),
                 new DialogInterface.OnClickListener() {
-            
-            public void onClick(DialogInterface dialog, int which) {
-                mapController.setVisibleBasemapLayerIndex(which);
-                dialog.dismiss();
-            }
-            
-        });
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        mapController.setVisibleBasemapLayerIndex(which);
+                        dialog.dismiss();
+                    }
+
+                });
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-    
+
     public void toggleButton_status911_clicked(final View view) {
         positionReportController.setStatus911(((ToggleButton) view).isChecked());
     }
@@ -846,11 +935,11 @@ public class SquadLeaderActivity extends Activity
             mapController.addLayer(layerInfos[i]);
         }
     }
-    
+
     public void toggleButton_grid_clicked(final View view) {
         mapController.setGridVisible(((ToggleButton) view).isChecked());
     }
-    
+
     public void northArrowView_clicked(View view) {
         mapController.setRotation(0);
     }
@@ -858,7 +947,7 @@ public class SquadLeaderActivity extends Activity
     public void toggleButton_followMe_clicked(final View view) {
         mapController.setAutoPan(((ToggleButton) view).isChecked());
     }
-    
+
     public void toggleButton_chemLightRed_clicked(final View view) {
         listenForChemLightTap(view, Color.RED);
     }
@@ -874,7 +963,7 @@ public class SquadLeaderActivity extends Activity
     public void toggleButton_chemLightBlue_clicked(final View view) {
         listenForChemLightTap(view, Color.BLUE);
     }
-    
+
     private void listenForChemLightTap(View button, final int color) {
         if (null != button && null != button.getParent() && button.getParent() instanceof RadioGroup) {
             ((RadioGroup) button.getParent()).check(button.getId());
@@ -883,7 +972,7 @@ public class SquadLeaderActivity extends Activity
         }
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
-                
+
                 private static final long serialVersionUID = 7556722404624511983L;
 
                 @Override
@@ -896,7 +985,9 @@ public class SquadLeaderActivity extends Activity
                             } else {
                                 Log.i(TAG, "Couldn't convert chem light to map coordinates");
                             }
-                        };
+                        }
+
+                        ;
                     }.start();
                 }
             });
@@ -904,13 +995,13 @@ public class SquadLeaderActivity extends Activity
             mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
-    
+
     public void toggleButton_spotReport_clicked(final View button) {
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
         ((CompoundButton) findViewById(R.id.toggleButton_viewshed)).setChecked(false);
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
-                
+
                 private static final long serialVersionUID = -1281957679086948899L;
 
                 @Override
@@ -927,13 +1018,13 @@ public class SquadLeaderActivity extends Activity
             mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
-    
+
     public void toggleButton_viewshed_clicked(final View button) {
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).clearCheck();
         ((CompoundButton) findViewById(R.id.toggleButton_spotReport)).setChecked(false);
         if (null != button && button instanceof ToggleButton && ((ToggleButton) button).isChecked()) {
             mapController.setOnSingleTapListener(new OnSingleTapListener() {
-                
+
                 private static final long serialVersionUID = 4291964186019821102L;
 
                 @Override
@@ -949,14 +1040,14 @@ public class SquadLeaderActivity extends Activity
             mapController.setOnSingleTapListener(defaultOnSingleTapListener);
         }
     }
-    
+
     public void imageButton_clearViewshed_clicked(final View button) {
         if (null != viewshedController) {
             viewshedController.getLayer().setVisible(false);
         }
         button.setVisibility(View.INVISIBLE);
     }
-    
+
     private void changePort(int newPort) {
         messageController.setPort(newPort);
     }
@@ -965,18 +1056,17 @@ public class SquadLeaderActivity extends Activity
     public AdvancedSymbolController getAdvancedSymbolController() {
         return mil2525cController;
     }
-    
+
     private OnSingleTapListener createDefaultOnSingleTapListener() {
         return new OnSingleTapListener() {
-            
+
             private static final long serialVersionUID = 3247725674465463146L;
 
             @Override
             public void onSingleTap(float x, float y) {
                 Callout callout = mapController.getCallout();
                 //Identify a chem light
-                poppedUpChemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5);
-                if (null != poppedUpChemLight) {
+                if (null != mil2525cController && null != (poppedUpChemLight = mil2525cController.identifyOneGraphic("chemlights", x, y, 5))) {
                     View calloutView = getLayoutInflater().inflate(R.layout.chem_light_callout, null);
                     callout.setStyle(R.xml.chem_light_callout_style);
                     callout.refresh();
@@ -990,7 +1080,7 @@ public class SquadLeaderActivity extends Activity
             }
         };
     }
-    
+
     public void chemLightColorChangeClicked(View view) {
         if (null != poppedUpChemLight && null != view && null != view.getTag() && view.getTag() instanceof String) {
             try {
@@ -1008,10 +1098,10 @@ public class SquadLeaderActivity extends Activity
                 Log.e(TAG, "Couldn't parse RGB " + view.getTag(), nfe);
             }
         }
-        
+
         closeChemLightCallout();
     }
-    
+
     public void chemLightRemoveClicked(View view) {
         if (null != poppedUpChemLight) {
             final String id = (String) poppedUpChemLight.getAttributeValue(Geomessage.ID_FIELD_NAME);
@@ -1021,13 +1111,13 @@ public class SquadLeaderActivity extends Activity
                 }
             }.start();
         }
-        
+
         closeChemLightCallout();
     }
-    
+
     private void closeChemLightCallout() {
         poppedUpChemLight = null;
         mapController.getCallout().animatedHide();
     }
-    
+
 }

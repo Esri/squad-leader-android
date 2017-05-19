@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -148,6 +149,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private final PopupContainer popupContainer;
     private final AssetManager assetManager;
     private final OnStatusChangedListener layerListener;
+    private final Activity targetActivity;
     private final List<BasemapLayer> basemapLayers = new ArrayList<BasemapLayer>();
     private final List<Layer> nonBasemapLayers = new ArrayList<Layer>();
     private final GraphicsLayer locationGraphicsLayer = new GraphicsLayer();
@@ -163,13 +165,21 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     /**
      * Creates a new MapController. <b>Call dispose() on each MapController you create when you are done!</b>
      *
-     * @param mapView       the MapView being controlled by the new MapController.
-     * @param assetManager  the application's AssetManager.
-     * @param layerListener an OnStatusChangedListener that will be set for each layer that is added to
-     *                      the map through this MapController. If null, each layer will keep its existing
-     *                      or default listener.
+     * @param mapView        the MapView being controlled by the new MapController.
+     * @param assetManager   the application's AssetManager.
+     * @param layerListener  an OnStatusChangedListener that will be set for each layer that is added to
+     *                       the map through this MapController. If null, each layer will keep its existing
+     *                       or default listener.
+     * @param targetActivity the target Activity, which is used to check and request permissions.
+     *                       The Activity's onRequestPermissionsResult method will be called.
+     *                       If targetActivity is null, LocationController will not do anything
+     *                       useful.
      */
-    public MapController(final MapView mapView, AssetManager assetManager, OnStatusChangedListener layerListener) {
+    public MapController(
+            final MapView mapView,
+            AssetManager assetManager,
+            OnStatusChangedListener layerListener,
+            Activity targetActivity) {
         super(LocationController.getLocationModeFromPreferences(
                 mapView.getContext().getSharedPreferences(
                         LocationController.PREFS_NAME,
@@ -177,8 +187,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 mapView.getContext().getString(R.string.gpx_resource_path),
                 new File(Environment.getExternalStorageDirectory(), mapView.getContext().getString(R.string.gpx_deployment_path)).getAbsolutePath());
         this.layerListener = layerListener;
+        this.targetActivity = targetActivity;
         LocationController locationController = (LocationController) getLocationController();
         locationController.setSharedPreferences(mapView.getContext().getSharedPreferences(LocationController.PREFS_NAME, Context.MODE_PRIVATE));
+        locationController.setTargetActivity(targetActivity);
         locationController.setLocationService(mapView.getLocationDisplayManager());
         try {
             locationController.start();
@@ -335,7 +347,8 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
      *
      * @param listener the listener.
      */
-    public void setOnSingleTapListener(OnSingleTapListener listener) {if (null != mapView) {
+    public void setOnSingleTapListener(OnSingleTapListener listener) {
+        if (null != mapView) {
             mapView.setOnSingleTapListener(listener);
         }
     }
@@ -912,7 +925,9 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
             }
         }
         try {
-            LocationController locationController = new LocationController(builtInGpxPath, locationMode);
+            LocationController locationController = new LocationController(
+                    builtInGpxPath,
+                    locationMode);
             if (null != file) {
                 locationController.setGpxFile(file, false);
             }

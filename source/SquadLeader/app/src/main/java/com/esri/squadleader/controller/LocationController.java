@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright 2013-2015 Esri
- * 
+ * Copyright 2013-2017 Esri
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,16 +15,19 @@
  ******************************************************************************/
 package com.esri.squadleader.controller;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import com.esri.android.map.LocationDisplayManager;
-import com.esri.core.geometry.AngularUnit;
 import com.esri.militaryapps.model.Location;
 import com.esri.militaryapps.model.LocationProvider;
 import com.esri.militaryapps.model.LocationSimulator;
-import com.esri.squadleader.util.Utilities;
 
 import org.xml.sax.SAXException;
 
@@ -37,6 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class LocationController extends com.esri.militaryapps.controller.LocationController {
 
+    private static final String TAG = LocationController.class.getSimpleName();
     private static final String PREF_LOCATION_MODE = "pref_locationMode";
     private static final String PREF_GPX_FILE = "pref_gpxFile";
 
@@ -48,10 +52,14 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
 
     private SharedPreferences prefs = null;
     private LocationDisplayManager locationDisplayManager = null;
+    private Activity targetActivity = null;
 
     /**
-     * Instantiates a LocationController.
-     * @param mode the location mode.
+     * Instantiates a LocationController. Note that if you want to use the device's location
+     * capabilities, you must call setTargetActivity after instantiating so that LocationController
+     * can check for location permission.
+     *
+     * @param mode           the location mode.
      * @param builtInGpxPath the built-in GPX resource path for simulated GPX. You can pass null if
      *                       you will never use the built-in GPX, or you can call setBuiltInGpxPath
      *                       later.
@@ -63,6 +71,18 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             throws ParserConfigurationException, SAXException, IOException {
         super(mode);
         setBuiltInGpxPath(builtInGpxPath);
+    }
+
+    /**
+     * Sets a target Activity for purposes of checking for location permission.
+     *
+     * @param targetActivity the target Activity, which LocationController uses to check for the
+     *                       location permission. If targetActivity is null, LocationController will
+     *                       not use the device's location capabilities but can use simulated
+     *                       locations.
+     */
+    public void setTargetActivity(Activity targetActivity) {
+        this.targetActivity = targetActivity;
     }
 
     /**
@@ -82,9 +102,10 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     /**
      * Returns the LocationMode stored in the specified preferences, or null if a preference
      * has not been stored.
+     *
      * @param prefs the SharedPreferences where the location mode may be stored.
      * @return the LocationMode stored in the specified preferences, or null if a preference
-     *         has not been stored.
+     * has not been stored.
      */
     public static LocationMode getLocationModeFromPreferences(SharedPreferences prefs) {
         String locationModePrefString = prefs.getString(PREF_LOCATION_MODE, null);
@@ -94,7 +115,7 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             return LocationMode.valueOf(locationModePrefString);
         }
     }
-    
+
     public void setLocationService(LocationDisplayManager locationService) {
         this.locationDisplayManager = locationService;
     }
@@ -102,7 +123,8 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     /**
      * Sets the location mode. If storePreferences is true and setSharedPreferences has been called
      * with a non-null SharedPreferences object, then this method will also store the mode in that object.
-     * @param mode the location mode to use.
+     *
+     * @param mode            the location mode to use.
      * @param storePreference true if the mode should be stored as a preference.
      */
     @Override
@@ -130,39 +152,68 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
     @Override
     protected LocationProvider createLocationServiceProvider() {
         return new LocationProvider() {
-            
+
+            private LocationListener locationListener = new LocationListener() {
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+                }
+
+                @Override
+                public void onLocationChanged(android.location.Location location) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTimeInMillis(location.getTime());
+                    Location theLocation = new Location(location.getLongitude(), location.getLatitude(), cal, location.getSpeed(), location.getBearing());
+                    sendLocation(theLocation);
+                }
+            };
+
             private LocationProviderState state = LocationProviderState.STOPPED;
-            
+
             @Override
             public void start() {
                 setupLocationListener();
-                switch (getState()) {
-                    case PAUSED: {
-                        if (null != locationDisplayManager) {
-                            locationDisplayManager.resume();
+                if (null == targetActivity) {
+                    Log.w(TAG, "targetActivity is null, which means LocationController won't use the device's location capabilities.");
+                } else if (ContextCompat.checkSelfPermission(targetActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    switch (getState()) {
+                        case PAUSED: {
+                            if (null != locationDisplayManager) {
+                                locationDisplayManager.resume();
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    case STOPPED: {
-                        if (null != locationDisplayManager) {
-                            locationDisplayManager.start();
+                        case STOPPED: {
+                            if (null != locationDisplayManager) {
+                                locationDisplayManager.start();
+                            }
+                            break;
                         }
-                        break;
+                        case STARTED:
+                        default: {
+                        }
                     }
-                    case STARTED:
-                    default: {
-                        
-                    }
+                    state = LocationProviderState.STARTED;
                 }
-                state = LocationProviderState.STARTED;
             }
 
             @Override
             public void pause() {
-                if (null != locationDisplayManager) {
-                    locationDisplayManager.pause();
+                if (LocationProviderState.STARTED == state) {
+                    if (null != locationDisplayManager) {
+                        locationDisplayManager.pause();
+                    }
+                    state = LocationProviderState.PAUSED;
                 }
-                state = LocationProviderState.PAUSED;
             }
 
             @Override
@@ -177,31 +228,13 @@ public class LocationController extends com.esri.militaryapps.controller.Locatio
             public LocationProviderState getState() {
                 return state;
             }
-            
+
             private void setupLocationListener() {
                 if (null != locationDisplayManager) {
-                    locationDisplayManager.setLocationListener(new LocationListener() {
-                        
-                        @Override
-                        public void onStatusChanged(String provider, int status, Bundle extras) {}
-                        
-                        @Override
-                        public void onProviderEnabled(String provider) {}
-                        
-                        @Override
-                        public void onProviderDisabled(String provider) {}
-                        
-                        @Override
-                        public void onLocationChanged(android.location.Location location) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.setTimeInMillis(location.getTime());
-                            Location theLocation = new Location(location.getLongitude(), location.getLatitude(), cal, location.getSpeed(), location.getBearing());
-                            sendLocation(theLocation);
-                        }
-                    });
+                    locationDisplayManager.setLocationListener(locationListener);
                 }
             }
-            
+
         };
     }
 

@@ -4,6 +4,10 @@ android {
     buildToolsVersion '25.0.3'
     compileOptions.encoding = 'ISO-8859-1'
 
+    dataBinding {
+        enabled = true
+    }
+
     defaultConfig {
         applicationId "com.esri.squadleader"
         minSdkVersion 15
