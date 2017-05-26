@@ -1004,6 +1004,10 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                             if (null == fieldInfo.getLabel() || fieldInfo.getLabel().trim().isEmpty()) {
                                 fieldInfo.setLabel(fieldInfo.getFieldName());
                             }
+                            // Hide the geometry field.
+                            if ("geom".equals(fieldInfo.getFieldName())) {
+                                fieldInfo.setVisible(false);
+                            }
                         }
 
                         popupContainer.addPopup(popup);
