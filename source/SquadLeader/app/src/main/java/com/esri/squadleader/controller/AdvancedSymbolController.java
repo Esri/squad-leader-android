@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright 2013-2015 Esri
- * 
+ * Copyright 2013-2017 Esri
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,9 +53,9 @@ import java.util.Locale;
  * MessageGroupLayer, MessageProcessor, SymbolDictionary, and MIL-STD-2525C symbols.
  */
 public class AdvancedSymbolController extends com.esri.militaryapps.controller.AdvancedSymbolController {
-    
+
     private static final String TAG = AdvancedSymbolController.class.getSimpleName();
-    
+
     public static final String SPOT_REPORT_LAYER_NAME = "Spot Reports";
 
     private final MapController mapController;
@@ -66,15 +66,16 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
     private final File symDictDir;
 
     /**
-     * Creates a new AdvancedSymbolController.
-     * @param mapController the application's MapController.
-     * @param assetManager the application's AssetManager, from which the advanced symbology database
-     *                     will be copied.
+     * Creates a new AdvancedSymbolController. IMPORTANT: this method requires WRITE_EXTERNAL_STORAGE permission.
+     *
+     * @param mapController           the application's MapController.
+     * @param assetManager            the application's AssetManager, from which the advanced symbology database
+     *                                will be copied.
      * @param symbolDictionaryDirname the name of the asset directory that contains the advanced symbology
      *                                database.
-     * @param spotReportIcon the Drawable for putting spot reports on the map.
-     * @param messageController a MessageController, for sending updates when messages are to be removed,
-     *        e.g. in clearLayer or clearAllMessages.
+     * @param spotReportIcon          the Drawable for putting spot reports on the map.
+     * @param messageController       a MessageController, for sending updates when messages are to be removed,
+     *                                e.g. in clearLayer or clearAllMessages.
      * @throws IOException if the advanced symbology database is absent or corrupt or cannot be written
      *                     to the device.
      */
@@ -91,24 +92,25 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         spotReportLayer = new GraphicsLayer();
         spotReportLayer.setName(SPOT_REPORT_LAYER_NAME);
         mapController.addLayer(spotReportLayer);
-        
+
         groupLayer = new MessageGroupLayer(SymbolDictionary.DictionaryType.MIL2525C, symDictDir.getAbsolutePath());
         mapController.addLayer(groupLayer);
-        
+
         spotReportSymbol = new PictureMarkerSymbol(spotReportIcon);
-        
+
         this.messageController = messageController;
     }
 
     /**
      * Copies the MIL-STD-2525C symbol dictionary from assets to the device's downloads directory if
      * it is not already there.
-     * @param assetManager the application's AssetManager, from which the advanced symbology database
-     *                     will be copied.
+     *
+     * @param assetManager            the application's AssetManager, from which the advanced symbology database
+     *                                will be copied.
      * @param symbolDictionaryDirname the name of the asset directory that contains the advanced symbology
      *                                database.
      * @return the symbol dictionary directory. This may be freshly copied or it might have already
-     *         been there.
+     * been there.
      * @throws IOException if the symbol dictionary cannot be copied to disk.
      */
     public static File copySymbolDictionaryToDisk(AssetManager assetManager, String symbolDictionaryDirname) throws IOException {
@@ -154,7 +156,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         }
         return symDictDir;
     }
-    
+
     @Override
     protected Integer displaySpotReport(double x, double y, final int wkid, Integer graphicId, Geomessage geomessage) {
         try {
@@ -168,7 +170,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             } else {
                 Graphic graphic = new Graphic(pt, spotReportSymbol, geomessage.getProperties());
                 graphicId = spotReportLayer.addGraphic(graphic);
-                
+
             }
             return graphicId;
         } catch (NumberFormatException nfe) {
@@ -176,7 +178,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             return null;
         }
     }
-    
+
     @Override
     protected String translateColorString(String geomessageColorString) {
         if ("1".equals(geomessageColorString)) {
@@ -217,11 +219,11 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             message.setProperties(geomessage.getProperties());
             message.setID(geomessage.getId());
         }
-        
+
         return _processMessage(message);
     }
-    
-    private boolean _processMessage(Message message) {        
+
+    private boolean _processMessage(Message message) {
         /**
          * Workaround: ArcGIS Runtime 10.2.4 requires a chem light message to have
          * a "sic" field.
@@ -232,10 +234,10 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             String sic = "SFGPU----------";
             message.setProperty(Geomessage.SIC_FIELD_NAME, sic);
         }
-        
+
         return groupLayer.getMessageProcessor().processMessage(message);
     }
-    
+
     @Override
     protected boolean processHighlightMessage(String geomessageId, String messageType, boolean highlight) {
         Message message = MessageHelper.create2525CHighlightMessage(geomessageId, messageType, highlight);
@@ -257,7 +259,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         Message message = MessageHelper.create2525CRemoveMessage(geomessageId, messageType);
         _processMessage(message);
     }
-    
+
     @Override
     protected void removeSpotReportGraphic(int graphicId) {
         spotReportLayer.removeGraphic(graphicId);
@@ -291,20 +293,20 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         names[layers.length] = SPOT_REPORT_LAYER_NAME;
         return names;
     }
-    
+
     @Override
     public String getMessageLayerName(String messageType) {
         if (null == messageType) {
             return null;
         }
-        
+
         if (SpotReportController.REPORT_TYPE.equals(messageType)) {
             return SPOT_REPORT_LAYER_NAME;
         }
-        
+
         File messageTypesDir = new File(symDictDir, "MessageTypes");
         File[] files = messageTypesDir.listFiles(new FilenameFilter() {
-            
+
             @Override
             public boolean accept(File dir, String filename) {
                 return null != filename && filename.toLowerCase(Locale.getDefault()).endsWith(".json");
@@ -335,7 +337,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -354,7 +356,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             }
         }
     }
-    
+
     private void loopAndRemove(int[] graphicIds, GraphicsLayer graphicsLayer, boolean sendRemoveMessageForOwnMessages, boolean removeGraphics) {
         if (null != graphicIds) {
             for (int graphicId : graphicIds) {
@@ -366,7 +368,7 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             }
         }
     }
-    
+
     private void removeGeomessage(Graphic graphic, boolean sendRemoveMessageForOwnMessages) {
         final String geomessageId = (String) graphic.getAttributeValue(Geomessage.ID_FIELD_NAME);
         final String geomessageType = (String) graphic.getAttributeValue(Geomessage.TYPE_FIELD_NAME);
@@ -385,21 +387,22 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
             processRemoveGeomessage(geomessageId, geomessageType);
         }
     }
-    
+
     @Override
     public void clearAllMessages(boolean sendRemoveMessageForOwnMessages) {
         super.clearAllMessages(sendRemoveMessageForOwnMessages);
         clearLayer(spotReportLayer.getName(), sendRemoveMessageForOwnMessages);
     }
-    
+
     /**
      * Identifies at most one Graphic in the specified layer within the specified tolerance.
+     *
      * @param layerName the layer name.
-     * @param screenX the X value in pixels.
-     * @param screenY the Y value in pixels.
+     * @param screenX   the X value in pixels.
+     * @param screenY   the Y value in pixels.
      * @param tolerance the tolerance in pixels.
      * @return the Graphic in the specified layer within the specified tolerance that is closest
-     *         to the point specified by screenX and screenY, or null if no such Graphic exists.
+     * to the point specified by screenX and screenY, or null if no such Graphic exists.
      */
     public Graphic identifyOneGraphic(String layerName, float screenX, float screenY, int tolerance) {
         Layer[] layerList = groupLayer.getLayers(layerName);
@@ -420,5 +423,5 @@ public class AdvancedSymbolController extends com.esri.militaryapps.controller.A
         }
         return null;
     }
-    
+
 }

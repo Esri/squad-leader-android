@@ -1,13 +1,17 @@
 apply plugin: 'com.android.application'
 android {
-    compileSdkVersion 15
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 25
+    buildToolsVersion '25.0.3'
     compileOptions.encoding = 'ISO-8859-1'
+
+    dataBinding {
+        enabled = true
+    }
 
     defaultConfig {
         applicationId "com.esri.squadleader"
         minSdkVersion 15
-        targetSdkVersion 21
+        targetSdkVersion 23
 
         renderscriptTargetApi 18
         renderscriptSupportModeEnabled true
@@ -31,7 +35,7 @@ android {
     }
 
     dependencies {
-        compile 'com.esri.arcgis.android:arcgis-android:10.2.8-1'
+        compile 'com.esri.arcgis.android:arcgis-android:10.2.9'
         androidTestCompile 'junit:junit-dep:4.10'
     }
 
