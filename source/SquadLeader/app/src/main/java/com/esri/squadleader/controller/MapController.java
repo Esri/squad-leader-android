@@ -16,7 +16,6 @@
 package com.esri.squadleader.controller;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Color;
@@ -25,8 +24,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.esri.android.map.Callout;
@@ -46,8 +43,6 @@ import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.android.map.popup.Popup;
-import com.esri.android.map.popup.PopupContainer;
-import com.esri.android.map.popup.PopupContainerView;
 import com.esri.core.geodatabase.ShapefileFeatureTable;
 import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.CoordinateConversion.MGRSConversionMode;
@@ -89,6 +84,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -146,7 +143,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
     private static final SimpleRenderer MARKER_RENDERER = new SimpleRenderer(new SimpleMarkerSymbol(Color.BLUE, 10, SimpleMarkerSymbol.STYLE.CIRCLE));
 
     private final MapView mapView;
-    private final PopupContainer popupContainer;
     private final AssetManager assetManager;
     private final OnStatusChangedListener layerListener;
     private final Activity targetActivity;
@@ -217,8 +213,6 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         setAutoPan(autoPan);
 
         mapView.setAllowRotationByPinch(true);
-
-        popupContainer = new PopupContainer(mapView);
 
         mapView.getGrid().setType(GridType.MGRS);
         mapView.getGrid().setVisibility(false);
@@ -985,65 +979,44 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         mapView.setShowMagnifierOnLongPress(showMagnifier);
     }
 
-    public void identifyFeatureLayers(float screenX, float screenY) {
-        popupContainer.clearPopups();
-        final List<Layer> layers = getNonBasemapLayers();
-        for (Layer layer : layers) {
-            if (layer instanceof FeatureLayer) {
-                FeatureLayer featureLayer = (FeatureLayer) layer;
-                try {
-                    final long[] featureIds = featureLayer.getFeatureIDs(screenX, screenY, 5);
-                    for (long featureId : featureIds) {
-                        final Feature feature = featureLayer.getFeature(featureId);
-                        final Popup popup = layer.createPopup(mapView, 0, feature);
+    public FutureTask<List<Popup>> identifyFeatureLayers(final float screenX, final float screenY) {
+        return new FutureTask<>(new Callable<List<Popup>>() {
+            @Override
+            public List<Popup> call() throws Exception {
+                ArrayList<Popup> popups = new ArrayList<>();
+                final List<Layer> layers = getNonBasemapLayers();
+                for (Layer layer : layers) {
+                    if (layer instanceof FeatureLayer) {
+                        FeatureLayer featureLayer = (FeatureLayer) layer;
+                        try {
+                            final long[] featureIds = featureLayer.getFeatureIDs(screenX, screenY, 5);
+                            for (long featureId : featureIds) {
+                                final Feature feature = featureLayer.getFeature(featureId);
+                                final Popup popup = layer.createPopup(mapView, 0, feature);
 
-                        // In the popup, if a field's label is missing, set it to be the field name.
-                        final Map<String, PopupFieldInfo> fieldInfos = popup.getPopupInfo().getFieldInfos();
-                        for (String key : fieldInfos.keySet()) {
-                            final PopupFieldInfo fieldInfo = fieldInfos.get(key);
-                            if (null == fieldInfo.getLabel() || fieldInfo.getLabel().trim().isEmpty()) {
-                                fieldInfo.setLabel(fieldInfo.getFieldName());
+                                // In the popup, if a field's label is missing, set it to be the field name.
+                                final Map<String, PopupFieldInfo> fieldInfos = popup.getPopupInfo().getFieldInfos();
+                                for (String key : fieldInfos.keySet()) {
+                                    final PopupFieldInfo fieldInfo = fieldInfos.get(key);
+                                    if (null == fieldInfo.getLabel() || fieldInfo.getLabel().trim().isEmpty()) {
+                                        fieldInfo.setLabel(fieldInfo.getFieldName());
+                                    }
+                                    // Hide the geometry field.
+                                    if ("geom".equals(fieldInfo.getFieldName())) {
+                                        fieldInfo.setVisible(false);
+                                    }
+                                }
+
+                                popups.add(popup);
                             }
-                            // Hide the geometry field.
-                            if ("geom".equals(fieldInfo.getFieldName())) {
-                                fieldInfo.setVisible(false);
-                            }
+                        } catch (Throwable t) {
+                            Log.w(TAG, "Could not identify on layer " + featureLayer.getName(), t);
                         }
-
-                        popupContainer.addPopup(popup);
                     }
-                } catch (Throwable t) {
-                    Log.w(TAG, "Could not identify on layer " + featureLayer.getName(), t);
                 }
+                return popups;
             }
-        }
-        if (0 < popupContainer.getPopupCount()) {
-            PopupDialog popupDialog = new PopupDialog(mapView.getContext(), popupContainer);
-            popupDialog.show();
-        }
-    }
-
-    private class PopupDialog extends Dialog {
-        private PopupContainer popupContainer;
-
-        PopupDialog(Context context, PopupContainer popupContainer) {
-            super(context, android.R.style.Theme);
-            this.popupContainer = popupContainer;
-        }
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            LinearLayout layout = new LinearLayout(getContext());
-            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
-            if (null != popupContainerView.getParent() && popupContainerView.getParent() instanceof ViewGroup) {
-                ((ViewGroup) popupContainerView.getParent()).removeView(popupContainerView);
-            }
-            layout.addView(popupContainerView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-            setContentView(layout, params);
-        }
-
+        });
     }
 
 }

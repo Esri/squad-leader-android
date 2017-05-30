@@ -18,6 +18,8 @@ package com.esri.squadleader.view;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,7 +41,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
@@ -48,6 +52,9 @@ import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.popup.Popup;
+import com.esri.android.map.popup.PopupContainer;
+import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
@@ -88,6 +95,9 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
@@ -244,6 +254,29 @@ public class SquadLeaderActivity extends Activity
             }
         }
     };
+
+    private class PopupDialog extends Dialog {
+        private PopupContainer popupContainer;
+
+        PopupDialog(Context context, PopupContainer popupContainer) {
+            super(context, android.R.style.Theme);
+            this.popupContainer = popupContainer;
+        }
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout layout = new LinearLayout(getContext());
+            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+            if (null != popupContainerView.getParent() && popupContainerView.getParent() instanceof ViewGroup) {
+                ((ViewGroup) popupContainerView.getParent()).removeView(popupContainerView);
+            }
+            layout.addView(popupContainerView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            setContentView(layout, params);
+        }
+
+    }
 
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     private final OnSingleTapListener defaultOnSingleTapListener;
@@ -1075,7 +1108,21 @@ public class SquadLeaderActivity extends Activity
                     callout.animatedHide();
 
                     // Identify a feature from a layer
-                    mapController.identifyFeatureLayers(x, y);
+                    final FutureTask<List<Popup>> identifyFuture = mapController.identifyFeatureLayers(x, y);
+                    Executors.newSingleThreadExecutor().submit(identifyFuture);
+                    try {
+                        final List<Popup> popups = identifyFuture.get();
+                        if (0 < popups.size()) {
+                            PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                            PopupDialog popupDialog = new PopupDialog(SquadLeaderActivity.this, popupContainer);
+                            for (Popup popup : popups) {
+                                popupContainer.addPopup(popup);
+                            }
+                            popupDialog.show();
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.e(TAG, "Exception while identifying feature layers", e);
+                    }
                 }
             }
         };
