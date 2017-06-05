@@ -4,19 +4,19 @@
 
         <variable
             name="displayLocation"
-            type="java.lang.String" />
+            type="String" />
 
         <variable
             name="displaySpeed"
-            type="java.lang.String" />
+            type="String" />
 
         <variable
             name="displayTime"
-            type="java.lang.String" />
+            type="String" />
 
         <variable
             name="displayHeading"
-            type="java.lang.String" />
+            type="String" />
     </data>
 
     <RelativeLayout xmlns:tools="http://schemas.android.com/tools"
