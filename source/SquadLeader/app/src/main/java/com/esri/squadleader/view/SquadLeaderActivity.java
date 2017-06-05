@@ -16,7 +16,6 @@
 package com.esri.squadleader.view;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -37,6 +36,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -78,6 +78,7 @@ import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
+import com.esri.squadleader.databinding.ActivitySquadLeaderBinding;
 import com.esri.squadleader.databinding.MainBinding;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -103,7 +104,7 @@ import java.util.concurrent.FutureTask;
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends Activity
+public class SquadLeaderActivity extends AppCompatActivity
         implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
 
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
@@ -306,6 +307,7 @@ public class SquadLeaderActivity extends Activity
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
     private SpatialReference lastSpatialReference = null;
+    private ActivitySquadLeaderBinding activityBinding = null;
     private MainBinding mainBinding = null;
 
     public SquadLeaderActivity() throws SocketException {
@@ -433,7 +435,8 @@ public class SquadLeaderActivity extends Activity
 //            //intentData should be a Geo URI with a location to which we should navigate
 //        }
 
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.main);
+        activityBinding = (ActivitySquadLeaderBinding) DataBindingUtil.setContentView(this, R.layout.activity_squad_leader);
+        mainBinding = activityBinding.main;
         clearDisplayStrings();
 
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);

@@ -15,8 +15,8 @@
  ******************************************************************************/
 package com.esri.squadleader.view;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -35,7 +35,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class SpotReportActivity extends Activity {
+public class SpotReportActivity extends AppCompatActivity {
 
     public static final String MGRS_EXTRA_NAME = "MgrsExtra";
     public static final String SPOT_REPORT_EXTRA_NAME = "SpotReportExtra";

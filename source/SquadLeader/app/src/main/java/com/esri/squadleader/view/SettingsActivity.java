@@ -23,9 +23,9 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.esri.core.geometry.AngularUnit;
@@ -35,7 +35,7 @@ import com.esri.squadleader.R;
  * An Activity that lets the user modify application settings. This class works
  * with res/xml/preferences.xml.
  */
-public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+public class SettingsActivity extends AppCompatActivity implements OnSharedPreferenceChangeListener {
 
     private static final String TAG = SettingsActivity.class.getSimpleName();
 
