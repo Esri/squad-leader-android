@@ -40,6 +40,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
@@ -1096,6 +1097,9 @@ public class SquadLeaderActivity extends AppCompatActivity
                             final View featurePopup = findViewById(R.id.featurePopup);
                             final BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(featurePopup);
                             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            final ViewGroup popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
+                            popupsGroup.removeAllViews();
+                            popupsGroup.addView(popupContainer.getPopupContainerView());
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         Log.e(TAG, "Exception while identifying feature layers", e);
