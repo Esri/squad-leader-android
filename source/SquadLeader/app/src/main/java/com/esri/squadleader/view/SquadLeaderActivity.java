@@ -45,6 +45,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
@@ -286,6 +287,7 @@ public class SquadLeaderActivity extends AppCompatActivity
     private MainBinding mainBinding = null;
     private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
     private ViewGroup popupsGroup = null;
+    private TextView bottomSheetHeading = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -552,6 +554,7 @@ public class SquadLeaderActivity extends AppCompatActivity
         bottomSheetBehavior_featurePopups = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
         bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
         popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
+        bottomSheetHeading = (TextView) findViewById(R.id.bottomSheetHeading);
     }
 
     @Override
@@ -1124,6 +1127,9 @@ public class SquadLeaderActivity extends AppCompatActivity
                     try {
                         final List<Popup> popups = identifyFuture.get();
                         if (0 < popups.size()) {
+                            bottomSheetHeading.setText(1 == popups.size() ?
+                                    popups.get(0).getPopupInfo().getTitle() :
+                                    String.format(getString(R.string.number_of_results), 1, popups.size()));
                             PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
