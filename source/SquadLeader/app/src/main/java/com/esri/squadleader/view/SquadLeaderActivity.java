@@ -17,8 +17,6 @@ package com.esri.squadleader.view;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -34,6 +32,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -41,9 +40,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
@@ -54,7 +51,6 @@ import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.popup.Popup;
 import com.esri.android.map.popup.PopupContainer;
-import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
@@ -255,29 +251,6 @@ public class SquadLeaderActivity extends AppCompatActivity
             }
         }
     };
-
-    private class PopupDialog extends Dialog {
-        private PopupContainer popupContainer;
-
-        PopupDialog(Context context, PopupContainer popupContainer) {
-            super(context, android.R.style.Theme);
-            this.popupContainer = popupContainer;
-        }
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            LinearLayout layout = new LinearLayout(getContext());
-            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
-            if (null != popupContainerView.getParent() && popupContainerView.getParent() instanceof ViewGroup) {
-                ((ViewGroup) popupContainerView.getParent()).removeView(popupContainerView);
-            }
-            layout.addView(popupContainerView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-            setContentView(layout, params);
-        }
-
-    }
 
     private final RadioGroup.OnCheckedChangeListener chemLightCheckedChangeListener;
     private final OnSingleTapListener defaultOnSingleTapListener;
@@ -1117,11 +1090,12 @@ public class SquadLeaderActivity extends AppCompatActivity
                         final List<Popup> popups = identifyFuture.get();
                         if (0 < popups.size()) {
                             PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
-                            PopupDialog popupDialog = new PopupDialog(SquadLeaderActivity.this, popupContainer);
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
-                            popupDialog.show();
+                            final View featurePopup = findViewById(R.id.featurePopup);
+                            final BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(featurePopup);
+                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         Log.e(TAG, "Exception while identifying feature layers", e);
