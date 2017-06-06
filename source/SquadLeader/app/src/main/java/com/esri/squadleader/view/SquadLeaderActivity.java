@@ -283,6 +283,8 @@ public class SquadLeaderActivity extends AppCompatActivity
     private SpatialReference lastSpatialReference = null;
     private ActivitySquadLeaderBinding activityBinding = null;
     private MainBinding mainBinding = null;
+    private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
+    private ViewGroup popupsGroup = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -545,6 +547,10 @@ public class SquadLeaderActivity extends AppCompatActivity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
 
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+
+        bottomSheetBehavior_featurePopups = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
+        bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+        popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
     }
 
     @Override
@@ -1094,10 +1100,7 @@ public class SquadLeaderActivity extends AppCompatActivity
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
-                            final View featurePopup = findViewById(R.id.featurePopup);
-                            final BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(featurePopup);
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                            final ViewGroup popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
+                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
                             popupsGroup.removeAllViews();
                             popupsGroup.addView(popupContainer.getPopupContainerView());
                         }
