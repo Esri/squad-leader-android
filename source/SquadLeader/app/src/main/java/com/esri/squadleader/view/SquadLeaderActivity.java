@@ -1170,6 +1170,12 @@ public class SquadLeaderActivity extends AppCompatActivity
         return ret;
     }
 
+    public void bottomSheetHeading_onClick(View view) {
+        if (BottomSheetBehavior.STATE_COLLAPSED == bottomSheetBehavior_featurePopups.getState()) {
+            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
+    }
+
     public void chemLightColorChangeClicked(View view) {
         if (null != poppedUpChemLight && null != view && null != view.getTag() && view.getTag() instanceof String) {
             try {

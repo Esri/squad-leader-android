@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_light"
+    android:clickable="true"
     app:behavior_peekHeight="60dp"
     app:behavior_hideable="true"
     app:layout_behavior="@string/bottom_sheet_behavior">
@@ -29,6 +30,7 @@
             android:id="@+id/bottomSheetHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:onClick="bottomSheetHeading_onClick"
             android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
     </LinearLayout>
 
