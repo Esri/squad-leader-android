@@ -34,6 +34,15 @@
             android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="@string/swipe_for_results"
+        android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+
     <LinearLayout
         android:id="@+id/linearLayout_popups"
         android:orientation="horizontal"
