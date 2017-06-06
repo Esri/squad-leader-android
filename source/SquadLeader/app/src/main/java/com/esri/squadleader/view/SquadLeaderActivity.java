@@ -1146,6 +1146,8 @@ public class SquadLeaderActivity extends AppCompatActivity
                                 }
                             });
                             popupsGroup.addView(popupContainerView);
+                        } else {
+                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         Log.e(TAG, "Exception while identifying feature layers", e);
