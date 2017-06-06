@@ -35,6 +35,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -54,6 +55,7 @@ import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.popup.Popup;
 import com.esri.android.map.popup.PopupContainer;
+import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
@@ -1136,7 +1138,14 @@ public class SquadLeaderActivity extends AppCompatActivity
                             }
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
                             popupsGroup.removeAllViews();
-                            popupsGroup.addView(popupContainer.getPopupContainerView());
+                            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+                            popupContainerView.setOnPageChangelistener(new ViewPager.SimpleOnPageChangeListener() {
+                                @Override
+                                public void onPageSelected(int position) {
+                                    bottomSheetHeading.setText(String.format(getString(R.string.number_of_results), position + 1, popups.size()));
+                                }
+                            });
+                            popupsGroup.addView(popupContainerView);
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         Log.e(TAG, "Exception while identifying feature layers", e);
