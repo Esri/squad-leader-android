@@ -6,17 +6,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_light"
-    android:padding="16dp"
     app:behavior_peekHeight="60dp"
     app:behavior_hideable="true"
     app:layout_behavior="@string/bottom_sheet_behavior">
 
-    <TextView
-        android:id="@+id/bottomSheetHeading"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_weight="0"
-        android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
+        android:gravity="center_vertical">
+        <ImageButton
+            android:id="@+id/imageButton_featurePopupBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:src="@drawable/ic_arrow_back_black_24dp"
+            android:background="@android:color/transparent"
+            android:onClick="imageButton_featurePopupBack_onClick"
+            android:contentDescription="@string/navigate_back"/>
+        <TextView
+            android:id="@+id/bottomSheetHeading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout_popups"

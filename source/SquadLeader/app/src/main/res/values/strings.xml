@@ -100,4 +100,5 @@
     <string name="undo">Undo</string>
     <string name="delete_point">Delete point</string>
     <string name="number_of_results">%1$d of %2$d results</string>
+    <string name="navigate_back">Back</string>
 </resources>

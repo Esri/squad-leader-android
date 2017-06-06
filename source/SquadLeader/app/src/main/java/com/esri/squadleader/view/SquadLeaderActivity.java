@@ -921,21 +921,9 @@ public class SquadLeaderActivity extends AppCompatActivity
         boolean ret;
         if (KeyEvent.KEYCODE_BACK == keyCode && 0 == event.getRepeatCount()) {
             // Override the Back button when the feature popup bottom sheet is showing.
-            switch (bottomSheetBehavior_featurePopups.getState()) {
-                case BottomSheetBehavior.STATE_DRAGGING:
-                case BottomSheetBehavior.STATE_EXPANDED:
-                case BottomSheetBehavior.STATE_SETTLING:
-                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    ret = true;
-                    break;
-
-                case BottomSheetBehavior.STATE_COLLAPSED:
-                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
-                    ret = true;
-                    break;
-
-                default:
-                    ret = super.onKeyDown(keyCode, event);
+            ret = goBackFromPopupSheet();
+            if (!ret) {
+                ret = super.onKeyDown(keyCode, event);
             }
         } else {
             ret = super.onKeyDown(keyCode, event);
@@ -1155,6 +1143,31 @@ public class SquadLeaderActivity extends AppCompatActivity
                 }
             }
         };
+    }
+
+    public void imageButton_featurePopupBack_onClick(View view) {
+        goBackFromPopupSheet();
+    }
+
+    private boolean goBackFromPopupSheet() {
+        boolean ret;
+        switch (bottomSheetBehavior_featurePopups.getState()) {
+            case BottomSheetBehavior.STATE_DRAGGING:
+            case BottomSheetBehavior.STATE_EXPANDED:
+            case BottomSheetBehavior.STATE_SETTLING:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                ret = true;
+                break;
+
+            case BottomSheetBehavior.STATE_COLLAPSED:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                ret = true;
+                break;
+
+            default:
+                ret = false;
+        }
+        return ret;
     }
 
     public void chemLightColorChangeClicked(View view) {
