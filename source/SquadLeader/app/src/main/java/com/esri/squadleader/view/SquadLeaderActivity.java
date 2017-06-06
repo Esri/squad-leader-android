@@ -37,6 +37,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -908,6 +909,33 @@ public class SquadLeaderActivity extends AppCompatActivity
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean ret;
+        if (KeyEvent.KEYCODE_BACK == keyCode && 0 == event.getRepeatCount()) {
+            // Override the Back button when the feature popup bottom sheet is showing.
+            switch (bottomSheetBehavior_featurePopups.getState()) {
+                case BottomSheetBehavior.STATE_DRAGGING:
+                case BottomSheetBehavior.STATE_EXPANDED:
+                case BottomSheetBehavior.STATE_SETTLING:
+                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    ret = true;
+                    break;
+
+                case BottomSheetBehavior.STATE_COLLAPSED:
+                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                    ret = true;
+                    break;
+
+                default:
+                    ret = super.onKeyDown(keyCode, event);
+            }
+        } else {
+            ret = super.onKeyDown(keyCode, event);
+        }
+        return ret;
     }
 
     public void imageButton_zoomIn_clicked(View view) {
