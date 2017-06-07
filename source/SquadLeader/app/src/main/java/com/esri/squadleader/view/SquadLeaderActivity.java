@@ -577,8 +577,8 @@ public class SquadLeaderActivity extends AppCompatActivity
                             }
                             if (null != newBottomMargin) {
                                 ((ViewGroup.MarginLayoutParams) layoutParams).setMargins(0, 0, 0, newBottomMargin);
+                                mainView.setLayoutParams(layoutParams);
                             }
-                            mainView.setLayoutParams(layoutParams);
                         }
                 }
             }
