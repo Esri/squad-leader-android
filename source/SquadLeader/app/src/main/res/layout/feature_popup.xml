@@ -34,19 +34,29 @@
             android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
     </LinearLayout>
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
-        android:text="@string/swipe_for_results"
-        android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/swipe_for_results"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout_popups"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"/>
 </LinearLayout>
