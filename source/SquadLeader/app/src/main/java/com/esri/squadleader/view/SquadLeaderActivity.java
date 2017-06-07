@@ -553,8 +553,41 @@ public class SquadLeaderActivity extends AppCompatActivity
 
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
 
-        bottomSheetBehavior_featurePopups = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
+        final BottomSheetBehavior<View> featurePopupBehavior = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
+        bottomSheetBehavior_featurePopups = featurePopupBehavior;
         bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior_featurePopups.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        final View mainView = findViewById(R.id.main);
+                        final ViewGroup.LayoutParams layoutParams = mainView.getLayoutParams();
+                        if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
+                            Integer newBottomMargin = null;
+                            switch (newState) {
+                                case BottomSheetBehavior.STATE_COLLAPSED:
+                                    newBottomMargin = featurePopupBehavior.getPeekHeight();
+                                    break;
+
+                                case BottomSheetBehavior.STATE_HIDDEN:
+                                    newBottomMargin = 0;
+                                    break;
+                            }
+                            if (null != newBottomMargin) {
+                                ((ViewGroup.MarginLayoutParams) layoutParams).setMargins(0, 0, 0, newBottomMargin);
+                            }
+                            mainView.setLayoutParams(layoutParams);
+                        }
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
         popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
         bottomSheetHeading = (TextView) findViewById(R.id.bottomSheetHeading);
     }
