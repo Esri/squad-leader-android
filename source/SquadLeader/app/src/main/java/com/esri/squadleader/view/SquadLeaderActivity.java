@@ -16,7 +16,6 @@
 package com.esri.squadleader.view;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,21 +32,30 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.popup.Popup;
+import com.esri.android.map.popup.PopupContainer;
+import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
 import com.esri.core.geometry.Point;
@@ -71,6 +79,7 @@ import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
+import com.esri.squadleader.databinding.ActivitySquadLeaderBinding;
 import com.esri.squadleader.databinding.MainBinding;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -88,12 +97,15 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends Activity
+public class SquadLeaderActivity extends AppCompatActivity
         implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
 
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
@@ -273,7 +285,11 @@ public class SquadLeaderActivity extends Activity
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
     private SpatialReference lastSpatialReference = null;
+    private ActivitySquadLeaderBinding activityBinding = null;
     private MainBinding mainBinding = null;
+    private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
+    private ViewGroup popupsGroup = null;
+    private TextView bottomSheetHeading = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -400,7 +416,8 @@ public class SquadLeaderActivity extends Activity
 //            //intentData should be a Geo URI with a location to which we should navigate
 //        }
 
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.main);
+        activityBinding = (ActivitySquadLeaderBinding) DataBindingUtil.setContentView(this, R.layout.activity_squad_leader);
+        mainBinding = activityBinding.main;
         clearDisplayStrings();
 
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);
@@ -535,6 +552,44 @@ public class SquadLeaderActivity extends Activity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
 
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+
+        final BottomSheetBehavior<View> featurePopupBehavior = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
+        bottomSheetBehavior_featurePopups = featurePopupBehavior;
+        bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior_featurePopups.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        final View mainView = findViewById(R.id.main);
+                        final ViewGroup.LayoutParams layoutParams = mainView.getLayoutParams();
+                        if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
+                            Integer newBottomMargin = null;
+                            switch (newState) {
+                                case BottomSheetBehavior.STATE_COLLAPSED:
+                                    newBottomMargin = featurePopupBehavior.getPeekHeight();
+                                    break;
+
+                                case BottomSheetBehavior.STATE_HIDDEN:
+                                    newBottomMargin = 0;
+                                    break;
+                            }
+                            if (null != newBottomMargin) {
+                                ((ViewGroup.MarginLayoutParams) layoutParams).setMargins(0, 0, 0, newBottomMargin);
+                            }
+                            mainView.setLayoutParams(layoutParams);
+                        }
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+        popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
+        bottomSheetHeading = (TextView) findViewById(R.id.bottomSheetHeading);
     }
 
     @Override
@@ -894,6 +949,21 @@ public class SquadLeaderActivity extends Activity
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean ret;
+        if (KeyEvent.KEYCODE_BACK == keyCode && 0 == event.getRepeatCount()) {
+            // Override the Back button when the feature popup bottom sheet is showing.
+            ret = goBackFromPopupSheet();
+            if (!ret) {
+                ret = super.onKeyDown(keyCode, event);
+            }
+        } else {
+            ret = super.onKeyDown(keyCode, event);
+        }
+        return ret;
+    }
+
     public void imageButton_zoomIn_clicked(View view) {
         mapController.zoomIn();
     }
@@ -1075,10 +1145,68 @@ public class SquadLeaderActivity extends Activity
                     callout.animatedHide();
 
                     // Identify a feature from a layer
-                    mapController.identifyFeatureLayers(x, y);
+                    final FutureTask<List<Popup>> identifyFuture = mapController.identifyFeatureLayers(x, y);
+                    Executors.newSingleThreadExecutor().submit(identifyFuture);
+                    try {
+                        final List<Popup> popups = identifyFuture.get();
+                        if (0 < popups.size()) {
+                            bottomSheetHeading.setText(1 == popups.size() ?
+                                    popups.get(0).getPopupInfo().getTitle() :
+                                    String.format(getString(R.string.number_of_results), 1, popups.size()));
+                            PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                            for (Popup popup : popups) {
+                                popupContainer.addPopup(popup);
+                            }
+                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            popupsGroup.removeAllViews();
+                            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+                            popupContainerView.setOnPageChangelistener(new ViewPager.SimpleOnPageChangeListener() {
+                                @Override
+                                public void onPageSelected(int position) {
+                                    bottomSheetHeading.setText(String.format(getString(R.string.number_of_results), position + 1, popups.size()));
+                                }
+                            });
+                            popupsGroup.addView(popupContainerView);
+                        } else {
+                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.e(TAG, "Exception while identifying feature layers", e);
+                    }
                 }
             }
         };
+    }
+
+    public void imageButton_featurePopupBack_onClick(View view) {
+        goBackFromPopupSheet();
+    }
+
+    private boolean goBackFromPopupSheet() {
+        boolean ret;
+        switch (bottomSheetBehavior_featurePopups.getState()) {
+            case BottomSheetBehavior.STATE_DRAGGING:
+            case BottomSheetBehavior.STATE_EXPANDED:
+            case BottomSheetBehavior.STATE_SETTLING:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                ret = true;
+                break;
+
+            case BottomSheetBehavior.STATE_COLLAPSED:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                ret = true;
+                break;
+
+            default:
+                ret = false;
+        }
+        return ret;
+    }
+
+    public void bottomSheetHeading_onClick(View view) {
+        if (BottomSheetBehavior.STATE_COLLAPSED == bottomSheetBehavior_featurePopups.getState()) {
+            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
     }
 
     public void chemLightColorChangeClicked(View view) {

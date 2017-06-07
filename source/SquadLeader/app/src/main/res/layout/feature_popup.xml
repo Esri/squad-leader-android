@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottomSheetLayout"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light"
+    android:clickable="true"
+    app:behavior_peekHeight="60dp"
+    app:behavior_hideable="true"
+    app:layout_behavior="@string/bottom_sheet_behavior">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_weight="0"
+        android:gravity="center_vertical">
+        <ImageButton
+            android:id="@+id/imageButton_featurePopupBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:src="@drawable/ic_arrow_back_black_24dp"
+            android:background="@android:color/transparent"
+            android:onClick="imageButton_featurePopupBack_onClick"
+            android:contentDescription="@string/navigate_back"/>
+        <TextView
+            android:id="@+id/bottomSheetHeading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="bottomSheetHeading_onClick"
+            android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="@string/swipe_for_results"
+        android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+
+    <LinearLayout
+        android:id="@+id/linearLayout_popups"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+</LinearLayout>

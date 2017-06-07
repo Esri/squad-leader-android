@@ -11,13 +11,17 @@ android {
     defaultConfig {
         applicationId "com.esri.squadleader"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 25
 
         renderscriptTargetApi 18
         renderscriptSupportModeEnabled true
 
         testApplicationId "com.esri.squadleader.test"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+
+    lintOptions {
+        abortOnError false
     }
 
     packagingOptions {
@@ -47,4 +51,6 @@ android {
 
 dependencies {
     compile project(':aFileChooser')
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:design:25.3.1'
 }
