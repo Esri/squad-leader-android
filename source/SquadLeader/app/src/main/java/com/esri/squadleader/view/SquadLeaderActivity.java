@@ -290,6 +290,7 @@ public class SquadLeaderActivity extends AppCompatActivity
     private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
     private ViewGroup popupsGroup = null;
     private TextView bottomSheetHeading = null;
+    private PopupContainer popupContainer = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -1153,7 +1154,7 @@ public class SquadLeaderActivity extends AppCompatActivity
                             bottomSheetHeading.setText(1 == popups.size() ?
                                     popups.get(0).getPopupInfo().getTitle() :
                                     String.format(getString(R.string.number_of_results), 1, popups.size()));
-                            PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                            popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
@@ -1207,6 +1208,40 @@ public class SquadLeaderActivity extends AppCompatActivity
         if (BottomSheetBehavior.STATE_COLLAPSED == bottomSheetBehavior_featurePopups.getState()) {
             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_EXPANDED);
         }
+    }
+
+    public void button_editAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditable(true);
+            currentPopup.setEditMode(true);
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.VISIBLE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.VISIBLE);
+    }
+
+    public void button_saveAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            // TODO save
+            currentPopup.setEditMode(false);// TODO only if succeeded
+            currentPopup.refresh();// TODO we probably don't need this call to refresh if the edit succeeded
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+    }
+
+    public void button_cancelEditAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditMode(false);
+            currentPopup.refresh();
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
     }
 
     public void chemLightColorChangeClicked(View view) {
