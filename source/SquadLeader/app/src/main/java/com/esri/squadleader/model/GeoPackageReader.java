@@ -22,14 +22,20 @@ import android.util.Log;
 import com.esri.android.map.FeatureLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.RasterLayer;
+import com.esri.core.ags.LayerServiceInfo;
 import com.esri.core.geodatabase.Geopackage;
 import com.esri.core.geodatabase.GeopackageFeatureTable;
 import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Field;
 import com.esri.core.raster.FileRasterSource;
 import com.esri.core.raster.RasterSource;
 import com.esri.core.renderer.RasterRenderer;
 import com.esri.core.renderer.Renderer;
+
+import org.codehaus.jackson.JsonFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -190,6 +196,18 @@ public class GeoPackageReader {
         for (GeopackageFeatureTable table : tables) {
             if (types.contains(table.getGeometryType())) {
                 final FeatureLayer layer = new FeatureLayer(table);
+                JSONObject jsonObject = new JSONObject();
+                JSONArray fieldsArray = new JSONArray();
+                try {
+                    for (Field field : table.getFields()) {
+                        fieldsArray.put(new JSONObject(Field.toJson(field)));
+                    }
+                    jsonObject.put("fields", fieldsArray);
+                    LayerServiceInfo layerInfo = LayerServiceInfo.fromJson(new JsonFactory().createJsonParser(jsonObject.toString()));
+                    layer.getPopupInfo(0).setLayer(layerInfo);
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not create LayerServiceInfo for FeatureLayer for table " + table.getTableName(), e);
+                }
                 layer.setRenderer(renderer);
                 layer.setName(table.getTableName());
                 layers.add(layer);
