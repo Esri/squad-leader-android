@@ -34,19 +34,55 @@
             android:textAppearance="@android:style/TextAppearance.Large.Inverse" />
     </LinearLayout>
 
-    <TextView
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:layout_weight="0"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
-        android:text="@string/swipe_for_results"
-        android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/swipe_for_results"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"/>
+        <Button
+            android:id="@+id/button_editAttributes"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="0"
+            android:drawableTop="@android:drawable/ic_menu_edit"
+            android:onClick="button_editAttributes_onClick"/>
+        <Button
+            android:id="@+id/button_saveAttributes"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="0"
+            android:drawableTop="@android:drawable/ic_menu_save"
+            android:visibility="gone"
+            android:onClick="button_saveAttributes_onClick"/>
+        <Button
+            android:id="@+id/button_cancelEditAttributes"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="0"
+            android:drawableTop="@android:drawable/ic_menu_close_clear_cancel"
+            android:visibility="gone"
+            android:onClick="button_cancelEditAttributes_onClick"/>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout_popups"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"/>
 </LinearLayout>

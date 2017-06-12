@@ -33,6 +33,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -53,14 +54,20 @@ import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.popup.FeatureTablePopupInfo;
 import com.esri.android.map.popup.Popup;
 import com.esri.android.map.popup.PopupContainer;
 import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
+import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Feature;
 import com.esri.core.map.Graphic;
+import com.esri.core.map.popup.PopupInfo;
+import com.esri.core.symbol.Symbol;
+import com.esri.core.table.FeatureTable;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -93,7 +100,9 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -290,6 +299,7 @@ public class SquadLeaderActivity extends AppCompatActivity
     private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
     private ViewGroup popupsGroup = null;
     private TextView bottomSheetHeading = null;
+    private PopupContainer popupContainer = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -577,8 +587,8 @@ public class SquadLeaderActivity extends AppCompatActivity
                             }
                             if (null != newBottomMargin) {
                                 ((ViewGroup.MarginLayoutParams) layoutParams).setMargins(0, 0, 0, newBottomMargin);
+                                mainView.setLayoutParams(layoutParams);
                             }
-                            mainView.setLayoutParams(layoutParams);
                         }
                 }
             }
@@ -1153,7 +1163,7 @@ public class SquadLeaderActivity extends AppCompatActivity
                             bottomSheetHeading.setText(1 == popups.size() ?
                                     popups.get(0).getPopupInfo().getTitle() :
                                     String.format(getString(R.string.number_of_results), 1, popups.size()));
-                            PopupContainer popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                            popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
@@ -1207,6 +1217,103 @@ public class SquadLeaderActivity extends AppCompatActivity
         if (BottomSheetBehavior.STATE_COLLAPSED == bottomSheetBehavior_featurePopups.getState()) {
             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_EXPANDED);
         }
+    }
+
+    public void button_editAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditable(true);
+            currentPopup.setEditMode(true);
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.VISIBLE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.VISIBLE);
+    }
+
+    public void button_saveAttributes_onClick(View view) {
+        String errorMessage = null;
+        Throwable errorThrowable = null;
+        if (null != popupContainer) {
+            final Popup popup = popupContainer.getCurrentPopup();
+            final PopupInfo popupInfo = popup.getPopupInfo();
+            if (popupInfo instanceof FeatureTablePopupInfo) {
+                FeatureTablePopupInfo ftPopupInfo = (FeatureTablePopupInfo) popupInfo;
+                final FeatureTable table = ftPopupInfo.getTable();
+                if (null != table) {
+                    final Feature feature = popup.getFeature();
+                    final Map<String, Object> currentAttributes = popup.getFeature().getAttributes();
+                    currentAttributes.putAll(popup.getUpdatedAttributes());
+                    try {
+                        Feature newFeature = new Feature() {
+
+                            @Override
+                            public Object getAttributeValue(String key) {
+                                return currentAttributes.get(key);
+                            }
+
+                            @Override
+                            public Map<String, Object> getAttributes() {
+                                return new LinkedHashMap<>(currentAttributes);
+                            }
+
+                            @Override
+                            public long getId() {
+                                return feature.getId();
+                            }
+
+                            @Override
+                            public Geometry getGeometry() {
+                                return feature.getGeometry();
+                            }
+
+                            @Override
+                            public SpatialReference getSpatialReference() {
+                                return feature.getSpatialReference();
+                            }
+
+                            @Override
+                            public Symbol getSymbol() {
+                                return feature.getSymbol();
+                            }
+                        };
+                        table.updateFeature(popup.getFeature().getId(), newFeature);
+                    } catch (Throwable e) {
+                        errorMessage = getString(R.string.could_not_edit, e.getLocalizedMessage());
+                        errorThrowable = e;
+                    }
+                } else {
+                    errorMessage = getString(R.string.popup_feature_table_null);
+                }
+            } else {
+                errorMessage = getString(R.string.popup_without_feature_table, popupInfo.getClass().getSimpleName(), FeatureTablePopupInfo.class.getSimpleName());
+            }
+            popup.setEditMode(false);
+        } else {
+            errorMessage = getString(R.string.popup_container_null);
+        }
+        if (null != errorMessage) {
+            Snackbar.make(view, errorMessage, Snackbar.LENGTH_LONG).show();
+            if (null == errorThrowable) {
+                Log.e(TAG, errorMessage);
+            } else {
+                Log.e(TAG, errorMessage, errorThrowable);
+            }
+        }
+
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+    }
+
+    public void button_cancelEditAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditMode(false);
+            currentPopup.refresh();
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
     }
 
     public void chemLightColorChangeClicked(View view) {
