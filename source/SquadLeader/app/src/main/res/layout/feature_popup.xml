@@ -73,6 +73,13 @@
             android:drawableTop="@android:drawable/ic_menu_close_clear_cancel"
             android:visibility="gone"
             android:onClick="button_cancelEditAttributes_onClick"/>
+        <Button
+            android:id="@+id/button_deleteFeature"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="0"
+            android:drawableTop="@android:drawable/ic_menu_delete"
+            android:onClick="button_deleteFeature_onClick"/>
     </LinearLayout>
 
     <LinearLayout

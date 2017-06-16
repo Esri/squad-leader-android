@@ -68,6 +68,7 @@ import com.esri.core.map.Graphic;
 import com.esri.core.map.popup.PopupInfo;
 import com.esri.core.symbol.Symbol;
 import com.esri.core.table.FeatureTable;
+import com.esri.core.table.TableException;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -1155,30 +1156,25 @@ public class SquadLeaderActivity extends AppCompatActivity
                     callout.animatedHide();
 
                     // Identify a feature from a layer
+                    findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+                    findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+                    findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
                     final FutureTask<List<Popup>> identifyFuture = mapController.identifyFeatureLayers(x, y);
                     Executors.newSingleThreadExecutor().submit(identifyFuture);
                     try {
                         final List<Popup> popups = identifyFuture.get();
                         if (0 < popups.size()) {
-                            bottomSheetHeading.setText(1 == popups.size() ?
-                                    popups.get(0).getPopupInfo().getTitle() :
-                                    String.format(getString(R.string.number_of_results), 1, popups.size()));
                             popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                            popupsGroup.removeAllViews();
-                            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
-                            popupContainerView.setOnPageChangelistener(new ViewPager.SimpleOnPageChangeListener() {
-                                @Override
-                                public void onPageSelected(int position) {
-                                    bottomSheetHeading.setText(String.format(getString(R.string.number_of_results), position + 1, popups.size()));
-                                }
-                            });
-                            popupsGroup.addView(popupContainerView);
+                            reloadPopupContainerView();
                         } else {
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                            findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+                            findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+                            findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         Log.e(TAG, "Exception while identifying feature layers", e);
@@ -1186,6 +1182,28 @@ public class SquadLeaderActivity extends AppCompatActivity
                 }
             }
         };
+    }
+
+    private void reloadPopupContainerView() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                popupsGroup.removeAllViews();
+                final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+                final ViewPager.SimpleOnPageChangeListener listener = new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        bottomSheetHeading.setText(1 == popupContainer.getPopupCount() ?
+                                popupContainer.getCurrentPopup().getPopupInfo().getTitle() :
+                                String.format(getString(R.string.number_of_results), popupContainer.getCurrentPopupIndex() + 1, popupContainer.getPopupCount()));
+
+                    }
+                };
+                popupContainerView.setOnPageChangelistener(listener);
+                listener.onPageSelected(popupContainer.getCurrentPopupIndex());
+                popupsGroup.addView(popupContainerView);
+            }
+        });
     }
 
     public void imageButton_featurePopupBack_onClick(View view) {
@@ -1230,7 +1248,12 @@ public class SquadLeaderActivity extends AppCompatActivity
         findViewById(R.id.button_cancelEditAttributes).setVisibility(View.VISIBLE);
     }
 
-    public void button_saveAttributes_onClick(View view) {
+    private interface PopupAction {
+        void takeAction(Popup popup, FeatureTable table) throws Throwable;
+        String getActionErrorMessageTemplate();
+    }
+
+    private void actOnPopup(View viewForMessages, PopupAction popupAction) {
         String errorMessage = null;
         Throwable errorThrowable = null;
         if (null != popupContainer) {
@@ -1240,46 +1263,11 @@ public class SquadLeaderActivity extends AppCompatActivity
                 FeatureTablePopupInfo ftPopupInfo = (FeatureTablePopupInfo) popupInfo;
                 final FeatureTable table = ftPopupInfo.getTable();
                 if (null != table) {
-                    final Feature feature = popup.getFeature();
-                    final Map<String, Object> currentAttributes = popup.getFeature().getAttributes();
-                    currentAttributes.putAll(popup.getUpdatedAttributes());
                     try {
-                        Feature newFeature = new Feature() {
-
-                            @Override
-                            public Object getAttributeValue(String key) {
-                                return currentAttributes.get(key);
-                            }
-
-                            @Override
-                            public Map<String, Object> getAttributes() {
-                                return new LinkedHashMap<>(currentAttributes);
-                            }
-
-                            @Override
-                            public long getId() {
-                                return feature.getId();
-                            }
-
-                            @Override
-                            public Geometry getGeometry() {
-                                return feature.getGeometry();
-                            }
-
-                            @Override
-                            public SpatialReference getSpatialReference() {
-                                return feature.getSpatialReference();
-                            }
-
-                            @Override
-                            public Symbol getSymbol() {
-                                return feature.getSymbol();
-                            }
-                        };
-                        table.updateFeature(popup.getFeature().getId(), newFeature);
-                    } catch (Throwable e) {
-                        errorMessage = getString(R.string.could_not_edit, e.getLocalizedMessage());
-                        errorThrowable = e;
+                        popupAction.takeAction(popup, table);
+                    } catch (Throwable t) {
+                        errorMessage = String.format(popupAction.getActionErrorMessageTemplate(), t.getLocalizedMessage());
+                        errorThrowable = t;
                     }
                 } else {
                     errorMessage = getString(R.string.popup_feature_table_null);
@@ -1292,13 +1280,110 @@ public class SquadLeaderActivity extends AppCompatActivity
             errorMessage = getString(R.string.popup_container_null);
         }
         if (null != errorMessage) {
-            Snackbar.make(view, errorMessage, Snackbar.LENGTH_LONG).show();
+            Snackbar.make(viewForMessages, errorMessage, Snackbar.LENGTH_LONG).show();
             if (null == errorThrowable) {
                 Log.e(TAG, errorMessage);
             } else {
                 Log.e(TAG, errorMessage, errorThrowable);
             }
         }
+    }
+
+    public void button_deleteFeature_onClick(final View view) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage("Delete feature?")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        actOnPopup(view, new PopupAction() {
+                            @Override
+                            public void takeAction(Popup popup, FeatureTable table) throws Throwable {
+                                int currentIndex = popupContainer.getCurrentPopupIndex();
+                                int newPopupIndex = -1;
+                                try {
+                                    table.deleteFeature(popup.getFeature().getId());
+                                    newPopupIndex = currentIndex == 0 ? 0 : currentIndex - 1;
+                                } catch (Throwable t) {
+                                    popupContainer.setCurrentPopup(currentIndex, false);
+                                    throw t;
+                                }
+                                popupContainer.removePopup(popup);
+                                if (0 == popupContainer.getPopupCount()) {
+                                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                                } else {
+                                    PopupContainer newPopupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                                    popupContainer.setCurrentPopup(0, false);
+                                    while (0 < popupContainer.getPopupCount()) {
+                                        final Popup currentPopup = popupContainer.getCurrentPopup();
+                                        newPopupContainer.addPopup(currentPopup);
+                                        popupContainer.removePopup(currentPopup);
+                                    }
+                                    popupContainer = newPopupContainer;
+                                    reloadPopupContainerView();
+                                    if (-1 < newPopupIndex) {
+                                        popupContainer.setCurrentPopup(newPopupIndex, true);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public String getActionErrorMessageTemplate() {
+                                return getString(R.string.could_not_delete);
+                            }
+                        });
+                    }
+                }).setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    public void button_saveAttributes_onClick(View view) {
+        actOnPopup(view, new PopupAction() {
+            @Override
+            public void takeAction(Popup popup, FeatureTable table) throws Throwable {
+                final Feature feature = popup.getFeature();
+                final Map<String, Object> currentAttributes = feature.getAttributes();
+                currentAttributes.putAll(popup.getUpdatedAttributes());
+                Feature newFeature = new Feature() {
+
+                    @Override
+                    public Object getAttributeValue(String key) {
+                        return currentAttributes.get(key);
+                    }
+
+                    @Override
+                    public Map<String, Object> getAttributes() {
+                        return new LinkedHashMap<>(currentAttributes);
+                    }
+
+                    @Override
+                    public long getId() {
+                        return feature.getId();
+                    }
+
+                    @Override
+                    public Geometry getGeometry() {
+                        return feature.getGeometry();
+                    }
+
+                    @Override
+                    public SpatialReference getSpatialReference() {
+                        return feature.getSpatialReference();
+                    }
+
+                    @Override
+                    public Symbol getSymbol() {
+                        return feature.getSymbol();
+                    }
+                };
+                table.updateFeature(popup.getFeature().getId(), newFeature);
+            }
+
+            @Override
+            public String getActionErrorMessageTemplate() {
+                return getString(R.string.could_not_edit);
+            }
+        });
 
         view.setVisibility(View.GONE);
         findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
