@@ -1164,23 +1164,12 @@ public class SquadLeaderActivity extends AppCompatActivity
                     try {
                         final List<Popup> popups = identifyFuture.get();
                         if (0 < popups.size()) {
-                            bottomSheetHeading.setText(1 == popups.size() ?
-                                    popups.get(0).getPopupInfo().getTitle() :
-                                    String.format(getString(R.string.number_of_results), 1, popups.size()));
                             popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
                             for (Popup popup : popups) {
                                 popupContainer.addPopup(popup);
                             }
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                            popupsGroup.removeAllViews();
-                            final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
-                            popupContainerView.setOnPageChangelistener(new ViewPager.SimpleOnPageChangeListener() {
-                                @Override
-                                public void onPageSelected(int position) {
-                                    bottomSheetHeading.setText(String.format(getString(R.string.number_of_results), position + 1, popups.size()));
-                                }
-                            });
-                            popupsGroup.addView(popupContainerView);
+                            reloadPopupContainerView();
                         } else {
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
                             findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
@@ -1193,6 +1182,28 @@ public class SquadLeaderActivity extends AppCompatActivity
                 }
             }
         };
+    }
+
+    private void reloadPopupContainerView() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                popupsGroup.removeAllViews();
+                final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+                final ViewPager.SimpleOnPageChangeListener listener = new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        bottomSheetHeading.setText(1 == popupContainer.getPopupCount() ?
+                                popupContainer.getCurrentPopup().getPopupInfo().getTitle() :
+                                String.format(getString(R.string.number_of_results), popupContainer.getCurrentPopupIndex() + 1, popupContainer.getPopupCount()));
+
+                    }
+                };
+                popupContainerView.setOnPageChangelistener(listener);
+                listener.onPageSelected(popupContainer.getCurrentPopupIndex());
+                popupsGroup.addView(popupContainerView);
+            }
+        });
     }
 
     public void imageButton_featurePopupBack_onClick(View view) {
@@ -1288,7 +1299,32 @@ public class SquadLeaderActivity extends AppCompatActivity
                         actOnPopup(view, new PopupAction() {
                             @Override
                             public void takeAction(Popup popup, FeatureTable table) throws Throwable {
-                                table.deleteFeature(popup.getFeature().getId());
+                                int currentIndex = popupContainer.getCurrentPopupIndex();
+                                int newPopupIndex = -1;
+                                try {
+                                    table.deleteFeature(popup.getFeature().getId());
+                                    newPopupIndex = currentIndex == 0 ? 0 : currentIndex - 1;
+                                } catch (Throwable t) {
+                                    popupContainer.setCurrentPopup(currentIndex, false);
+                                    throw t;
+                                }
+                                popupContainer.removePopup(popup);
+                                if (0 == popupContainer.getPopupCount()) {
+                                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                                } else {
+                                    PopupContainer newPopupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+                                    popupContainer.setCurrentPopup(0, false);
+                                    while (0 < popupContainer.getPopupCount()) {
+                                        final Popup currentPopup = popupContainer.getCurrentPopup();
+                                        newPopupContainer.addPopup(currentPopup);
+                                        popupContainer.removePopup(currentPopup);
+                                    }
+                                    popupContainer = newPopupContainer;
+                                    reloadPopupContainerView();
+                                    if (-1 < newPopupIndex) {
+                                        popupContainer.setCurrentPopup(newPopupIndex, true);
+                                    }
+                                }
                             }
 
                             @Override
