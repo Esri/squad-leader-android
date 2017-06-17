@@ -451,9 +451,9 @@ public class AddFeatureDialogFragment extends DialogFragment {
     /**
      * Checks if a given location coincides (within a tolerance) with a point in a given array.
      *
-     * @param x Screen coordinate of location to check.
-     * @param y Screen coordinate of location to check.
-     * @param points Array of points to check.
+     * @param x             Screen coordinate of location to check.
+     * @param y             Screen coordinate of location to check.
+     * @param points        Array of points to check.
      * @param mapController the MapController for the editing app.
      * @return Index within points of matching point, or -1 if none.
      */
@@ -519,8 +519,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void actionSave(FeatureLayer layerToEdit) throws TableException {
         final FeatureTable featureTable = layerToEdit.getFeatureTable();
-        final boolean editable = featureTable.isEditable();
-        Log.i(TAG, "Can we save that edit? " + editable);
 
         Geometry geom = null;
         switch (editMode) {
