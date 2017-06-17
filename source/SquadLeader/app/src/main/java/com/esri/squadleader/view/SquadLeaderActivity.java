@@ -115,7 +115,7 @@ import java.util.concurrent.FutureTask;
  * controls.
  */
 public class SquadLeaderActivity extends AppCompatActivity
-        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.AddFeatureListener {
 
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -1163,12 +1163,7 @@ public class SquadLeaderActivity extends AppCompatActivity
                     try {
                         final List<Popup> popups = identifyFuture.get();
                         if (0 < popups.size()) {
-                            popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
-                            for (Popup popup : popups) {
-                                popupContainer.addPopup(popup);
-                            }
-                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                            reloadPopupContainerView();
+                            loadPopupContainer(popups, BottomSheetBehavior.STATE_COLLAPSED);
                         } else {
                             bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
                             findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
@@ -1181,6 +1176,15 @@ public class SquadLeaderActivity extends AppCompatActivity
                 }
             }
         };
+    }
+
+    private void loadPopupContainer(final List<Popup> popups, final int bottomSheetBehavior) {
+        popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+        for (Popup popup : popups) {
+            popupContainer.addPopup(popup);
+        }
+        bottomSheetBehavior_featurePopups.setState(bottomSheetBehavior);
+        reloadPopupContainerView();
     }
 
     private void reloadPopupContainerView() {
@@ -1412,6 +1416,13 @@ public class SquadLeaderActivity extends AppCompatActivity
                 }
             }.start();
         }
+    }
+
+    @Override
+    public void featureAdded(Popup popup) {
+        ArrayList<Popup> list = new ArrayList<>(1);
+        list.add(popup);
+        loadPopupContainer(list, BottomSheetBehavior.STATE_EXPANDED);
     }
 
     public void button_cancelEditAttributes_onClick(View view) {
