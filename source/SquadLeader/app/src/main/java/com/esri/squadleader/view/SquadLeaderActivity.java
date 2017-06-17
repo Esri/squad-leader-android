@@ -1137,6 +1137,11 @@ public class SquadLeaderActivity extends AppCompatActivity
         return mil2525cController;
     }
 
+    @Override
+    public OnSingleTapListener getDefaultOnSingleTapListener() {
+        return defaultOnSingleTapListener;
+    }
+
     private OnSingleTapListener createDefaultOnSingleTapListener() {
         return new OnSingleTapListener() {
 

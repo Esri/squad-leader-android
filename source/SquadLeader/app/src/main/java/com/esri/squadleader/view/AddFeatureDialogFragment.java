@@ -95,6 +95,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
          */
         void featureAdded(Popup popup);
 
+        /**
+         * @return an OnSingleTapListener to be used when this fragment is no longer in use.
+         */
+        OnSingleTapListener getDefaultOnSingleTapListener();
+
     }
 
     private class EditingStates {
@@ -158,6 +163,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     };
 
     private Activity activity = null;
+    private AddFeatureListener addFeatureListener = null;
     private MapController mapController = null;
     private Menu editingMenu = null;
     private EditMode editMode = EditMode.NONE;
@@ -169,6 +175,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         activity = getActivity();
+        if (activity instanceof AddFeatureListener) {
+            addFeatureListener = (AddFeatureListener) activity;
+        } else {
+            Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
+        }
         LayoutInflater inflater = activity.getLayoutInflater();
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         final View inflatedView = inflater.inflate(R.layout.add_feature, null);
@@ -178,8 +189,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
         final ArrayList<String> layerNames = new ArrayList<String>();
         final ArrayList<FeatureLayer> featureLayers = new ArrayList<FeatureLayer>();
-        if (activity instanceof AddFeatureListener) {
-            mapController = ((AddFeatureListener) activity).getMapController();
+        if (null != addFeatureListener) {
+            mapController = addFeatureListener.getMapController();
             if (null != mapController) {
                 List<Layer> layers = mapController.getNonBasemapLayers();
                 for (Layer layer : layers) {
@@ -297,7 +308,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         midPointSelected = false;
         mapController.removeLayer(graphicsLayerEditing);
         graphicsLayerEditing = null;
-        mapController.setOnSingleTapListener(null);
+        mapController.setOnSingleTapListener(addFeatureListener == null ? null : addFeatureListener.getDefaultOnSingleTapListener());
     }
 
     private void updateActionBar() {
@@ -600,7 +611,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
                         try {
                             final List<Popup> popups = identifyFuture.get();
                             if (1 == popups.size()) {
-                                ((AddFeatureListener) activity).featureAdded(popups.get(0));
+                                if (null != addFeatureListener) {
+                                    addFeatureListener.featureAdded(popups.get(0));
+                                } else {
+                                    Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
+                                }
                             } else {
                                 Log.w(TAG, getString(R.string.feature_id_query_expected_single_result, featureId, popups.size()));
                             }
