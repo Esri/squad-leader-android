@@ -99,4 +99,14 @@
     <string name="discard">Discard</string>
     <string name="undo">Undo</string>
     <string name="delete_point">Delete point</string>
+    <string name="number_of_results">%1$d of %2$d results</string>
+    <string name="navigate_back">Back</string>
+    <string name="swipe_for_results">Swipe left and right to see results</string>
+    <string name="could_not_edit">Could not edit: %1$s</string>
+    <string name="could_not_delete">Could not delete: %1$s</string>
+    <string name="popup_without_feature_table">This popup doesn\'t have an associated feature table. Its info type is %1$s instead of %2$s.</string>
+    <string name="popup_feature_table_null">This popup should have a feature table, but the table is null.</string>
+    <string name="popup_container_null">The popup container is null. This should not happen and is probably a bug in the Squad Leader app. Please use GitHub to submit an issue on the squad-leader-android repository.</string>
+    <string name="feature_id_query_expected_single_result">Query for feature ID %1$d expected a single result but got %2$d results.</string>
+    <string name="no_add_feature_listener">The Activity class %1$s does not implement AddFeatureListener.</string>
 </resources>

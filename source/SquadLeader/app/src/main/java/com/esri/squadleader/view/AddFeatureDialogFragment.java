@@ -39,6 +39,7 @@ import com.esri.android.map.FeatureLayer;
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.Layer;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.popup.Popup;
 import com.esri.core.geodatabase.GeodatabaseFeatureTable;
 import com.esri.core.geodatabase.GeopackageFeatureTable;
 import com.esri.core.geometry.Geometry;
@@ -54,15 +55,19 @@ import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.core.table.FeatureTable;
 import com.esri.core.table.TableException;
+import com.esri.core.tasks.query.QueryParameters;
 import com.esri.squadleader.R;
 import com.esri.squadleader.controller.MapController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * A dialog for adding a feature to a feature table. An Activity that creates this dialog must implement
- * AddFeatureDialogFragment.MapControllerReturner in order to work properly.<br/>
+ * AddFeatureDialogFragment.AddFeatureListener in order to work properly.<br/>
  * <br/>
  * A lot of this code comes from the GeometryEditorActivity editor class in the ArcGIS Runtime SDK
  * for Android samples.
@@ -74,11 +79,26 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     /**
-     * A listener for this class to get a MapController for manipulating layers.
+     * A listener for this class to interact with the calling class.
      */
-    public interface MapControllerReturner {
+    public interface AddFeatureListener {
 
-        public MapController getMapController();
+        /**
+         * @return the MapController containing the layers to which a feature can be added.
+         */
+        MapController getMapController();
+
+        /**
+         * Called when a feature is added.
+         *
+         * @param popup a Popup for the added feature.
+         */
+        void featureAdded(Popup popup);
+
+        /**
+         * @return an OnSingleTapListener to be used when this fragment is no longer in use.
+         */
+        OnSingleTapListener getDefaultOnSingleTapListener();
 
     }
 
@@ -143,6 +163,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     };
 
     private Activity activity = null;
+    private AddFeatureListener addFeatureListener = null;
     private MapController mapController = null;
     private Menu editingMenu = null;
     private EditMode editMode = EditMode.NONE;
@@ -154,6 +175,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         activity = getActivity();
+        if (activity instanceof AddFeatureListener) {
+            addFeatureListener = (AddFeatureListener) activity;
+        } else {
+            Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
+        }
         LayoutInflater inflater = activity.getLayoutInflater();
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         final View inflatedView = inflater.inflate(R.layout.add_feature, null);
@@ -163,8 +189,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
         final ArrayList<String> layerNames = new ArrayList<String>();
         final ArrayList<FeatureLayer> featureLayers = new ArrayList<FeatureLayer>();
-        if (activity instanceof MapControllerReturner) {
-            mapController = ((MapControllerReturner) activity).getMapController();
+        if (null != addFeatureListener) {
+            mapController = addFeatureListener.getMapController();
             if (null != mapController) {
                 List<Layer> layers = mapController.getNonBasemapLayers();
                 for (Layer layer : layers) {
@@ -178,7 +204,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 }
             }
         } else {
-            Log.w(TAG, "Activity must implement this dialog class's MapControllerReturner interface, but " + activity.getClass().getName() + " does not");
+            Log.w(TAG, "Activity must implement this dialog class's AddFeatureListener interface, but " + activity.getClass().getName() + " does not");
         }
 
         ArrayAdapter<FeatureLayer> adapter = new ArrayAdapter<FeatureLayer>(activity, R.layout.layer_list_item, featureLayers) {
@@ -282,7 +308,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         midPointSelected = false;
         mapController.removeLayer(graphicsLayerEditing);
         graphicsLayerEditing = null;
-        mapController.setOnSingleTapListener(null);
+        mapController.setOnSingleTapListener(addFeatureListener == null ? null : addFeatureListener.getDefaultOnSingleTapListener());
     }
 
     private void updateActionBar() {
@@ -451,9 +477,9 @@ public class AddFeatureDialogFragment extends DialogFragment {
     /**
      * Checks if a given location coincides (within a tolerance) with a point in a given array.
      *
-     * @param x Screen coordinate of location to check.
-     * @param y Screen coordinate of location to check.
-     * @param points Array of points to check.
+     * @param x             Screen coordinate of location to check.
+     * @param y             Screen coordinate of location to check.
+     * @param points        Array of points to check.
      * @param mapController the MapController for the editing app.
      * @return Index within points of matching point, or -1 if none.
      */
@@ -519,8 +545,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void actionSave(FeatureLayer layerToEdit) throws TableException {
         final FeatureTable featureTable = layerToEdit.getFeatureTable();
-        final boolean editable = featureTable.isEditable();
-        Log.i(TAG, "Can we save that edit? " + editable);
 
         Geometry geom = null;
         switch (editMode) {
@@ -546,28 +570,31 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 newFeature = ((GeodatabaseFeatureTable) featureTable).createNewFeature(null, geom);
             }
 
+            Long featureId = null;
             if (null != newFeature) {
                 try {
-                    final long id = featureTable.addFeature(newFeature);
+                    featureId = featureTable.addFeature(newFeature);
                 } catch (Throwable t) {
                     Log.e(TAG, "Could not add feature", t);
                     Toast.makeText(activity, "Could not add feature: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
-            completeSaveAction(null);
+            completeSaveAction(null, featureId, layerToEdit);
         }
     }
 
-    private void completeSaveAction(final FeatureEditResult[][] results) {
+    private void completeSaveAction(final FeatureEditResult[][] results, final Long featureId, final FeatureLayer featureLayer) {
         if (null != activity) {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    boolean success = true;
                     if (results != null) {
                         if (results[0][0].isSuccess()) {
                             String msg = getString(R.string.saved);
                             Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
                         } else {
+                            success = false;
                             EditFailedDialogFragment frag = new EditFailedDialogFragment();
                             frag.setMessage(results[0][0].getError().getDescription());
                             frag.show(getFragmentManager(), TAG_DIALOG_FRAGMENTS);
@@ -575,6 +602,27 @@ public class AddFeatureDialogFragment extends DialogFragment {
                     }
                     activity.setProgressBarIndeterminateVisibility(false);
                     exitEditMode();
+
+                    if (success) {
+                        QueryParameters queryParameters = new QueryParameters();
+                        queryParameters.setObjectIds(new long[]{featureId});
+                        final FutureTask<List<Popup>> identifyFuture = mapController.queryFeatureLayer(featureLayer, queryParameters);
+                        Executors.newSingleThreadExecutor().submit(identifyFuture);
+                        try {
+                            final List<Popup> popups = identifyFuture.get();
+                            if (1 == popups.size()) {
+                                if (null != addFeatureListener) {
+                                    addFeatureListener.featureAdded(popups.get(0));
+                                } else {
+                                    Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
+                                }
+                            } else {
+                                Log.w(TAG, getString(R.string.feature_id_query_expected_single_result, featureId, popups.size()));
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            Log.e(TAG, "Exception while identifying feature layers", e);
+                        }
+                    }
                 }
             });
         }

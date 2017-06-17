@@ -16,7 +16,6 @@
 package com.esri.squadleader.view;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,26 +32,42 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.esri.android.map.Callout;
 import com.esri.android.map.MapView;
 import com.esri.android.map.event.OnPanListener;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.popup.FeatureTablePopupInfo;
+import com.esri.android.map.popup.Popup;
+import com.esri.android.map.popup.PopupContainer;
+import com.esri.android.map.popup.PopupContainerView;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AngularUnit;
+import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Feature;
 import com.esri.core.map.Graphic;
+import com.esri.core.map.popup.PopupInfo;
+import com.esri.core.symbol.Symbol;
+import com.esri.core.table.FeatureTable;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -71,6 +86,7 @@ import com.esri.squadleader.controller.AdvancedSymbolController;
 import com.esri.squadleader.controller.MapController;
 import com.esri.squadleader.controller.MessageListener;
 import com.esri.squadleader.controller.ViewshedController;
+import com.esri.squadleader.databinding.ActivitySquadLeaderBinding;
 import com.esri.squadleader.databinding.MainBinding;
 import com.esri.squadleader.model.BasemapLayer;
 import com.esri.squadleader.util.Utilities;
@@ -84,17 +100,22 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * The main activity for the Squad Leader application. Typically this displays a map with various other
  * controls.
  */
-public class SquadLeaderActivity extends Activity
-        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.MapControllerReturner {
+public class SquadLeaderActivity extends AppCompatActivity
+        implements AddLayerListener, ClearMessagesHelper, GoToMgrsHelper, AddFeatureDialogFragment.AddFeatureListener {
 
     private static final String TAG = SquadLeaderActivity.class.getSimpleName();
     private static final double MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
@@ -273,7 +294,12 @@ public class SquadLeaderActivity extends Activity
     private String sicPreference = "SFGPEWRR-------";
     private Graphic poppedUpChemLight = null;
     private SpatialReference lastSpatialReference = null;
+    private ActivitySquadLeaderBinding activityBinding = null;
     private MainBinding mainBinding = null;
+    private BottomSheetBehavior bottomSheetBehavior_featurePopups = null;
+    private ViewGroup popupsGroup = null;
+    private TextView bottomSheetHeading = null;
+    private PopupContainer popupContainer = null;
 
     public SquadLeaderActivity() throws SocketException {
         super();
@@ -400,7 +426,8 @@ public class SquadLeaderActivity extends Activity
 //            //intentData should be a Geo URI with a location to which we should navigate
 //        }
 
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.main);
+        activityBinding = (ActivitySquadLeaderBinding) DataBindingUtil.setContentView(this, R.layout.activity_squad_leader);
+        mainBinding = activityBinding.main;
         clearDisplayStrings();
 
         adjustLayoutForOrientation(getResources().getConfiguration().orientation);
@@ -535,6 +562,44 @@ public class SquadLeaderActivity extends Activity
         clockTimer.schedule(clockTimerTask, 0, Utilities.ANIMATION_PERIOD_MS);
 
         ((RadioGroup) findViewById(R.id.radioGroup_chemLightButtons)).setOnCheckedChangeListener(chemLightCheckedChangeListener);
+
+        final BottomSheetBehavior<View> featurePopupBehavior = BottomSheetBehavior.from(findViewById(R.id.featurePopup));
+        bottomSheetBehavior_featurePopups = featurePopupBehavior;
+        bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior_featurePopups.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        final View mainView = findViewById(R.id.main);
+                        final ViewGroup.LayoutParams layoutParams = mainView.getLayoutParams();
+                        if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
+                            Integer newBottomMargin = null;
+                            switch (newState) {
+                                case BottomSheetBehavior.STATE_COLLAPSED:
+                                    newBottomMargin = featurePopupBehavior.getPeekHeight();
+                                    break;
+
+                                case BottomSheetBehavior.STATE_HIDDEN:
+                                    newBottomMargin = 0;
+                                    break;
+                            }
+                            if (null != newBottomMargin) {
+                                ((ViewGroup.MarginLayoutParams) layoutParams).setMargins(0, 0, 0, newBottomMargin);
+                                mainView.setLayoutParams(layoutParams);
+                            }
+                        }
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+        popupsGroup = (ViewGroup) findViewById(R.id.linearLayout_popups);
+        bottomSheetHeading = (TextView) findViewById(R.id.bottomSheetHeading);
     }
 
     @Override
@@ -894,6 +959,21 @@ public class SquadLeaderActivity extends Activity
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean ret;
+        if (KeyEvent.KEYCODE_BACK == keyCode && 0 == event.getRepeatCount()) {
+            // Override the Back button when the feature popup bottom sheet is showing.
+            ret = goBackFromPopupSheet();
+            if (!ret) {
+                ret = super.onKeyDown(keyCode, event);
+            }
+        } else {
+            ret = super.onKeyDown(keyCode, event);
+        }
+        return ret;
+    }
+
     public void imageButton_zoomIn_clicked(View view) {
         mapController.zoomIn();
     }
@@ -1057,6 +1137,11 @@ public class SquadLeaderActivity extends Activity
         return mil2525cController;
     }
 
+    @Override
+    public OnSingleTapListener getDefaultOnSingleTapListener() {
+        return defaultOnSingleTapListener;
+    }
+
     private OnSingleTapListener createDefaultOnSingleTapListener() {
         return new OnSingleTapListener() {
 
@@ -1075,10 +1160,286 @@ public class SquadLeaderActivity extends Activity
                     callout.animatedHide();
 
                     // Identify a feature from a layer
-                    mapController.identifyFeatureLayers(x, y);
+                    findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+                    findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+                    findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+                    final FutureTask<List<Popup>> identifyFuture = mapController.identifyFeatureLayers(x, y);
+                    Executors.newSingleThreadExecutor().submit(identifyFuture);
+                    try {
+                        final List<Popup> popups = identifyFuture.get();
+                        if (0 < popups.size()) {
+                            loadPopupContainer(popups, BottomSheetBehavior.STATE_COLLAPSED);
+                        } else {
+                            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                            findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+                            findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+                            findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.e(TAG, "Exception while identifying feature layers", e);
+                    }
                 }
             }
         };
+    }
+
+    private void loadPopupContainer(final List<Popup> popups, final int bottomSheetBehavior) {
+        popupContainer = new PopupContainer((MapView) findViewById(R.id.map));
+        for (Popup popup : popups) {
+            popupContainer.addPopup(popup);
+        }
+        bottomSheetBehavior_featurePopups.setState(bottomSheetBehavior);
+        reloadPopupContainerView();
+    }
+
+    private void reloadPopupContainerView() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                popupsGroup.removeAllViews();
+                final PopupContainerView popupContainerView = popupContainer.getPopupContainerView();
+                final ViewPager.SimpleOnPageChangeListener listener = new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        bottomSheetHeading.setText(1 == popupContainer.getPopupCount() ?
+                                popupContainer.getCurrentPopup().getPopupInfo().getTitle() :
+                                String.format(getString(R.string.number_of_results), popupContainer.getCurrentPopupIndex() + 1, popupContainer.getPopupCount()));
+
+                    }
+                };
+                popupContainerView.setOnPageChangelistener(listener);
+                listener.onPageSelected(popupContainer.getCurrentPopupIndex());
+                popupsGroup.addView(popupContainerView);
+            }
+        });
+    }
+
+    public void imageButton_featurePopupBack_onClick(View view) {
+        goBackFromPopupSheet();
+    }
+
+    private boolean goBackFromPopupSheet() {
+        boolean ret;
+        switch (bottomSheetBehavior_featurePopups.getState()) {
+            case BottomSheetBehavior.STATE_DRAGGING:
+            case BottomSheetBehavior.STATE_EXPANDED:
+            case BottomSheetBehavior.STATE_SETTLING:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                ret = true;
+                break;
+
+            case BottomSheetBehavior.STATE_COLLAPSED:
+                bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                ret = true;
+                break;
+
+            default:
+                ret = false;
+        }
+        return ret;
+    }
+
+    public void bottomSheetHeading_onClick(View view) {
+        if (BottomSheetBehavior.STATE_COLLAPSED == bottomSheetBehavior_featurePopups.getState()) {
+            bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
+    }
+
+    public void button_editAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditable(true);
+            currentPopup.setEditMode(true);
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.VISIBLE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.VISIBLE);
+    }
+
+    private interface PopupAction {
+        void takeAction(Popup popup, FeatureTable table) throws Throwable;
+
+        String getActionErrorMessageTemplate();
+    }
+
+    private void actOnPopup(View viewForMessages, PopupAction popupAction) {
+        String errorMessage = null;
+        Throwable errorThrowable = null;
+        if (null != popupContainer) {
+            final Popup popup = popupContainer.getCurrentPopup();
+            final PopupInfo popupInfo = popup.getPopupInfo();
+            if (popupInfo instanceof FeatureTablePopupInfo) {
+                FeatureTablePopupInfo ftPopupInfo = (FeatureTablePopupInfo) popupInfo;
+                final FeatureTable table = ftPopupInfo.getTable();
+                if (null != table) {
+                    try {
+                        popupAction.takeAction(popup, table);
+                    } catch (Throwable t) {
+                        errorMessage = String.format(popupAction.getActionErrorMessageTemplate(), t.getLocalizedMessage());
+                        errorThrowable = t;
+                    }
+                } else {
+                    errorMessage = getString(R.string.popup_feature_table_null);
+                }
+            } else {
+                errorMessage = getString(R.string.popup_without_feature_table, popupInfo.getClass().getSimpleName(), FeatureTablePopupInfo.class.getSimpleName());
+            }
+            popup.setEditMode(false);
+        } else {
+            errorMessage = getString(R.string.popup_container_null);
+        }
+        if (null != errorMessage) {
+            Snackbar.make(viewForMessages, errorMessage, Snackbar.LENGTH_LONG).show();
+            if (null == errorThrowable) {
+                Log.e(TAG, errorMessage);
+            } else {
+                Log.e(TAG, errorMessage, errorThrowable);
+            }
+        }
+    }
+
+    public void button_deleteFeature_onClick(final View view) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage("Delete feature?")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        actOnPopup(view, new PopupAction() {
+                            @Override
+                            public void takeAction(Popup popup, FeatureTable table) throws Throwable {
+                                int currentIndex = popupContainer.getCurrentPopupIndex();
+                                try {
+                                    table.deleteFeature(popup.getFeature().getId());
+                                } catch (Throwable t) {
+                                    popupContainer.setCurrentPopup(currentIndex, false);
+                                    throw t;
+                                }
+                                // If this is the last popup, just hide the whole bottom sheet.
+                                if (1 >= popupContainer.getPopupCount()) {
+                                    bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
+                                } else {
+                                    deletePopup(popup);
+                                }
+                            }
+
+                            @Override
+                            public String getActionErrorMessageTemplate() {
+                                return getString(R.string.could_not_delete);
+                            }
+                        });
+                    }
+                }).setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    public void button_saveAttributes_onClick(View view) {
+        actOnPopup(view, new PopupAction() {
+            @Override
+            public void takeAction(Popup popup, FeatureTable table) throws Throwable {
+                final Feature feature = popup.getFeature();
+                final Map<String, Object> currentAttributes = feature.getAttributes();
+                currentAttributes.putAll(popup.getUpdatedAttributes());
+                Feature newFeature = new Feature() {
+
+                    @Override
+                    public Object getAttributeValue(String key) {
+                        return currentAttributes.get(key);
+                    }
+
+                    @Override
+                    public Map<String, Object> getAttributes() {
+                        return new LinkedHashMap<>(currentAttributes);
+                    }
+
+                    @Override
+                    public long getId() {
+                        return feature.getId();
+                    }
+
+                    @Override
+                    public Geometry getGeometry() {
+                        return feature.getGeometry();
+                    }
+
+                    @Override
+                    public SpatialReference getSpatialReference() {
+                        return feature.getSpatialReference();
+                    }
+
+                    @Override
+                    public Symbol getSymbol() {
+                        return feature.getSymbol();
+                    }
+                };
+                table.updateFeature(popup.getFeature().getId(), newFeature);
+                replacePopup(popup, newFeature);
+            }
+
+            @Override
+            public String getActionErrorMessageTemplate() {
+                return getString(R.string.could_not_edit);
+            }
+        });
+
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+    }
+
+    private void deletePopup(Popup popup) {
+        replacePopup(popup, null);
+    }
+
+    /**
+     * @param popup      the Popup to replace.
+     * @param newFeature the Feature whose attributes are to be used in the new Popup.
+     */
+    private void replacePopup(Popup popup, Feature newFeature) {
+        final MapView mapView = (MapView) findViewById(R.id.map);
+        Popup newPopup = null == newFeature ? null : new Popup(mapView, popup.getPopupInfo(), newFeature);
+        final int popupIndex = popupContainer.getCurrentPopupIndex();
+        int currentIndex = 0;
+        PopupContainer newPopupContainer = new PopupContainer(mapView);
+        popupContainer.setCurrentPopup(0, false);
+        while (0 < popupContainer.getPopupCount()) {
+            Popup currentPopup = popupContainer.getCurrentPopup();
+            popupContainer.removePopup(currentPopup);
+            newPopupContainer.addPopup(popupIndex == currentIndex ? newPopup : currentPopup);
+            currentIndex++;
+        }
+        popupContainer = newPopupContainer;
+        reloadPopupContainerView();
+        if (-1 < popupIndex) {
+            /**
+             * If you don't do this in a thread, you get an app crash when the user has edited the
+             * last feature and then swipes to the next-to-last feature.
+             */
+            new Thread() {
+                @Override
+                public void run() {
+                    popupContainer.setCurrentPopup(popupIndex, true);
+                }
+            }.start();
+        }
+    }
+
+    @Override
+    public void featureAdded(Popup popup) {
+        ArrayList<Popup> list = new ArrayList<>(1);
+        list.add(popup);
+        loadPopupContainer(list, BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    public void button_cancelEditAttributes_onClick(View view) {
+        if (null != popupContainer) {
+            final Popup currentPopup = popupContainer.getCurrentPopup();
+            currentPopup.setEditMode(false);
+            currentPopup.refresh();
+        }
+        view.setVisibility(View.GONE);
+        findViewById(R.id.button_saveAttributes).setVisibility(View.GONE);
+        findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
     }
 
     public void chemLightColorChangeClicked(View view) {
