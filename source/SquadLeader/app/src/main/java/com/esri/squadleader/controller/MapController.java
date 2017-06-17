@@ -58,6 +58,7 @@ import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.tasks.query.QueryParameters;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.model.BasemapLayerInfo;
 import com.esri.militaryapps.model.LayerInfo;
@@ -979,6 +980,24 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
         mapView.setShowMagnifierOnLongPress(showMagnifier);
     }
 
+    public FutureTask<List<Popup>> queryFeatureLayer(final FeatureLayer featureLayer, final QueryParameters queryParameters) {
+        return new FutureTask<>(new Callable<List<Popup>>() {
+            @Override
+            public List<Popup> call() throws Exception {
+                ArrayList<Popup> popups = new ArrayList<>();
+                try {
+                    final long[] featureIds = featureLayer.getFeatureTable().queryIds(queryParameters, null).get();
+                    for (long featureId : featureIds) {
+                        popups.add(createPopup(featureLayer, featureLayer.getFeature(featureId)));
+                    }
+                } catch (Throwable t) {
+                    Log.w(TAG, "Could not query layer " + featureLayer.getName(), t);
+                }
+                return popups;
+            }
+        });
+    }
+
     public FutureTask<List<Popup>> identifyFeatureLayers(final float screenX, final float screenY) {
         return new FutureTask<>(new Callable<List<Popup>>() {
             @Override
@@ -991,23 +1010,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                         try {
                             final long[] featureIds = featureLayer.getFeatureIDs(screenX, screenY, 5);
                             for (long featureId : featureIds) {
-                                final Feature feature = featureLayer.getFeature(featureId);
-                                final Popup popup = layer.createPopup(mapView, 0, feature);
-
-                                // In the popup, if a field's label is missing, set it to be the field name.
-                                final Map<String, PopupFieldInfo> fieldInfos = popup.getPopupInfo().getFieldInfos();
-                                for (String key : fieldInfos.keySet()) {
-                                    final PopupFieldInfo fieldInfo = fieldInfos.get(key);
-                                    if (null == fieldInfo.getLabel() || fieldInfo.getLabel().trim().isEmpty()) {
-                                        fieldInfo.setLabel(fieldInfo.getFieldName());
-                                    }
-                                    // Hide the geometry field.
-                                    if ("geom".equals(fieldInfo.getFieldName())) {
-                                        fieldInfo.setVisible(false);
-                                    }
-                                }
-
-                                popups.add(popup);
+                                popups.add(createPopup(featureLayer, featureLayer.getFeature(featureId)));
                             }
                         } catch (Throwable t) {
                             Log.w(TAG, "Could not identify on layer " + featureLayer.getName(), t);
@@ -1017,6 +1020,25 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
                 return popups;
             }
         });
+    }
+
+    private Popup createPopup(Layer layer, Feature feature) {
+        final Popup popup = layer.createPopup(mapView, 0, feature);
+
+        // In the popup, if a field's label is missing, set it to be the field name.
+        final Map<String, PopupFieldInfo> fieldInfos = popup.getPopupInfo().getFieldInfos();
+        for (String key : fieldInfos.keySet()) {
+            final PopupFieldInfo fieldInfo = fieldInfos.get(key);
+            if (null == fieldInfo.getLabel() || fieldInfo.getLabel().trim().isEmpty()) {
+                fieldInfo.setLabel(fieldInfo.getFieldName());
+            }
+            // Hide the geometry field.
+            if ("geom".equals(fieldInfo.getFieldName())) {
+                fieldInfo.setVisible(false);
+            }
+        }
+
+        return popup;
     }
 
 }
