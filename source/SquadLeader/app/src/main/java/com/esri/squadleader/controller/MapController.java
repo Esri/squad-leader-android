@@ -140,7 +140,7 @@ public class MapController extends com.esri.militaryapps.controller.MapControlle
 
     private static final RGBRenderer RGB_RENDERER = new RGBRenderer();
     private static final SimpleRenderer FILL_RENDERER = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
-    private static final SimpleRenderer LINE_RENDERER = new SimpleRenderer(new SimpleLineSymbol(Color.CYAN, 5f));
+    private static final SimpleRenderer LINE_RENDERER = new SimpleRenderer(new SimpleLineSymbol(Color.rgb(128, 64, 0), 5f));
     private static final SimpleRenderer MARKER_RENDERER = new SimpleRenderer(new SimpleMarkerSymbol(Color.BLUE, 10, SimpleMarkerSymbol.STYLE.CIRCLE));
 
     private final MapView mapView;
