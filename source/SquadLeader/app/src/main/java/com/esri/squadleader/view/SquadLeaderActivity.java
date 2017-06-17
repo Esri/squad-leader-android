@@ -68,7 +68,6 @@ import com.esri.core.map.Graphic;
 import com.esri.core.map.popup.PopupInfo;
 import com.esri.core.symbol.Symbol;
 import com.esri.core.table.FeatureTable;
-import com.esri.core.table.TableException;
 import com.esri.militaryapps.controller.ChemLightController;
 import com.esri.militaryapps.controller.LocationController.LocationMode;
 import com.esri.militaryapps.controller.LocationListener;
@@ -1250,6 +1249,7 @@ public class SquadLeaderActivity extends AppCompatActivity
 
     private interface PopupAction {
         void takeAction(Popup popup, FeatureTable table) throws Throwable;
+
         String getActionErrorMessageTemplate();
     }
 
@@ -1300,30 +1300,16 @@ public class SquadLeaderActivity extends AppCompatActivity
                             @Override
                             public void takeAction(Popup popup, FeatureTable table) throws Throwable {
                                 int currentIndex = popupContainer.getCurrentPopupIndex();
-                                int newPopupIndex = -1;
                                 try {
                                     table.deleteFeature(popup.getFeature().getId());
-                                    newPopupIndex = currentIndex == 0 ? 0 : currentIndex - 1;
                                 } catch (Throwable t) {
                                     popupContainer.setCurrentPopup(currentIndex, false);
                                     throw t;
                                 }
-                                popupContainer.removePopup(popup);
                                 if (0 == popupContainer.getPopupCount()) {
                                     bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
                                 } else {
-                                    PopupContainer newPopupContainer = new PopupContainer((MapView) findViewById(R.id.map));
-                                    popupContainer.setCurrentPopup(0, false);
-                                    while (0 < popupContainer.getPopupCount()) {
-                                        final Popup currentPopup = popupContainer.getCurrentPopup();
-                                        newPopupContainer.addPopup(currentPopup);
-                                        popupContainer.removePopup(currentPopup);
-                                    }
-                                    popupContainer = newPopupContainer;
-                                    reloadPopupContainerView();
-                                    if (-1 < newPopupIndex) {
-                                        popupContainer.setCurrentPopup(newPopupIndex, true);
-                                    }
+                                    deletePopup(popup);
                                 }
                             }
 
@@ -1377,6 +1363,7 @@ public class SquadLeaderActivity extends AppCompatActivity
                     }
                 };
                 table.updateFeature(popup.getFeature().getId(), newFeature);
+                replacePopup(popup, newFeature);
             }
 
             @Override
@@ -1388,6 +1375,43 @@ public class SquadLeaderActivity extends AppCompatActivity
         view.setVisibility(View.GONE);
         findViewById(R.id.button_cancelEditAttributes).setVisibility(View.GONE);
         findViewById(R.id.button_editAttributes).setVisibility(View.VISIBLE);
+    }
+
+    private void deletePopup(Popup popup) {
+        replacePopup(popup, null);
+    }
+
+    /**
+     * @param popup      the Popup to replace.
+     * @param newFeature the Feature whose attributes are to be used in the new Popup.
+     */
+    private void replacePopup(Popup popup, Feature newFeature) {
+        final MapView mapView = (MapView) findViewById(R.id.map);
+        Popup newPopup = null == newFeature ? null : new Popup(mapView, popup.getPopupInfo(), newFeature);
+        final int popupIndex = popupContainer.getCurrentPopupIndex();
+        int currentIndex = 0;
+        PopupContainer newPopupContainer = new PopupContainer(mapView);
+        popupContainer.setCurrentPopup(0, false);
+        while (0 < popupContainer.getPopupCount()) {
+            Popup currentPopup = popupContainer.getCurrentPopup();
+            popupContainer.removePopup(currentPopup);
+            newPopupContainer.addPopup(popupIndex == currentIndex ? newPopup : currentPopup);
+            currentIndex++;
+        }
+        popupContainer = newPopupContainer;
+        reloadPopupContainerView();
+        if (-1 < popupIndex) {
+            /**
+             * If you don't do this in a thread, you get an app crash when the user has edited the
+             * last feature and then swipes to the next-to-last feature.
+             */
+            new Thread() {
+                @Override
+                public void run() {
+                    popupContainer.setCurrentPopup(popupIndex, true);
+                }
+            }.start();
+        }
     }
 
     public void button_cancelEditAttributes_onClick(View view) {
