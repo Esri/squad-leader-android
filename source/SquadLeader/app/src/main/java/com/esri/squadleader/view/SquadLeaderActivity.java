@@ -1315,7 +1315,8 @@ public class SquadLeaderActivity extends AppCompatActivity
                                     popupContainer.setCurrentPopup(currentIndex, false);
                                     throw t;
                                 }
-                                if (0 == popupContainer.getPopupCount()) {
+                                // If this is the last popup, just hide the whole bottom sheet.
+                                if (1 >= popupContainer.getPopupCount()) {
                                     bottomSheetBehavior_featurePopups.setState(BottomSheetBehavior.STATE_HIDDEN);
                                 } else {
                                     deletePopup(popup);
