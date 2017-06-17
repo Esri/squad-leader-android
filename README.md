@@ -29,36 +29,37 @@ To build the app from source:
 
 - Android SDK components (install with Android SDK Manager, available in Android Studio under **Tools > Android > SDK Manager**)
   - SDK Platform for Android 4.0.3 (API 15) or higher
-    - If you want to compile with a higher API level, modify the value of `compileSdkVersion` in `source\SquadLeader\app\build.gradle`.
-  - Android SDK Tools (tested with version 24.3.4)
-  - Android SDK Platform-tools (tested with version 23)
-  - Android SDK Build-tools version 21.1.2 or higher
-    - If you want to compile with a higher Build-tools version, modify the value of `buildToolsVersion` in `source\SquadLeader\app\build.gradle`.
-  - Android Support Repository (tested with version 17)
-  - Android Support Library (tested with version 23)
-- [ArcGIS Runtime SDK 10.2.7 for Android](https://developers.arcgis.com/en/downloads/)
+  - Android SDK Tools (tested with version 26.0.2)
+  - Android SDK Platform-tools (tested with version 25.0.6)
+  - Android SDK Build-tools (tested with version 25.0.3)
+  - Android Support Repository (tested with version 47.0.0)
+  - Android Support Library (tested with version 23.2.1)
+- [ArcGIS Runtime SDK 10.2.9 for Android](https://developers.arcgis.com/en/downloads/)
   - Even though the repository contains references to the online SDK in Android Studio, you'll need to download the SDK to get the native binary files used for visual analysis (see [build steps](#building-with-android-studio)).
-  - Download the latest 10.2.7 update. Right now, the latest update is version 10.2.7. A future update may be named 10.2.7-1 or similar.
+  - Download the latest 10.2.9 update. Right now, the latest update is version 10.2.9. A future update may be named 10.2.9-1 or similar.
 - Java Development Kit (JDK) 7 or higher
 - One of the following:
   - [Android Studio](http://developer.android.com/sdk/index.html) (**recommended**)
-    - Tested with version 1.3.1)
+    - Tested with version 2.3.2
     - Includes Gradle
   - [Gradle](http://gradle.org/)
 
 ## Release Notes
 
-### 5.0.0
+### 6.0.0
+* Uses ArcGIS Runtime 10.2.9
+* Identify and popup for GeoPackage features
+* Edit attributes for GeoPackage features
+* Delete GeoPackage features
+* Added Android appcompat support library
 
-#### What's New in Squad Leader 5.0.0
+### 5.0.0
 * Uses ArcGIS Runtime 10.2.8-1
 * Added GeoPackage layer type
 * Added feature editing for any FeatureLayer that has an editable FeatureTable, such as GeoPackages and feature services
 * Various minor improvements and refactoring
 
 ### 4.0.0
-
-#### What's New in Squad Leader 4.0.0
 * Uses ArcGIS Runtime 10.2.7
 * Requires Android 4.0.3 or higher
 * Added Mil2525CMessageLayer layer type for GeoMessage files (see the [User Guide](documentation/UserGuide.md#geomessage-files-and-layers))
@@ -70,8 +71,6 @@ To build the app from source:
 * Removed dependency on Android Support Library v7 appcompat
 
 ### 3.1.0
-
-#### What's New in Squad Leader 3.1.0
 * Changed geography from Afghanistan to California.
     * IMPORTANT: if you upgrade to 3.1.0 and you don't have your own mapconfig.xml file, you must do one of the following to force Squad Leader to reset the map configuration:
         * In Squad Leader, go to **Settings** and choose **Reset map**.
@@ -80,8 +79,6 @@ To build the app from source:
     * The Afghanistan data files are available in the [3.0.0 release](../../tree/v3.0.0).
 
 ### 3.0.0
-
-#### What's New in Squad Leader 3.0.0
 * Uses ArcGIS Runtime 10.2.4.
   * If you built Squad Leader with a previous version of ArcGIS Runtime, you need to follow the step in [Building with Android Studio](#building-with-android-studio) below about copying the MIL-STD-2525C symbol dictionary into your clone. ArcGIS Runtime 10.2.4 will not work with older versions of the symbol dictionary.
 * Requires Android 4.0.1 or higher
