@@ -108,4 +108,5 @@
     <string name="popup_feature_table_null">This popup should have a feature table, but the table is null.</string>
     <string name="popup_container_null">The popup container is null. This should not happen and is probably a bug in the Squad Leader app. Please use GitHub to submit an issue on the squad-leader-android repository.</string>
     <string name="feature_id_query_expected_single_result">Query for feature ID %1$d expected a single result but got %2$d results.</string>
+    <string name="no_add_feature_listener">The Activity class %1$s does not implement AddFeatureListener.</string>
 </resources>
