@@ -1,7 +1,7 @@
 squad-leader-android
 ====================
 
-The Squad Leader template demonstrates best practices for building handheld military applications with the ArcGIS Runtime SDK for Android. The Squad Leader template contains source code for a handheld application and directions for building the application from source. To download a precompiled distribution of the application, visit the [ArcGIS for Defense solution](http://solutions.arcgis.com/defense/templates/squad-leader/).
+The Squad Leader template demonstrates best practices for building handheld military applications with the ArcGIS Runtime SDK for Android. The Squad Leader template contains source code for a handheld application and directions for building the application from source. 
 
 ![Image of squad-leader-android](Screenshot.png)
 
