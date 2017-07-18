@@ -1,6 +1,8 @@
 squad-leader-android
 ====================
 
+___This repository is no longer maintained. For more information, please visit the [Esri Product Life Cycle](http://support.esri.com/en/content/productlifecycles) page.___
+
 The Squad Leader template demonstrates best practices for building handheld military applications with the ArcGIS Runtime SDK for Android. The Squad Leader template contains source code for a handheld application and directions for building the application from source. 
 
 ![Image of squad-leader-android](Screenshot.png)
