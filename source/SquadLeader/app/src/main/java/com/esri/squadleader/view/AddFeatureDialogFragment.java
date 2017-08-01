@@ -57,6 +57,7 @@ import com.esri.core.table.FeatureTable;
 import com.esri.core.table.TableException;
 import com.esri.core.tasks.query.QueryParameters;
 import com.esri.squadleader.R;
+import com.esri.squadleader.controller.GeometryEditController;
 import com.esri.squadleader.controller.MapController;
 
 import java.util.ArrayList;
@@ -127,6 +128,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private static final SimpleMarkerSymbol greenMarkerSymbol = new SimpleMarkerSymbol(Color.GREEN, 15, SimpleMarkerSymbol.STYLE.CIRCLE);
     private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
+    private final GeometryEditController geometryEditController = new GeometryEditController();
     private final ArrayList<Point> points = new ArrayList<Point>();
     private final ArrayList<EditingStates> editingStates = new ArrayList<EditingStates>();
     private ArrayList<Point> midPoints = new ArrayList<Point>();
