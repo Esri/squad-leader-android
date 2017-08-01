@@ -5,4 +5,18 @@ package com.esri.squadleader.controller;
  */
 public class GeometryEditController {
 
+    public enum EditMode {
+        NONE, POINT, POLYLINE, POLYGON, SAVING
+    }
+
+    private EditMode editMode = EditMode.NONE;
+
+    public EditMode getEditMode() {
+        return editMode;
+    }
+
+    public void setEditMode(EditMode editMode) {
+        this.editMode = editMode;
+    }
+
 }

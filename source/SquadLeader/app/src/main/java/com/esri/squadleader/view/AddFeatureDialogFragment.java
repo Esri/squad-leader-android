@@ -75,10 +75,6 @@ import java.util.concurrent.FutureTask;
  */
 public class AddFeatureDialogFragment extends DialogFragment {
 
-    private enum EditMode {
-        NONE, POINT, POLYLINE, POLYGON, SAVING
-    }
-
     /**
      * A listener for this class to interact with the calling class.
      */
@@ -136,7 +132,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         @Override
         public void onSingleTap(final float x, final float y) {
             Point point = mapController.toMapPointObject(Math.round(x), Math.round(y));
-            if (editMode == EditMode.POINT) {
+            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POINT) {
                 points.clear();
             }
             if (midPointSelected || vertexSelected) {
@@ -168,7 +164,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private AddFeatureListener addFeatureListener = null;
     private MapController mapController = null;
     private Menu editingMenu = null;
-    private EditMode editMode = EditMode.NONE;
     private boolean midPointSelected = false;
     private boolean vertexSelected = false;
     private int insertingIndex;
@@ -235,18 +230,18 @@ public class AddFeatureDialogFragment extends DialogFragment {
                         switch (layerToEdit.getGeometryType()) {
                             case MULTIPOINT:
                             case POINT:
-                                editMode = EditMode.POINT;
+                                geometryEditController.setEditMode(GeometryEditController.EditMode.POINT);
                                 break;
                             case LINE:
                             case POLYLINE:
-                                editMode = EditMode.POLYLINE;
+                                geometryEditController.setEditMode(GeometryEditController.EditMode.POLYLINE);
                                 break;
                             case ENVELOPE:
                             case POLYGON:
-                                editMode = EditMode.POLYGON;
+                                geometryEditController.setEditMode(GeometryEditController.EditMode.POLYGON);
                                 break;
                             default:
-                                editMode = EditMode.NONE;
+                                geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
                                 discard();
                                 dismiss();
                         }
@@ -306,7 +301,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void discard() {
         points.clear();
         editingStates.clear();
-        editMode = EditMode.NONE;
+        geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
         midPointSelected = false;
         mapController.removeLayer(graphicsLayerEditing);
         graphicsLayerEditing = null;
@@ -314,13 +309,13 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void updateActionBar() {
-        if (editMode == EditMode.NONE || editMode == EditMode.SAVING) {
+        if (geometryEditController.getEditMode() == GeometryEditController.EditMode.NONE || geometryEditController.getEditMode() == GeometryEditController.EditMode.SAVING) {
             // We are not editing
             discard();
         } else {
             // We are editing
             showAction(R.id.save, isSaveValid());
-            showAction(R.id.delete_point, editMode != EditMode.POINT && points.size() > 0 && !midPointSelected);
+            showAction(R.id.delete_point, geometryEditController.getEditMode() != GeometryEditController.EditMode.POINT && points.size() > 0 && !midPointSelected);
             showAction(R.id.undo, editingStates.size() > 0);
             mapController.setOnSingleTapListener(editingListener);
         }
@@ -339,7 +334,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private boolean isSaveValid() {
         int minPoints;
-        switch (editMode) {
+        switch (geometryEditController.getEditMode()) {
             case POINT:
                 minPoints = 1;
                 break;
@@ -368,7 +363,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         if (points.size() > 1) {
 
             // Build a MultiPath containing the vertices
-            if (editMode == EditMode.POLYLINE) {
+            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYLINE) {
                 multipath = new Polyline();
             } else {
                 multipath = new Polygon();
@@ -379,7 +374,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             }
 
             // Draw it using a line or fill symbol
-            if (editMode == EditMode.POLYLINE) {
+            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYLINE) {
                 graphic = new Graphic(multipath, new SimpleLineSymbol(Color.BLACK, 4));
             } else {
                 SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol(Color.YELLOW);
@@ -404,7 +399,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 Point p2 = points.get(i);
                 midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
             }
-            if (editMode == EditMode.POLYGON && points.size() > 2) {
+            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYGON && points.size() > 2) {
                 // Complete the circle
                 Point p1 = points.get(0);
                 Point p2 = points.get(points.size() - 1);
@@ -549,14 +544,14 @@ public class AddFeatureDialogFragment extends DialogFragment {
         final FeatureTable featureTable = layerToEdit.getFeatureTable();
 
         Geometry geom = null;
-        switch (editMode) {
+        switch (geometryEditController.getEditMode()) {
             case POINT:
                 geom = points.get(0);
                 break;
 
             case POLYLINE:
             case POLYGON:
-                MultiPath multiPath = EditMode.POLYLINE == editMode ? new Polyline() : new Polygon();
+                MultiPath multiPath = GeometryEditController.EditMode.POLYLINE == geometryEditController.getEditMode() ? new Polyline() : new Polygon();
                 multiPath.startPath(points.get(0));
                 for (int i = 0; i < points.size(); i++) {
                     multiPath.lineTo(points.get(i));
@@ -631,7 +626,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void exitEditMode() {
-        editMode = EditMode.NONE;
+        geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
         clear();
         mapController.setShowMagnifierOnLongPress(false);
     }
