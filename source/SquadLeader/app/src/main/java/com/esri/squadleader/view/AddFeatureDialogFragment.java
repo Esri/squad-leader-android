@@ -109,7 +109,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
     private final GeometryEditController geometryEditController = new GeometryEditController();
-    private final ArrayList<EditingState> editingStates = new ArrayList<>();
     private ArrayList<Point> midPoints = new ArrayList<>();
     private final OnSingleTapListener editingListener = new OnSingleTapListener() {
         @Override
@@ -135,7 +134,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                     } else {
                         // No matching point above, add new vertex at tap point
                         currentEditingState.addPoint(point);
-                        editingStates.add(new EditingState(currentEditingState));
+                        geometryEditController.addEditingState(new EditingState(currentEditingState));
                     }
                 }
             }
@@ -281,7 +280,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void discard() {
         currentEditingState.clearPoints();
-        editingStates.clear();
+        geometryEditController.clearEditingStates();
         geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
         currentEditingState.setMidPointSelected(false);
         mapController.removeLayer(graphicsLayerEditing);
@@ -297,7 +296,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             // We are editing
             showAction(R.id.save, isSaveValid());
             showAction(R.id.delete_point, geometryEditController.getEditMode() != GeometryEditController.EditMode.POINT && currentEditingState.getPointCount() > 0 && !currentEditingState.isMidPointSelected());
-            showAction(R.id.undo, editingStates.size() > 0);
+            showAction(R.id.undo, geometryEditController.getEditingStatesCount() > 0);
             mapController.setOnSingleTapListener(editingListener);
         }
     }
@@ -449,7 +448,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         // Go back to the normal drawing mode and save the new editing state
         currentEditingState.setMidPointSelected(false);
         currentEditingState.setVertexSelected(false);
-        editingStates.add(new EditingState(currentEditingState));
+        geometryEditController.addEditingState(new EditingState(currentEditingState));
     }
 
     /**
@@ -492,16 +491,17 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void actionUndo() {
-        editingStates.remove(editingStates.size() - 1);
-        currentEditingState = 0 == editingStates.size() ?
+        geometryEditController.removeEditingState(geometryEditController.getEditingStatesCount() - 1);
+        // TODO move currentEditingState (and this whole method) to GeometryEditController
+        currentEditingState = 0 == geometryEditController.getEditingStatesCount() ?
                 new EditingState() :
-                new EditingState(editingStates.get(editingStates.size() - 1));
+                new EditingState(geometryEditController.getEditingState(geometryEditController.getEditingStatesCount() - 1));
         refresh();
     }
 
     private void actionDeletePoint() {
         currentEditingState.deletePoint();
-        editingStates.add(new EditingState(currentEditingState));
+        geometryEditController.addEditingState(new EditingState(currentEditingState));
         refresh();
     }
 
@@ -585,7 +585,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         // Clear feature editing data
         currentEditingState = new EditingState();
         midPoints.clear();
-        editingStates.clear();
+        geometryEditController.clearEditingStates();
 
         if (graphicsLayerEditing != null) {
             graphicsLayerEditing.removeAll();
