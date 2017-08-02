@@ -507,13 +507,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void actionDeletePoint() {
-        if (!currentEditingState.isVertexSelected()) {
-            currentEditingState.removePoint(currentEditingState.getPointCount() - 1); // remove last vertex
-        } else {
-            currentEditingState.removePoint(currentEditingState.getInsertingIndex()); // remove currently selected vertex
-        }
-        currentEditingState.setMidPointSelected(false);
-        currentEditingState.setVertexSelected(false);
+        currentEditingState.deletePoint();
         editingStates.add(new EditingState(currentEditingState));
         refresh();
     }

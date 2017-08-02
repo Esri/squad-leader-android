@@ -1,5 +1,6 @@
 package com.esri.squadleader.controller;
 
+import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.Point;
 
 import java.util.ArrayList;
@@ -88,6 +89,15 @@ public class EditingState {
 
     public void setInsertingIndex(int insertingIndex) {
         this.insertingIndex = insertingIndex;
+    }
+
+    public void deletePoint() {
+        /**
+         * If a vertex is selected, remove it. Otherwise, remove the last point.
+         */
+        removePoint(vertexSelected ? insertingIndex : points.size() - 1);
+        midPointSelected = false;
+        vertexSelected = false;
     }
 
 }
