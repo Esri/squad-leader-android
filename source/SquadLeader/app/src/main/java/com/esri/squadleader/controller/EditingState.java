@@ -19,6 +19,14 @@ public class EditingState {
 
     }
 
+    /**
+     * Copy constructor.
+     * @param editingState the object to be copied.
+     */
+    public EditingState(EditingState editingState) {
+        this(editingState.points, editingState.midPointSelected, editingState.vertexSelected, editingState.insertingIndex);
+    }
+
     public EditingState(List<Point> points, boolean midpointSelected, boolean vertexSelected, int insertingIndex) {
         this.points.addAll(points);
         this.midPointSelected = midpointSelected;

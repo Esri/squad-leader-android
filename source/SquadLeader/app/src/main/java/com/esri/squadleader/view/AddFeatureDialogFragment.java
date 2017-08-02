@@ -135,8 +135,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                     } else {
                         // No matching point above, add new vertex at tap point
                         currentEditingState.addPoint(point);
-                        // TODO replace with currentEditingState?
-                        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+                        editingStates.add(new EditingState(currentEditingState));
                     }
                 }
             }
@@ -450,8 +449,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         // Go back to the normal drawing mode and save the new editing state
         currentEditingState.setMidPointSelected(false);
         currentEditingState.setVertexSelected(false);
-        // TODO replace with currentEditingState?
-        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+        editingStates.add(new EditingState(currentEditingState));
     }
 
     /**
@@ -502,12 +500,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
             currentEditingState.setInsertingIndex(0);
         } else {
             EditingState state = editingStates.get(editingStates.size() - 1);
-            // TODO simply set state = currentEditingState?
-            currentEditingState.addAllPoints(state.getPoints());
+            currentEditingState = new EditingState(state);
             Log.d(TAG, "# of points = " + currentEditingState.getPointCount());
-            currentEditingState.setMidPointSelected(state.isMidPointSelected());
-            currentEditingState.setVertexSelected(state.isVertexSelected());
-            currentEditingState.setInsertingIndex(state.getInsertingIndex());
         }
         refresh();
     }
@@ -520,8 +514,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
         currentEditingState.setMidPointSelected(false);
         currentEditingState.setVertexSelected(false);
-        // TODO replace with editingState.add(currentEditingState)?
-        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+        editingStates.add(new EditingState(currentEditingState));
         refresh();
     }
 
