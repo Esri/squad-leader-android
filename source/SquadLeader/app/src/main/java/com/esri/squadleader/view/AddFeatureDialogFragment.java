@@ -493,16 +493,9 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void actionUndo() {
         editingStates.remove(editingStates.size() - 1);
-        currentEditingState.clearPoints();
-        if (editingStates.size() == 0) {
-            currentEditingState.setMidPointSelected(false);
-            currentEditingState.setVertexSelected(false);
-            currentEditingState.setInsertingIndex(0);
-        } else {
-            EditingState state = editingStates.get(editingStates.size() - 1);
-            currentEditingState = new EditingState(state);
-            Log.d(TAG, "# of points = " + currentEditingState.getPointCount());
-        }
+        currentEditingState = 0 == editingStates.size() ?
+                new EditingState() :
+                new EditingState(editingStates.get(editingStates.size() - 1));
         refresh();
     }
 
