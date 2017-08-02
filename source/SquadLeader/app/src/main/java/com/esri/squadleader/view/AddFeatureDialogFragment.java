@@ -515,22 +515,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void actionSave(FeatureLayer layerToEdit) throws TableException {
         final FeatureTable featureTable = layerToEdit.getFeatureTable();
 
-        Geometry geom = null;
-        switch (geometryEditController.getEditMode()) {
-            case POINT:
-                geom = currentEditingState.getPoint(0);
-                break;
-
-            case POLYLINE:
-            case POLYGON:
-                MultiPath multiPath = GeometryEditController.EditMode.POLYLINE == geometryEditController.getEditMode() ? new Polyline() : new Polygon();
-                multiPath.startPath(currentEditingState.getPoint(0));
-                for (int i = 0; i < currentEditingState.getPointCount(); i++) {
-                    multiPath.lineTo(currentEditingState.getPoint(i));
-                }
-                geom = multiPath;
-        }
-
+        Geometry geom = currentEditingState.getGeometry(geometryEditController.getEditMode());
         if (null != geom) {
             Feature newFeature = null;
             if (featureTable instanceof GeopackageFeatureTable) {

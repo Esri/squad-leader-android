@@ -1,7 +1,10 @@
 package com.esri.squadleader.controller;
 
 import com.esri.core.geometry.Geometry;
+import com.esri.core.geometry.MultiPath;
 import com.esri.core.geometry.Point;
+import com.esri.core.geometry.Polygon;
+import com.esri.core.geometry.Polyline;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,7 @@ public class EditingState {
 
     /**
      * Copy constructor.
+     *
      * @param editingState the object to be copied.
      */
     public EditingState(EditingState editingState) {
@@ -98,6 +102,35 @@ public class EditingState {
         removePoint(vertexSelected ? insertingIndex : points.size() - 1);
         midPointSelected = false;
         vertexSelected = false;
+    }
+
+    /**
+     * @param editMode the type of geometry being edited. Supported values are POINT, POLYLINE, and
+     *                 POLYGON.
+     * @return the geometry that this EditingState represents, or null if 1) editMode is not
+     * supported or 2) this EditingState has no points.
+     */
+    public Geometry getGeometry(GeometryEditController.EditMode editMode) {
+        if (0 < points.size()) {
+            switch (editMode) {
+                case POINT:
+                    return points.get(0);
+
+                case POLYLINE:
+                case POLYGON:
+                    MultiPath multiPath = GeometryEditController.EditMode.POLYLINE == editMode ? new Polyline() : new Polygon();
+                    multiPath.startPath(points.get(0));
+                    for (int i = 0; i < points.size(); i++) {
+                        multiPath.lineTo(points.get(i));
+                    }
+                    return multiPath;
+
+                default:
+                    return null;
+            }
+        } else {
+            return null;
+        }
     }
 
 }
