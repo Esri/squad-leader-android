@@ -1,5 +1,7 @@
 package com.esri.squadleader.controller;
 
+import com.esri.core.geometry.Geometry;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,13 @@ public class GeometryEditController {
     public void deletePoint() {
         currentEditingState.deletePoint();
         editingStates.add(new EditingState(currentEditingState));
+    }
+
+    /**
+     * @return the current editing state's geometry.
+     */
+    public Geometry getCurrentGeometry() {
+        return currentEditingState.getGeometry(editMode);
     }
 
     public EditMode getEditMode() {

@@ -494,7 +494,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void actionSave(FeatureLayer layerToEdit) throws TableException {
         final FeatureTable featureTable = layerToEdit.getFeatureTable();
 
-        Geometry geom = geometryEditController.getCurrentEditingState().getGeometry(geometryEditController.getEditMode());
+        Geometry geom = geometryEditController.getCurrentGeometry();
         if (null != geom) {
             Feature newFeature = null;
             if (featureTable instanceof GeopackageFeatureTable) {
