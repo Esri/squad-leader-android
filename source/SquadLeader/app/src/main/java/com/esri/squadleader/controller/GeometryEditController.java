@@ -1,7 +1,13 @@
 package com.esri.squadleader.controller;
 
+import android.graphics.Color;
+
+import com.esri.android.map.GraphicsLayer;
 import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.Point;
+import com.esri.core.map.Graphic;
+import com.esri.core.symbol.MarkerSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +30,8 @@ public class GeometryEditController {
 
     private EditingState currentEditingState = new EditingState();
     private EditMode editMode = EditMode.NONE;
+    private MarkerSymbol midpointMarkerSymbol = new SimpleMarkerSymbol(Color.GREEN, 15, SimpleMarkerSymbol.STYLE.CIRCLE);
+    private MarkerSymbol selectedMidpointMarkerSymbol = new SimpleMarkerSymbol(Color.RED, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
 
     /**
      * Undoes the last edit to the geometry.
@@ -48,6 +56,44 @@ public class GeometryEditController {
         midpoints.clear();
         currentEditingState = new EditingState();
         editMode = EditMode.NONE;
+    }
+
+    /**
+     * Draws the midpoints on a GraphicsLayer.
+     * @param graphicsLayer the GraphicsLayer on which to draw the midpoints.
+     */
+    public void drawMidpoints(GraphicsLayer graphicsLayer) {
+        int index;
+        Graphic graphic;
+
+        midpoints.clear();
+        if (currentEditingState.getPointCount() > 1) {
+
+            // Build new list of mid-points
+            for (int i = 1; i < currentEditingState.getPointCount(); i++) {
+                Point p1 = currentEditingState.getPoint(i - 1);
+                Point p2 = currentEditingState.getPoint(i);
+                midpoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+            }
+            if (GeometryEditController.EditMode.POLYGON == editMode && currentEditingState.getPointCount() > 2) {
+                // Complete the circle
+                Point p1 = currentEditingState.getPoint(0);
+                Point p2 = currentEditingState.getPoint(currentEditingState.getPointCount() - 1);
+                midpoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+            }
+
+            // Draw the mid-points
+            index = 0;
+            for (Point pt : midpoints) {
+                if (currentEditingState.isMidPointSelected() && currentEditingState.getInsertingIndex() == index) {
+                    graphic = new Graphic(pt, selectedMidpointMarkerSymbol);
+                } else {
+                    graphic = new Graphic(pt, midpointMarkerSymbol);
+                }
+                graphicsLayer.addGraphic(graphic);
+                index++;
+            }
+        }
     }
 
     /**
@@ -84,12 +130,20 @@ public class GeometryEditController {
         return new ArrayList<>(midpoints);
     }
 
-    public boolean addMidpoint(Point point) {
-        return midpoints.add(point);
+    public MarkerSymbol getMidpointMarkerSymbol() {
+        return midpointMarkerSymbol;
     }
 
-    public void clearMidpoints() {
-        midpoints.clear();
+    public void setMidpointMarkerSymbol(MarkerSymbol midpointMarkerSymbol) {
+        this.midpointMarkerSymbol = midpointMarkerSymbol;
+    }
+
+    public MarkerSymbol getSelectedMidpointMarkerSymbol() {
+        return selectedMidpointMarkerSymbol;
+    }
+
+    public void setSelectedMidpointMarkerSymbol(MarkerSymbol selectedMidpointMarkerSymbol) {
+        this.selectedMidpointMarkerSymbol = selectedMidpointMarkerSymbol;
     }
 
 }

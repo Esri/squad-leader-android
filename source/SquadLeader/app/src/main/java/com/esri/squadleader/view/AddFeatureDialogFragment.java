@@ -303,7 +303,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             graphicsLayerEditing.removeAll();
         }
         drawPolylineOrPolygon();
-        drawMidPoints();
+        geometryEditController.drawMidpoints(graphicsLayerEditing);
         drawVertices();
 
         updateActionBar();
@@ -360,41 +360,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 graphic = new Graphic(multipath, (simpleFillSymbol));
             }
             graphicsLayerEditing.addGraphic(graphic);
-        }
-    }
-
-    // TODO refactor to GeometryEditController?
-    private void drawMidPoints() {
-        int index;
-        Graphic graphic;
-
-        geometryEditController.clearMidpoints();
-        if (geometryEditController.getCurrentEditingState().getPointCount() > 1) {
-
-            // Build new list of mid-points
-            for (int i = 1; i < geometryEditController.getCurrentEditingState().getPointCount(); i++) {
-                Point p1 = geometryEditController.getCurrentEditingState().getPoint(i - 1);
-                Point p2 = geometryEditController.getCurrentEditingState().getPoint(i);
-                geometryEditController.addMidpoint(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
-            }
-            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYGON && geometryEditController.getCurrentEditingState().getPointCount() > 2) {
-                // Complete the circle
-                Point p1 = geometryEditController.getCurrentEditingState().getPoint(0);
-                Point p2 = geometryEditController.getCurrentEditingState().getPoint(geometryEditController.getCurrentEditingState().getPointCount() - 1);
-                geometryEditController.addMidpoint(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
-            }
-
-            // Draw the mid-points
-            index = 0;
-            for (Point pt : geometryEditController.getMidpoints()) {
-                if (geometryEditController.getCurrentEditingState().isMidPointSelected() && geometryEditController.getCurrentEditingState().getInsertingIndex() == index) {
-                    graphic = new Graphic(pt, redMarkerSymbol);
-                } else {
-                    graphic = new Graphic(pt, greenMarkerSymbol);
-                }
-                graphicsLayerEditing.addGraphic(graphic);
-                index++;
-            }
         }
     }
 
