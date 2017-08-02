@@ -20,9 +20,9 @@ public class GeometryEditController {
     }
 
     private final ArrayList<EditingState> editingStates = new ArrayList<>();
-    private EditingState currentEditingState = new EditingState();
     private final ArrayList<Point> midpoints = new ArrayList<>();
 
+    private EditingState currentEditingState = new EditingState();
     private EditMode editMode = EditMode.NONE;
 
     /**

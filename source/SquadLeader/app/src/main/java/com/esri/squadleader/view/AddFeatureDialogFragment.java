@@ -560,12 +560,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void exitEditMode() {
         geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
-        clear();
-        mapController.setShowMagnifierOnLongPress(false);
-    }
-
-    private void clear() {
-        // Clear feature editing data
         geometryEditController.setCurrentEditingState(new EditingState());
         geometryEditController.clearMidpoints();
         geometryEditController.clearEditingStates();
@@ -575,6 +569,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
 
         updateActionBar();
+        mapController.setShowMagnifierOnLongPress(false);
     }
 
 }
