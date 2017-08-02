@@ -19,7 +19,7 @@ public class EditingState {
 
     }
 
-    public EditingState(ArrayList<Point> points, boolean midpointSelected, boolean vertexSelected, int insertingIndex) {
+    public EditingState(List<Point> points, boolean midpointSelected, boolean vertexSelected, int insertingIndex) {
         this.points.addAll(points);
         this.midPointSelected = midpointSelected;
         this.vertexSelected = vertexSelected;
@@ -28,6 +28,34 @@ public class EditingState {
 
     public List<Point> getPoints() {
         return new ArrayList<>(points);
+    }
+
+    public Point getPoint(int index) {
+        return points.get(index);
+    }
+
+    public int getPointCount() {
+        return points.size();
+    }
+
+    public boolean addPoint(Point point) {
+        return points.add(point);
+    }
+
+    public void addPoint(int index, Point point) {
+        points.add(index, point);
+    }
+
+    public boolean addAllPoints(List<Point> points) {
+        return this.points.addAll(points);
+    }
+
+    public Point removePoint(int index) {
+        return points.remove(index);
+    }
+
+    public void clearPoints() {
+        points.clear();
     }
 
     public boolean isMidPointSelected() {

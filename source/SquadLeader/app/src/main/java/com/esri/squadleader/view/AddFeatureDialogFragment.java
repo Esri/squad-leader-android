@@ -109,15 +109,14 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
     private final GeometryEditController geometryEditController = new GeometryEditController();
-    private final ArrayList<Point> points = new ArrayList<Point>();
     private final ArrayList<EditingState> editingStates = new ArrayList<>();
-    private ArrayList<Point> midPoints = new ArrayList<Point>();
+    private ArrayList<Point> midPoints = new ArrayList<>();
     private final OnSingleTapListener editingListener = new OnSingleTapListener() {
         @Override
         public void onSingleTap(final float x, final float y) {
             Point point = mapController.toMapPointObject(Math.round(x), Math.round(y));
             if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POINT) {
-                points.clear();
+                currentEditingState.clearPoints();
             }
             if (currentEditingState.isMidPointSelected() || currentEditingState.isVertexSelected()) {
                 movePoint(point);
@@ -129,14 +128,15 @@ public class AddFeatureDialogFragment extends DialogFragment {
                     currentEditingState.setInsertingIndex(idx1);
                 } else {
                     // If tap coincides with a vertex, select that vertex
-                    int idx2 = getSelectedIndex(x, y, points, mapController);
+                    int idx2 = getSelectedIndex(x, y, currentEditingState.getPoints(), mapController);
                     if (idx2 != -1) {
                         currentEditingState.setVertexSelected(true);
                         currentEditingState.setInsertingIndex(idx2);
                     } else {
                         // No matching point above, add new vertex at tap point
-                        points.add(point);
-                        editingStates.add(new EditingState(points, currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+                        currentEditingState.addPoint(point);
+                        // TODO replace with currentEditingState?
+                        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
                     }
                 }
             }
@@ -281,7 +281,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void discard() {
-        points.clear();
+        currentEditingState.clearPoints();
         editingStates.clear();
         geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
         currentEditingState.setMidPointSelected(false);
@@ -297,7 +297,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         } else {
             // We are editing
             showAction(R.id.save, isSaveValid());
-            showAction(R.id.delete_point, geometryEditController.getEditMode() != GeometryEditController.EditMode.POINT && points.size() > 0 && !currentEditingState.isMidPointSelected());
+            showAction(R.id.delete_point, geometryEditController.getEditMode() != GeometryEditController.EditMode.POINT && currentEditingState.getPointCount() > 0 && !currentEditingState.isMidPointSelected());
             showAction(R.id.undo, editingStates.size() > 0);
             mapController.setOnSingleTapListener(editingListener);
         }
@@ -329,7 +329,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             default:
                 return false;
         }
-        return points.size() >= minPoints;
+        return currentEditingState.getPointCount() >= minPoints;
     }
 
     private void drawPolylineOrPolygon() {
@@ -342,7 +342,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             mapController.addLayer(graphicsLayerEditing);
         }
 
-        if (points.size() > 1) {
+        if (currentEditingState.getPointCount() > 1) {
 
             // Build a MultiPath containing the vertices
             if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYLINE) {
@@ -350,9 +350,9 @@ public class AddFeatureDialogFragment extends DialogFragment {
             } else {
                 multipath = new Polygon();
             }
-            multipath.startPath(points.get(0));
-            for (int i = 1; i < points.size(); i++) {
-                multipath.lineTo(points.get(i));
+            multipath.startPath(currentEditingState.getPoint(0));
+            for (int i = 1; i < currentEditingState.getPointCount(); i++) {
+                multipath.lineTo(currentEditingState.getPoint(i));
             }
 
             // Draw it using a line or fill symbol
@@ -373,18 +373,18 @@ public class AddFeatureDialogFragment extends DialogFragment {
         Graphic graphic;
 
         midPoints.clear();
-        if (points.size() > 1) {
+        if (currentEditingState.getPointCount() > 1) {
 
             // Build new list of mid-points
-            for (int i = 1; i < points.size(); i++) {
-                Point p1 = points.get(i - 1);
-                Point p2 = points.get(i);
+            for (int i = 1; i < currentEditingState.getPointCount(); i++) {
+                Point p1 = currentEditingState.getPoint(i - 1);
+                Point p2 = currentEditingState.getPoint(i);
                 midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
             }
-            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYGON && points.size() > 2) {
+            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYGON && currentEditingState.getPointCount() > 2) {
                 // Complete the circle
-                Point p1 = points.get(0);
-                Point p2 = points.get(points.size() - 1);
+                Point p1 = currentEditingState.getPoint(0);
+                Point p2 = currentEditingState.getPoint(currentEditingState.getPointCount() - 1);
                 midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
             }
 
@@ -406,11 +406,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
         int index = 0;
         SimpleMarkerSymbol symbol;
 
-        for (Point pt : points) {
+        for (Point pt : currentEditingState.getPoints()) {
             if (currentEditingState.isVertexSelected() && index == currentEditingState.getInsertingIndex()) {
                 // This vertex is currently selected so make it red
                 symbol = redMarkerSymbol;
-            } else if (index == points.size() - 1 && !currentEditingState.isMidPointSelected() && !currentEditingState.isVertexSelected()) {
+            } else if (index == currentEditingState.getPointCount() - 1 && !currentEditingState.isMidPointSelected() && !currentEditingState.isVertexSelected()) {
                 // Last vertex and none currently selected so make it red
                 symbol = redMarkerSymbol;
             } else {
@@ -433,24 +433,25 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void movePoint(Point point) {
         if (currentEditingState.isMidPointSelected()) {
             // Move mid-point to the new location and make it a vertex
-            points.add(currentEditingState.getInsertingIndex() + 1, point);
+            currentEditingState.addPoint(currentEditingState.getInsertingIndex() + 1, point);
         } else {
             // Must be a vertex: move it to the new location
             ArrayList<Point> temp = new ArrayList<Point>();
-            for (int i = 0; i < points.size(); i++) {
+            for (int i = 0; i < currentEditingState.getPointCount(); i++) {
                 if (i == currentEditingState.getInsertingIndex()) {
                     temp.add(point);
                 } else {
-                    temp.add(points.get(i));
+                    temp.add(currentEditingState.getPoint(i));
                 }
             }
-            points.clear();
-            points.addAll(temp);
+            currentEditingState.clearPoints();
+            currentEditingState.addAllPoints(temp);
         }
         // Go back to the normal drawing mode and save the new editing state
         currentEditingState.setMidPointSelected(false);
         currentEditingState.setVertexSelected(false);
-        editingStates.add(new EditingState(points, currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+        // TODO replace with currentEditingState?
+        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
     }
 
     /**
@@ -458,11 +459,11 @@ public class AddFeatureDialogFragment extends DialogFragment {
      *
      * @param x             Screen coordinate of location to check.
      * @param y             Screen coordinate of location to check.
-     * @param points        Array of points to check.
+     * @param points        List of points to check.
      * @param mapController the MapController for the editing app.
      * @return Index within points of matching point, or -1 if none.
      */
-    private int getSelectedIndex(double x, double y, ArrayList<Point> points, MapController mapController) {
+    private int getSelectedIndex(double x, double y, List<Point> points, MapController mapController) {
         final int TOLERANCE = 40; // Tolerance in pixels
 
         if (points == null || points.size() == 0) {
@@ -494,15 +495,16 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void actionUndo() {
         editingStates.remove(editingStates.size() - 1);
-        points.clear();
+        currentEditingState.clearPoints();
         if (editingStates.size() == 0) {
             currentEditingState.setMidPointSelected(false);
             currentEditingState.setVertexSelected(false);
             currentEditingState.setInsertingIndex(0);
         } else {
             EditingState state = editingStates.get(editingStates.size() - 1);
-            points.addAll(state.getPoints());
-            Log.d(TAG, "# of points = " + points.size());
+            // TODO simply set state = currentEditingState?
+            currentEditingState.addAllPoints(state.getPoints());
+            Log.d(TAG, "# of points = " + currentEditingState.getPointCount());
             currentEditingState.setMidPointSelected(state.isMidPointSelected());
             currentEditingState.setVertexSelected(state.isVertexSelected());
             currentEditingState.setInsertingIndex(state.getInsertingIndex());
@@ -512,13 +514,14 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void actionDeletePoint() {
         if (!currentEditingState.isVertexSelected()) {
-            points.remove(points.size() - 1); // remove last vertex
+            currentEditingState.removePoint(currentEditingState.getPointCount() - 1); // remove last vertex
         } else {
-            points.remove(currentEditingState.getInsertingIndex()); // remove currently selected vertex
+            currentEditingState.removePoint(currentEditingState.getInsertingIndex()); // remove currently selected vertex
         }
         currentEditingState.setMidPointSelected(false);
         currentEditingState.setVertexSelected(false);
-        editingStates.add(new EditingState(points, currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
+        // TODO replace with editingState.add(currentEditingState)?
+        editingStates.add(new EditingState(currentEditingState.getPoints(), currentEditingState.isMidPointSelected(), currentEditingState.isVertexSelected(), currentEditingState.getInsertingIndex()));
         refresh();
     }
 
@@ -528,15 +531,15 @@ public class AddFeatureDialogFragment extends DialogFragment {
         Geometry geom = null;
         switch (geometryEditController.getEditMode()) {
             case POINT:
-                geom = points.get(0);
+                geom = currentEditingState.getPoint(0);
                 break;
 
             case POLYLINE:
             case POLYGON:
                 MultiPath multiPath = GeometryEditController.EditMode.POLYLINE == geometryEditController.getEditMode() ? new Polyline() : new Polygon();
-                multiPath.startPath(points.get(0));
-                for (int i = 0; i < points.size(); i++) {
-                    multiPath.lineTo(points.get(i));
+                multiPath.startPath(currentEditingState.getPoint(0));
+                for (int i = 0; i < currentEditingState.getPointCount(); i++) {
+                    multiPath.lineTo(currentEditingState.getPoint(i));
                 }
                 geom = multiPath;
         }
@@ -615,7 +618,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void clear() {
         // Clear feature editing data
-        points.clear();
+        currentEditingState.clearPoints();
         midPoints.clear();
         editingStates.clear();
 
