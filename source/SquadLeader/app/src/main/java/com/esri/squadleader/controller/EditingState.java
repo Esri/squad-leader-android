@@ -27,31 +27,31 @@ public class EditingState {
     }
 
     public List<Point> getPoints() {
-        return points;
+        return new ArrayList<>(points);
     }
 
     public boolean isMidPointSelected() {
         return midPointSelected;
     }
 
+    public void setMidPointSelected(boolean midPointSelected) {
+        this.midPointSelected = midPointSelected;
+    }
+
     public boolean isVertexSelected() {
         return vertexSelected;
+    }
+
+    public void setVertexSelected(boolean vertexSelected) {
+        this.vertexSelected = vertexSelected;
     }
 
     public int getInsertingIndex() {
         return insertingIndex;
     }
 
-//    public boolean isVertexSelected() {
-//        return vertexSelected;
-//    }
-//
-//    public Point removeLastPoint() {
-//        return points.remove(points.size() - 1);
-//    }
-//
-//    public Point removeSelectedPoint() {
-//        return points.remove(insertingIndex);
-//    }
+    public void setInsertingIndex(int insertingIndex) {
+        this.insertingIndex = insertingIndex;
+    }
 
 }
