@@ -57,6 +57,7 @@ import com.esri.core.table.FeatureTable;
 import com.esri.core.table.TableException;
 import com.esri.core.tasks.query.QueryParameters;
 import com.esri.squadleader.R;
+import com.esri.squadleader.controller.EditingState;
 import com.esri.squadleader.controller.GeometryEditController;
 import com.esri.squadleader.controller.MapController;
 
@@ -99,23 +100,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     }
 
-    private class EditingStates {
-        ArrayList<Point> points = new ArrayList<Point>();
-
-        boolean midPointSelected = false;
-
-        boolean vertexSelected = false;
-
-        int insertingIndex;
-
-        public EditingStates(ArrayList<Point> points, boolean midpointselected, boolean vertexselected, int insertingindex) {
-            this.points.addAll(points);
-            this.midPointSelected = midpointselected;
-            this.vertexSelected = vertexselected;
-            this.insertingIndex = insertingindex;
-        }
-    }
-
     public static final String ARG_FEATURE_LAYERS = "feature layers";
 
     private static final String TAG = AddFeatureDialogFragment.class.getSimpleName();
@@ -126,7 +110,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private final GeometryEditController geometryEditController = new GeometryEditController();
     private final ArrayList<Point> points = new ArrayList<Point>();
-    private final ArrayList<EditingStates> editingStates = new ArrayList<EditingStates>();
+    private final ArrayList<EditingState> editingStates = new ArrayList<>();
     private ArrayList<Point> midPoints = new ArrayList<Point>();
     private final OnSingleTapListener editingListener = new OnSingleTapListener() {
         @Override
@@ -152,7 +136,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                     } else {
                         // No matching point above, add new vertex at tap point
                         points.add(point);
-                        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
+                        editingStates.add(new EditingState(points, midPointSelected, vertexSelected, insertingIndex));
                     }
                 }
             }
@@ -468,7 +452,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         // Go back to the normal drawing mode and save the new editing state
         midPointSelected = false;
         vertexSelected = false;
-        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
+        editingStates.add(new EditingState(points, midPointSelected, vertexSelected, insertingIndex));
     }
 
     /**
@@ -518,12 +502,12 @@ public class AddFeatureDialogFragment extends DialogFragment {
             vertexSelected = false;
             insertingIndex = 0;
         } else {
-            EditingStates state = editingStates.get(editingStates.size() - 1);
-            points.addAll(state.points);
+            EditingState state = editingStates.get(editingStates.size() - 1);
+            points.addAll(state.getPoints());
             Log.d(TAG, "# of points = " + points.size());
-            midPointSelected = state.midPointSelected;
-            vertexSelected = state.vertexSelected;
-            insertingIndex = state.insertingIndex;
+            midPointSelected = state.isMidPointSelected();
+            vertexSelected = state.isVertexSelected();
+            insertingIndex = state.getInsertingIndex();
         }
         refresh();
     }
@@ -536,7 +520,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
         midPointSelected = false;
         vertexSelected = false;
-        editingStates.add(new EditingStates(points, midPointSelected, vertexSelected, insertingIndex));
+        editingStates.add(new EditingState(points, midPointSelected, vertexSelected, insertingIndex));
         refresh();
     }
 
