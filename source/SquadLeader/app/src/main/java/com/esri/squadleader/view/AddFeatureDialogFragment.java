@@ -252,7 +252,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
                                 break;
 
                             case R.id.delete_point:
-                                actionDeletePoint();
+                                geometryEditController.deletePoint();
+                                refresh();
                                 returnValue = true;
                                 break;
 
@@ -488,12 +489,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
             return index;
         }
         return -1;
-    }
-
-    private void actionDeletePoint() {
-        geometryEditController.getCurrentEditingState().deletePoint();
-        geometryEditController.addEditingState(new EditingState(geometryEditController.getCurrentEditingState()));
-        refresh();
     }
 
     private void actionSave(FeatureLayer layerToEdit) throws TableException {

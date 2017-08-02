@@ -8,6 +8,10 @@ import java.util.List;
  */
 public class GeometryEditController {
 
+    /**
+     * An EditMode is a geometry type to be edited, as well as NONE for times when no edit is
+     * happening and SAVING for when edits are being saved.
+     */
     public enum EditMode {
         NONE, POINT, POLYLINE, POLYGON, SAVING
     }
@@ -17,11 +21,22 @@ public class GeometryEditController {
 
     private EditMode editMode = EditMode.NONE;
 
+    /**
+     * Undoes the last edit to the geometry.
+     */
     public void undo() {
         editingStates.remove(editingStates.size() - 1);
         currentEditingState = 0 == editingStates.size() ?
                 new EditingState() :
                 new EditingState(editingStates.get(editingStates.size() - 1));
+    }
+
+    /**
+     * Deletes the last point added to the geometry.
+     */
+    public void deletePoint() {
+        currentEditingState.deletePoint();
+        editingStates.add(new EditingState(currentEditingState));
     }
 
     public EditMode getEditMode() {
@@ -30,13 +45,6 @@ public class GeometryEditController {
 
     public void setEditMode(EditMode editMode) {
         this.editMode = editMode;
-    }
-
-    /**
-     * @return a copy of the list that references the editing states.
-     */
-    public List<EditingState> getEditingStates() {
-        return new ArrayList<>(editingStates);
     }
 
     public int getEditingStatesCount() {
