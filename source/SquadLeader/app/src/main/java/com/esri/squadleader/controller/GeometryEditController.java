@@ -97,6 +97,28 @@ public class GeometryEditController {
     }
 
     /**
+     * @return true if there is enough info to save a geometry (e.g. at least three points for a
+     * polygon) and false otherwise.
+     */
+    public boolean isSaveValid() {
+        int minPoints;
+        switch (editMode) {
+            case POINT:
+                minPoints = 1;
+                break;
+            case POLYGON:
+                minPoints = 3;
+                break;
+            case POLYLINE:
+                minPoints = 2;
+                break;
+            default:
+                return false;
+        }
+        return currentEditingState.getPointCount() >= minPoints;
+    }
+
+    /**
      * @return the current editing state's geometry.
      */
     public Geometry getCurrentGeometry() {

@@ -291,7 +291,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
             discard();
         } else {
             // We are editing
-            showAction(R.id.save, isSaveValid());
+            showAction(R.id.save, geometryEditController.isSaveValid());
             showAction(R.id.delete_point, geometryEditController.getEditMode() != GeometryEditController.EditMode.POINT && geometryEditController.getCurrentEditingState().getPointCount() > 0 && !geometryEditController.getCurrentEditingState().isMidPointSelected());
             showAction(R.id.undo, geometryEditController.getEditingStatesCount() > 0);
             mapController.setOnSingleTapListener(editingListener);
@@ -307,24 +307,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
         drawVertices();
 
         updateActionBar();
-    }
-
-    private boolean isSaveValid() {
-        int minPoints;
-        switch (geometryEditController.getEditMode()) {
-            case POINT:
-                minPoints = 1;
-                break;
-            case POLYGON:
-                minPoints = 3;
-                break;
-            case POLYLINE:
-                minPoints = 2;
-                break;
-            default:
-                return false;
-        }
-        return geometryEditController.getCurrentEditingState().getPointCount() >= minPoints;
     }
 
     private void drawPolylineOrPolygon() {
