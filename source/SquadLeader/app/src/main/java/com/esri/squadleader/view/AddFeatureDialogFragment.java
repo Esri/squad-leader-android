@@ -590,13 +590,9 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     private void clear() {
         // Clear feature editing data
-        currentEditingState.clearPoints();
+        currentEditingState = new EditingState();
         midPoints.clear();
         editingStates.clear();
-
-        currentEditingState.setMidPointSelected(false);
-        currentEditingState.setVertexSelected(false);
-        currentEditingState.setInsertingIndex(0);
 
         if (graphicsLayerEditing != null) {
             graphicsLayerEditing.removeAll();
