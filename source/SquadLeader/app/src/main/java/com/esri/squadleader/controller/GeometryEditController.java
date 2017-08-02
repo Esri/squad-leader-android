@@ -13,6 +13,7 @@ public class GeometryEditController {
     }
 
     private final ArrayList<EditingState> editingStates = new ArrayList<>();
+    private EditingState currentEditingState = new EditingState();
 
     private EditMode editMode = EditMode.NONE;
 
@@ -49,6 +50,14 @@ public class GeometryEditController {
 
     public void clearEditingStates() {
         editingStates.clear();
+    }
+
+    public EditingState getCurrentEditingState() {
+        return currentEditingState;
+    }
+
+    public void setCurrentEditingState(EditingState editingState) {
+        this.currentEditingState = editingState;
     }
 
 }
