@@ -109,7 +109,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
     private final GeometryEditController geometryEditController = new GeometryEditController();
-    private ArrayList<Point> midPoints = new ArrayList<>();
     private final OnSingleTapListener editingListener = new OnSingleTapListener() {
         @Override
         public void onSingleTap(final float x, final float y) {
@@ -121,7 +120,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 movePoint(point);
             } else {
                 // If tap coincides with a mid-point, select that mid-point
-                int idx1 = getSelectedIndex(x, y, midPoints, mapController);
+                int idx1 = getSelectedIndex(x, y, geometryEditController.getMidpoints(), mapController);
                 if (idx1 != -1) {
                     geometryEditController.getCurrentEditingState().setMidPointSelected(true);
                     geometryEditController.getCurrentEditingState().setInsertingIndex(idx1);
@@ -364,29 +363,30 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
     }
 
+    // TODO refactor to GeometryEditController?
     private void drawMidPoints() {
         int index;
         Graphic graphic;
 
-        midPoints.clear();
+        geometryEditController.clearMidpoints();
         if (geometryEditController.getCurrentEditingState().getPointCount() > 1) {
 
             // Build new list of mid-points
             for (int i = 1; i < geometryEditController.getCurrentEditingState().getPointCount(); i++) {
                 Point p1 = geometryEditController.getCurrentEditingState().getPoint(i - 1);
                 Point p2 = geometryEditController.getCurrentEditingState().getPoint(i);
-                midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+                geometryEditController.addMidpoint(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
             }
             if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYGON && geometryEditController.getCurrentEditingState().getPointCount() > 2) {
                 // Complete the circle
                 Point p1 = geometryEditController.getCurrentEditingState().getPoint(0);
                 Point p2 = geometryEditController.getCurrentEditingState().getPoint(geometryEditController.getCurrentEditingState().getPointCount() - 1);
-                midPoints.add(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
+                geometryEditController.addMidpoint(new Point((p1.getX() + p2.getX()) / 2, (p1.getY() + p2.getY()) / 2));
             }
 
             // Draw the mid-points
             index = 0;
-            for (Point pt : midPoints) {
+            for (Point pt : geometryEditController.getMidpoints()) {
                 if (geometryEditController.getCurrentEditingState().isMidPointSelected() && geometryEditController.getCurrentEditingState().getInsertingIndex() == index) {
                     graphic = new Graphic(pt, redMarkerSymbol);
                 } else {
@@ -567,8 +567,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void clear() {
         // Clear feature editing data
         geometryEditController.setCurrentEditingState(new EditingState());
-        // TODO refactor midPoints to GeometryEditController?
-        midPoints.clear();
+        geometryEditController.clearMidpoints();
         geometryEditController.clearEditingStates();
 
         if (graphicsLayerEditing != null) {

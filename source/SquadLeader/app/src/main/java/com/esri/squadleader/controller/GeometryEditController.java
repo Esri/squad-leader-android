@@ -1,6 +1,7 @@
 package com.esri.squadleader.controller;
 
 import com.esri.core.geometry.Geometry;
+import com.esri.core.geometry.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ public class GeometryEditController {
 
     private final ArrayList<EditingState> editingStates = new ArrayList<>();
     private EditingState currentEditingState = new EditingState();
+    private final ArrayList<Point> midpoints = new ArrayList<>();
 
     private EditMode editMode = EditMode.NONE;
 
@@ -82,6 +84,21 @@ public class GeometryEditController {
 
     public void setCurrentEditingState(EditingState editingState) {
         this.currentEditingState = editingState;
+    }
+
+    /**
+     * @return a copy of the list of midpoints; the points themselves are not copied.
+     */
+    public List<Point> getMidpoints() {
+        return new ArrayList<>(midpoints);
+    }
+
+    public boolean addMidpoint(Point point) {
+        return midpoints.add(point);
+    }
+
+    public void clearMidpoints() {
+        midpoints.clear();
     }
 
 }
