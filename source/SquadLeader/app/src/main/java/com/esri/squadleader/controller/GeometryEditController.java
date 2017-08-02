@@ -17,6 +17,13 @@ public class GeometryEditController {
 
     private EditMode editMode = EditMode.NONE;
 
+    public void undo() {
+        editingStates.remove(editingStates.size() - 1);
+        currentEditingState = 0 == editingStates.size() ?
+                new EditingState() :
+                new EditingState(editingStates.get(editingStates.size() - 1));
+    }
+
     public EditMode getEditMode() {
         return editMode;
     }
@@ -32,20 +39,12 @@ public class GeometryEditController {
         return new ArrayList<>(editingStates);
     }
 
-    public EditingState getEditingState(int index) {
-        return editingStates.get(index);
-    }
-
     public int getEditingStatesCount() {
         return editingStates.size();
     }
 
     public boolean addEditingState(EditingState editingState) {
         return editingStates.add(editingState);
-    }
-
-    public EditingState removeEditingState(int index) {
-        return editingStates.remove(index);
     }
 
     public void clearEditingStates() {

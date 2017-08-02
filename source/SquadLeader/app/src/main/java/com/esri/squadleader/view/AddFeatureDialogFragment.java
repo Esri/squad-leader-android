@@ -257,7 +257,8 @@ public class AddFeatureDialogFragment extends DialogFragment {
                                 break;
 
                             case R.id.undo:
-                                actionUndo();
+                                geometryEditController.undo();
+                                refresh();
                                 returnValue = true;
                                 break;
                         }
@@ -487,15 +488,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
             return index;
         }
         return -1;
-    }
-
-    private void actionUndo() {
-        geometryEditController.removeEditingState(geometryEditController.getEditingStatesCount() - 1);
-        // TODO move currentEditingState (and this whole method) to GeometryEditController
-        geometryEditController.setCurrentEditingState(0 == geometryEditController.getEditingStatesCount() ?
-                new EditingState() :
-                new EditingState(geometryEditController.getEditingState(geometryEditController.getEditingStatesCount() - 1)));
-        refresh();
     }
 
     private void actionDeletePoint() {
