@@ -41,6 +41,13 @@ public class GeometryEditController {
         editingStates.add(new EditingState(currentEditingState));
     }
 
+    public void discardEdits() {
+        currentEditingState.clearPoints();
+        editingStates.clear();
+        editMode = EditMode.NONE;
+        currentEditingState.setMidPointSelected(false);
+    }
+
     /**
      * @return the current editing state's geometry.
      */
@@ -64,6 +71,7 @@ public class GeometryEditController {
         return editingStates.add(editingState);
     }
 
+    // TODO refactor and get rid of this method?
     public void clearEditingStates() {
         editingStates.clear();
     }

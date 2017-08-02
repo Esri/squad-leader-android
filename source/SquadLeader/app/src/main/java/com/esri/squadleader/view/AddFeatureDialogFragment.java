@@ -280,10 +280,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void discard() {
-        geometryEditController.getCurrentEditingState().clearPoints();
-        geometryEditController.clearEditingStates();
-        geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
-        geometryEditController.getCurrentEditingState().setMidPointSelected(false);
+        geometryEditController.discardEdits();
         mapController.removeLayer(graphicsLayerEditing);
         graphicsLayerEditing = null;
         mapController.setOnSingleTapListener(addFeatureListener == null ? null : addFeatureListener.getDefaultOnSingleTapListener());
@@ -570,6 +567,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     private void clear() {
         // Clear feature editing data
         geometryEditController.setCurrentEditingState(new EditingState());
+        // TODO refactor midPoints to GeometryEditController?
         midPoints.clear();
         geometryEditController.clearEditingStates();
 
