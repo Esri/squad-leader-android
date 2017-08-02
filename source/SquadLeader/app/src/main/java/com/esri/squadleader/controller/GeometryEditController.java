@@ -44,10 +44,10 @@ public class GeometryEditController {
     }
 
     public void discardEdits() {
-        currentEditingState.clearPoints();
         editingStates.clear();
+        midpoints.clear();
+        currentEditingState = new EditingState();
         editMode = EditMode.NONE;
-        currentEditingState.setMidPointSelected(false);
     }
 
     /**
@@ -73,17 +73,8 @@ public class GeometryEditController {
         return editingStates.add(editingState);
     }
 
-    // TODO refactor and get rid of this method?
-    public void clearEditingStates() {
-        editingStates.clear();
-    }
-
     public EditingState getCurrentEditingState() {
         return currentEditingState;
-    }
-
-    public void setCurrentEditingState(EditingState editingState) {
-        this.currentEditingState = editingState;
     }
 
     /**

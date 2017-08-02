@@ -559,10 +559,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void exitEditMode() {
-        geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
-        geometryEditController.setCurrentEditingState(new EditingState());
-        geometryEditController.clearMidpoints();
-        geometryEditController.clearEditingStates();
+        geometryEditController.discardEdits();
 
         if (graphicsLayerEditing != null) {
             graphicsLayerEditing.removeAll();
