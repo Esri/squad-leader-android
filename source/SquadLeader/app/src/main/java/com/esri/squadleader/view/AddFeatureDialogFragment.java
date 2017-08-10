@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -43,7 +44,6 @@ import com.esri.core.geodatabase.GeodatabaseFeatureTable;
 import com.esri.core.geodatabase.GeopackageFeatureTable;
 import com.esri.core.geometry.Geometry;
 import com.esri.core.map.Feature;
-import com.esri.core.map.FeatureEditResult;
 import com.esri.core.table.FeatureTable;
 import com.esri.core.table.TableException;
 import com.esri.core.tasks.query.QueryParameters;
@@ -162,6 +162,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
                     @Override
                     public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                        geometryEditController.discardEdits();
                         actionMode.getMenuInflater().inflate(R.menu.add_feature_context_menu, menu);
                         actionMode.setTitle(layerNames.get(position));
                         editingMenu = menu;
@@ -227,7 +228,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void discard() {
-        geometryEditController.discardEdits();
         mapController.removeLayer(graphicsLayerEditing);
         graphicsLayerEditing = null;
         mapController.setOnSingleTapListener(addFeatureListener == null ? null : addFeatureListener.getDefaultOnSingleTapListener());
@@ -265,79 +265,83 @@ public class AddFeatureDialogFragment extends DialogFragment {
         }
     }
 
-    private void actionSave(FeatureLayer layerToEdit) throws TableException {
-        final FeatureTable featureTable = layerToEdit.getFeatureTable();
+    private void actionSave(final FeatureLayer layerToEdit) throws TableException {
+        new AsyncTask<Void, Void, Long>() {
 
-        Geometry geom = geometryEditController.getCurrentGeometry();
-        if (null != geom) {
-            Feature newFeature = null;
-            if (featureTable instanceof GeopackageFeatureTable) {
-                newFeature = ((GeopackageFeatureTable) featureTable).createNewFeature(null, geom);
-            } else if (featureTable instanceof GeodatabaseFeatureTable) {
-                newFeature = ((GeodatabaseFeatureTable) featureTable).createNewFeature(null, geom);
-            }
+            private Throwable throwable = null;
 
-            Long featureId = null;
-            if (null != newFeature) {
-                try {
-                    featureId = featureTable.addFeature(newFeature);
-                } catch (Throwable t) {
-                    Log.e(TAG, "Could not add feature", t);
-                    Toast.makeText(activity, "Could not add feature: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-            completeSaveAction(null, featureId, layerToEdit);
-        }
-    }
-
-    private void completeSaveAction(final FeatureEditResult[][] results, final Long featureId, final FeatureLayer featureLayer) {
-        if (null != activity) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    boolean success = true;
-                    if (results != null) {
-                        if (results[0][0].isSuccess()) {
-                            String msg = getString(R.string.saved);
-                            Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
-                        } else {
-                            success = false;
-                            EditFailedDialogFragment frag = new EditFailedDialogFragment();
-                            frag.setMessage(results[0][0].getError().getDescription());
-                            frag.show(getFragmentManager(), TAG_DIALOG_FRAGMENTS);
-                        }
-                    }
-                    activity.setProgressBarIndeterminateVisibility(false);
-                    exitEditMode();
-
-                    if (success) {
-                        QueryParameters queryParameters = new QueryParameters();
-                        queryParameters.setObjectIds(new long[]{featureId});
-                        final FutureTask<List<Popup>> identifyFuture = mapController.queryFeatureLayer(featureLayer, queryParameters);
-                        Executors.newSingleThreadExecutor().submit(identifyFuture);
+            @Override
+            protected Long doInBackground(Void... nothing) {
+                Long featureId = null;
+                final FeatureTable featureTable = layerToEdit.getFeatureTable();
+                Geometry geom = geometryEditController.getCurrentGeometry();
+                if (null != geom) {
+                    geometryEditController.setEditMode(GeometryEditController.EditMode.SAVING);
+                    Feature newFeature = null;
+                    if (featureTable instanceof GeopackageFeatureTable) {
                         try {
-                            final List<Popup> popups = identifyFuture.get();
-                            if (1 == popups.size()) {
-                                if (null != addFeatureListener) {
-                                    addFeatureListener.featureAdded(popups.get(0));
-                                } else {
-                                    Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
-                                }
-                            } else {
-                                Log.w(TAG, getString(R.string.feature_id_query_expected_single_result, featureId, popups.size()));
-                            }
-                        } catch (InterruptedException | ExecutionException e) {
-                            Log.e(TAG, "Exception while identifying feature layers", e);
+                            newFeature = ((GeopackageFeatureTable) featureTable).createNewFeature(null, geom);
+                        } catch (TableException e) {
+                            Log.e(TAG, "Could not create new GeoPackage feature", e);
+                            throwable = e;
+                        }
+                    } else if (featureTable instanceof GeodatabaseFeatureTable) {
+                        try {
+                            newFeature = ((GeodatabaseFeatureTable) featureTable).createNewFeature(null, geom);
+                        } catch (TableException e) {
+                            Log.e(TAG, "Could not create new geodatabase feature", e);
+                            throwable = e;
                         }
                     }
+
+                    if (null != newFeature) {
+                        try {
+                            featureId = featureTable.addFeature(newFeature);
+                        } catch (Throwable t) {
+                            Log.e(TAG, "Could not add feature", t);
+                            throwable = t;
+                        }
+                    }
+
                 }
-            });
-        }
+                return featureId;
+            }
+
+            @Override
+            protected void onPostExecute(Long featureId) {
+                activity.setProgressBarIndeterminateVisibility(false);
+                exitEditMode();
+
+                if (null != featureId) {
+                    QueryParameters queryParameters = new QueryParameters();
+                    queryParameters.setObjectIds(new long[]{featureId});
+                    final FutureTask<List<Popup>> identifyFuture = mapController.queryFeatureLayer(layerToEdit, queryParameters);
+                    Executors.newSingleThreadExecutor().submit(identifyFuture);
+                    try {
+                        final List<Popup> popups = identifyFuture.get();
+                        if (1 == popups.size()) {
+                            if (null != addFeatureListener) {
+                                addFeatureListener.featureAdded(popups.get(0));
+                            } else {
+                                Log.w(TAG, getString(R.string.no_add_feature_listener, activity.getClass().getName()));
+                            }
+                        } else {
+                            Log.w(TAG, getString(R.string.feature_id_query_expected_single_result, featureId, popups.size()));
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.e(TAG, "Exception while identifying feature layers", e);
+                    }
+                } else {
+                    Toast.makeText(activity,
+                            "Could not add feature" + (null == throwable ? "" : ": " + throwable.getMessage()),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+        }.execute();
     }
 
     private void exitEditMode() {
-        geometryEditController.discardEdits();
-
         if (graphicsLayerEditing != null) {
             graphicsLayerEditing.removeAll();
         }
