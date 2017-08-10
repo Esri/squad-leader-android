@@ -19,7 +19,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -43,21 +42,12 @@ import com.esri.android.map.popup.Popup;
 import com.esri.core.geodatabase.GeodatabaseFeatureTable;
 import com.esri.core.geodatabase.GeopackageFeatureTable;
 import com.esri.core.geometry.Geometry;
-import com.esri.core.geometry.MultiPath;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.Polygon;
-import com.esri.core.geometry.Polyline;
 import com.esri.core.map.Feature;
 import com.esri.core.map.FeatureEditResult;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.SimpleFillSymbol;
-import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.core.table.FeatureTable;
 import com.esri.core.table.TableException;
 import com.esri.core.tasks.query.QueryParameters;
 import com.esri.squadleader.R;
-import com.esri.squadleader.controller.EditingState;
 import com.esri.squadleader.controller.GeometryEditController;
 import com.esri.squadleader.controller.MapController;
 
@@ -100,43 +90,14 @@ public class AddFeatureDialogFragment extends DialogFragment {
 
     }
 
-    public static final String ARG_FEATURE_LAYERS = "feature layers";
-
     private static final String TAG = AddFeatureDialogFragment.class.getSimpleName();
-    private static final SimpleMarkerSymbol redMarkerSymbol = new SimpleMarkerSymbol(Color.RED, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
-    private static final SimpleMarkerSymbol blackMarkerSymbol = new SimpleMarkerSymbol(Color.BLACK, 20, SimpleMarkerSymbol.STYLE.CIRCLE);
-    private static final SimpleMarkerSymbol greenMarkerSymbol = new SimpleMarkerSymbol(Color.GREEN, 15, SimpleMarkerSymbol.STYLE.CIRCLE);
     private static final String TAG_DIALOG_FRAGMENTS = "dialog";
 
     private final GeometryEditController geometryEditController = new GeometryEditController();
     private final OnSingleTapListener editingListener = new OnSingleTapListener() {
         @Override
         public void onSingleTap(final float x, final float y) {
-            Point point = mapController.toMapPointObject(Math.round(x), Math.round(y));
-            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POINT) {
-                geometryEditController.getCurrentEditingState().clearPoints();
-            }
-            if (geometryEditController.getCurrentEditingState().isMidPointSelected() || geometryEditController.getCurrentEditingState().isVertexSelected()) {
-                movePoint(point);
-            } else {
-                // If tap coincides with a mid-point, select that mid-point
-                int idx1 = getSelectedIndex(x, y, geometryEditController.getMidpoints(), mapController);
-                if (idx1 != -1) {
-                    geometryEditController.getCurrentEditingState().setMidPointSelected(true);
-                    geometryEditController.getCurrentEditingState().setInsertingIndex(idx1);
-                } else {
-                    // If tap coincides with a vertex, select that vertex
-                    int idx2 = getSelectedIndex(x, y, geometryEditController.getCurrentEditingState().getPoints(), mapController);
-                    if (idx2 != -1) {
-                        geometryEditController.getCurrentEditingState().setVertexSelected(true);
-                        geometryEditController.getCurrentEditingState().setInsertingIndex(idx2);
-                    } else {
-                        // No matching point above, add new vertex at tap point
-                        geometryEditController.getCurrentEditingState().addPoint(point);
-                        geometryEditController.addEditingState(new EditingState(geometryEditController.getCurrentEditingState()));
-                    }
-                }
-            }
+            geometryEditController.handleScreenPoint(x, y, mapController);
             refresh();
         }
     };
@@ -191,7 +152,7 @@ public class AddFeatureDialogFragment extends DialogFragment {
                 return dropDownView;
             }
         };
-        ListView listView_layersToEdit = (ListView) inflatedView.findViewById(R.id.listView_layersToEdit);
+        ListView listView_layersToEdit = inflatedView.findViewById(R.id.listView_layersToEdit);
         listView_layersToEdit.setAdapter(adapter);
         listView_layersToEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -205,23 +166,10 @@ public class AddFeatureDialogFragment extends DialogFragment {
                         actionMode.setTitle(layerNames.get(position));
                         editingMenu = menu;
 
-                        switch (layerToEdit.getGeometryType()) {
-                            case MULTIPOINT:
-                            case POINT:
-                                geometryEditController.setEditMode(GeometryEditController.EditMode.POINT);
-                                break;
-                            case LINE:
-                            case POLYLINE:
-                                geometryEditController.setEditMode(GeometryEditController.EditMode.POLYLINE);
-                                break;
-                            case ENVELOPE:
-                            case POLYGON:
-                                geometryEditController.setEditMode(GeometryEditController.EditMode.POLYGON);
-                                break;
-                            default:
-                                geometryEditController.setEditMode(GeometryEditController.EditMode.NONE);
-                                discard();
-                                dismiss();
+                        final GeometryEditController.EditMode newEditMode = geometryEditController.setEditMode(layerToEdit.getGeometryType());
+                        if (GeometryEditController.EditMode.NONE == newEditMode) {
+                            discard();
+                            dismiss();
                         }
                         updateActionBar();
 
@@ -299,71 +247,15 @@ public class AddFeatureDialogFragment extends DialogFragment {
     }
 
     private void refresh() {
-        if (graphicsLayerEditing != null) {
-            graphicsLayerEditing.removeAll();
-        }
-        drawPolylineOrPolygon();
-        geometryEditController.drawMidpoints(graphicsLayerEditing);
-        drawVertices();
-
-        updateActionBar();
-    }
-
-    private void drawPolylineOrPolygon() {
-        Graphic graphic;
-        MultiPath multipath;
-
-        // Create and add graphics layer if it doesn't already exist
-        if (graphicsLayerEditing == null) {
+        if (null == graphicsLayerEditing) {
             graphicsLayerEditing = new GraphicsLayer();
             mapController.addLayer(graphicsLayerEditing);
+        } else {
+            graphicsLayerEditing.removeAll();
         }
+        geometryEditController.draw(graphicsLayerEditing);
 
-        if (geometryEditController.getCurrentEditingState().getPointCount() > 1) {
-
-            // Build a MultiPath containing the vertices
-            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYLINE) {
-                multipath = new Polyline();
-            } else {
-                multipath = new Polygon();
-            }
-            multipath.startPath(geometryEditController.getCurrentEditingState().getPoint(0));
-            for (int i = 1; i < geometryEditController.getCurrentEditingState().getPointCount(); i++) {
-                multipath.lineTo(geometryEditController.getCurrentEditingState().getPoint(i));
-            }
-
-            // Draw it using a line or fill symbol
-            if (geometryEditController.getEditMode() == GeometryEditController.EditMode.POLYLINE) {
-                graphic = new Graphic(multipath, new SimpleLineSymbol(Color.BLACK, 4));
-            } else {
-                SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol(Color.YELLOW);
-                simpleFillSymbol.setAlpha(100);
-                simpleFillSymbol.setOutline(new SimpleLineSymbol(Color.BLACK, 4));
-                graphic = new Graphic(multipath, (simpleFillSymbol));
-            }
-            graphicsLayerEditing.addGraphic(graphic);
-        }
-    }
-
-    private void drawVertices() {
-        int index = 0;
-        SimpleMarkerSymbol symbol;
-
-        for (Point pt : geometryEditController.getCurrentEditingState().getPoints()) {
-            if (geometryEditController.getCurrentEditingState().isVertexSelected() && index == geometryEditController.getCurrentEditingState().getInsertingIndex()) {
-                // This vertex is currently selected so make it red
-                symbol = redMarkerSymbol;
-            } else if (index == geometryEditController.getCurrentEditingState().getPointCount() - 1 && !geometryEditController.getCurrentEditingState().isMidPointSelected() && !geometryEditController.getCurrentEditingState().isVertexSelected()) {
-                // Last vertex and none currently selected so make it red
-                symbol = redMarkerSymbol;
-            } else {
-                // Otherwise make it black
-                symbol = blackMarkerSymbol;
-            }
-            Graphic graphic = new Graphic(pt, symbol);
-            graphicsLayerEditing.addGraphic(graphic);
-            index++;
-        }
+        updateActionBar();
     }
 
     private void showAction(int resId, boolean show) {
@@ -371,68 +263,6 @@ public class AddFeatureDialogFragment extends DialogFragment {
             MenuItem item = editingMenu.findItem(resId);
             item.setVisible(show);
         }
-    }
-
-    private void movePoint(Point point) {
-        if (geometryEditController.getCurrentEditingState().isMidPointSelected()) {
-            // Move mid-point to the new location and make it a vertex
-            geometryEditController.getCurrentEditingState().addPoint(geometryEditController.getCurrentEditingState().getInsertingIndex() + 1, point);
-        } else {
-            // Must be a vertex: move it to the new location
-            ArrayList<Point> temp = new ArrayList<Point>();
-            for (int i = 0; i < geometryEditController.getCurrentEditingState().getPointCount(); i++) {
-                if (i == geometryEditController.getCurrentEditingState().getInsertingIndex()) {
-                    temp.add(point);
-                } else {
-                    temp.add(geometryEditController.getCurrentEditingState().getPoint(i));
-                }
-            }
-            geometryEditController.getCurrentEditingState().clearPoints();
-            geometryEditController.getCurrentEditingState().addAllPoints(temp);
-        }
-        // Go back to the normal drawing mode and save the new editing state
-        geometryEditController.getCurrentEditingState().setMidPointSelected(false);
-        geometryEditController.getCurrentEditingState().setVertexSelected(false);
-        geometryEditController.addEditingState(new EditingState(geometryEditController.getCurrentEditingState()));
-    }
-
-    /**
-     * Checks if a given location coincides (within a tolerance) with a point in a given array.
-     *
-     * @param x             Screen coordinate of location to check.
-     * @param y             Screen coordinate of location to check.
-     * @param points        List of points to check.
-     * @param mapController the MapController for the editing app.
-     * @return Index within points of matching point, or -1 if none.
-     */
-    private int getSelectedIndex(double x, double y, List<Point> points, MapController mapController) {
-        final int TOLERANCE = 40; // Tolerance in pixels
-
-        if (points == null || points.size() == 0) {
-            return -1;
-        }
-
-        // Find closest point
-        int index = -1;
-        double distSQ_Small = Double.MAX_VALUE;
-        for (int i = 0; i < points.size(); i++) {
-            Point mapPoint = points.get(i);
-            double[] screenCoords = mapController.toScreenPoint(mapPoint.getX(), mapPoint.getY());
-            Point p = new Point(screenCoords[0], screenCoords[1]);
-            double diffx = p.getX() - x;
-            double diffy = p.getY() - y;
-            double distSQ = diffx * diffx + diffy * diffy;
-            if (distSQ < distSQ_Small) {
-                index = i;
-                distSQ_Small = distSQ;
-            }
-        }
-
-        // Check if it's close enough
-        if (distSQ_Small < (TOLERANCE * TOLERANCE)) {
-            return index;
-        }
-        return -1;
     }
 
     private void actionSave(FeatureLayer layerToEdit) throws TableException {
